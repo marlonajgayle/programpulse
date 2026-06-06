@@ -1,0 +1,6 @@
+@ProgramPulse.Api_HostAddress = http://localhost:5017
+
+GET {{ProgramPulse.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
