@@ -28,7 +28,7 @@ public sealed class GlobalExceptionHandler(
 
         var problemDetails = exception.ToProblemDetails(
             context,
-            _environment.IsDevelopment());
+            _environment.IsDevelopmentOrLocal());
 
         context.Response.StatusCode =
             problemDetails.Status ?? StatusCodes.Status500InternalServerError;

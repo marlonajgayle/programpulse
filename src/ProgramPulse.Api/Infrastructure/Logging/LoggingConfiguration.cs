@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Primitives;
+using ProgramPulse.Api.Infrastructure;
 using Serilog;
 using Serilog.Events;
 
@@ -11,7 +12,7 @@ public static class LoggingConfiguration
     {
         hostBuilder.UseSerilog((ctx, loggerConf) =>
         {
-            bool isDevelopment = ctx.HostingEnvironment.IsDevelopment();
+            bool isDevelopment = ctx.HostingEnvironment.IsDevelopmentOrLocal();
 
             loggerConf
                 .MinimumLevel.Information()

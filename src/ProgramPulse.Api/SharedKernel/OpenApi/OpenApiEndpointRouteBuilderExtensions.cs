@@ -1,3 +1,4 @@
+using ProgramPulse.Api.Infrastructure;
 using ProgramPulse.Api.SharedKernel.Versioning;
 using Scalar.AspNetCore;
 
@@ -9,7 +10,7 @@ public static class OpenApiEndpointRouteBuilderExtensions
         this IEndpointRouteBuilder app,
         IWebHostEnvironment env)
     {
-        if (!(env.IsDevelopment() || env.IsEnvironment("Local")))
+        if (!env.IsDevelopmentOrLocal())
             return app;
 
         // Serves /openapi/{documentName}.json for every registered version document.
