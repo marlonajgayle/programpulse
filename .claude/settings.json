@@ -10,7 +10,16 @@
       "Bash(curl -s -o /dev/null -w \"openapi: %{http_code}\\\\n\" http://localhost:5017/openapi/v1.json)",
       "Bash(curl -s -o /dev/null -w \"with-corr: %{http_code}\\\\n\" -H \"X-Correlation-ID: test-corr-123\" http://localhost:5017/openapi/v1.json)",
       "Bash(curl -s -o /dev/null -w \"404path: %{http_code}\\\\n\" http://localhost:5017/does-not-exist)",
-      "Bash(kill 27041)"
+      "Bash(kill 27041)",
+      "Bash(find ~/.nuget/packages/microsoft.openapi -name \"*.dll\" 2>/dev/null | grep -iE \"net|standard\" | head; echo \"---version dirs---\"; ls ~/.nuget/packages/microsoft.openapi 2>/dev/null)",
+      "Read(//Users/marlongayle/.nuget/packages/microsoft.openapi/**)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5017\" dotnet run --project src/ProgramPulse.Api --no-build)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(curl -s -i http://localhost:5017/api/v1/ping)",
+      "Bash(curl -s -i http://localhost:5017/api/ping)",
+      "Bash(curl -s http://localhost:5017/openapi/v1.json)",
+      "Bash(kill 76189)",
+      "Bash(pkill -f \"ProgramPulse.Api\")"
     ]
   }
 }
