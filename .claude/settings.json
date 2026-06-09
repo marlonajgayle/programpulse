@@ -21,7 +21,8 @@
       "Bash(kill 76189)",
       "Bash(pkill -f \"ProgramPulse.Api\")",
       "Bash(git mv *)",
-      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5099 dotnet run --project src/ProgramPulse.Api --no-build --launch-profile http > /tmp/pp_run.log 2>&1 & *)"
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5099 dotnet run --project src/ProgramPulse.Api --no-build --launch-profile http > /tmp/pp_run.log 2>&1 & *)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/ProgramPulse.Api --launch-profile http --no-build)"
     ],
     "additionalDirectories": [
       "/private/tmp"
