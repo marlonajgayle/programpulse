@@ -1,5 +1,6 @@
 using ProgramPulse.Api.Infrastructure.HealthChecks;
 using ProgramPulse.Api.Infrastructure.Logging;
+using ProgramPulse.Api.Infrastructure.RateLimiting;
 using ProgramPulse.Api.SharedKernel;
 using ProgramPulse.Api.SharedKernel.OpenApi;
 using ProgramPulse.Api.SharedKernel.Validation;
@@ -15,10 +16,12 @@ builder.Services.AddApiVersioningWithOpenApi();
 builder.Services.AddValidation();
 builder.Services.AddEndpoints();
 builder.Services.AddHealthCheckConfiguration(builder.Configuration);
+builder.Services.AddRateLimitingConfiguration(builder.Configuration);
 
 var app = builder.Build();
 
 app.UseRequestPerformanceLogging();
+app.UseRateLimitingConfiguration(builder.Configuration);
 app.UseHealthCheckConfiguration(builder.Configuration);
 
 // Configure the HTTP request pipeline.

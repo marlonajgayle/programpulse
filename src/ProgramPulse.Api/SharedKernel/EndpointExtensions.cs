@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using ProgramPulse.Api.Infrastructure.RateLimiting;
 using ProgramPulse.Api.SharedKernel.Versioning;
 
 namespace ProgramPulse.Api.SharedKernel;
@@ -28,7 +29,8 @@ public static class EndpointExtensions
 
         RouteGroupBuilder versioned = app
             .MapGroup("api/v{version:apiVersion}")
-            .WithApiVersionSet(versionSet);
+            .WithApiVersionSet(versionSet)
+            .RequireRateLimiting(RateLimitPolicies.IpFixedWindow);
 
         foreach (var endpoint in app.Services.GetRequiredService<IEnumerable<IEndpoint>>())
             endpoint.MapEndpoint(versioned);
