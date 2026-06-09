@@ -28,7 +28,10 @@ public static class ApiVersioningServiceCollectionExtensions
         {
             var documentName = $"v{version.MajorVersion}";
             services.AddOpenApi(documentName, options =>
-                options.AddDocumentTransformer<VersionedOpenApiDocumentTransformer>());
+            {
+                options.AddDocumentTransformer<VersionedOpenApiDocumentTransformer>();
+                options.AddOperationTransformer<VersionedOpenApiOperationTransformer>();
+            });
         }
 
         return services;
