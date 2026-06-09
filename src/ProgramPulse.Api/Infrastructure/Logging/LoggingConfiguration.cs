@@ -20,6 +20,7 @@ public static class LoggingConfiguration
 
                 // ---- Enrichers ----
                 .Enrich.FromLogContext()
+                .Enrich.With(new SensitiveDataMaskingEnricher())
                 .Enrich.WithEnvironmentName()
                 .Enrich.WithProcessId()
                 .Enrich.WithThreadId()
