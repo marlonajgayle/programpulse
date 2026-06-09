@@ -1,3 +1,4 @@
+using ProgramPulse.Api.Infrastructure.HealthChecks;
 using ProgramPulse.Api.Infrastructure.Logging;
 using ProgramPulse.Api.SharedKernel;
 using ProgramPulse.Api.SharedKernel.OpenApi;
@@ -13,10 +14,12 @@ builder.Host.ConfigureSerilog();
 builder.Services.AddApiVersioningWithOpenApi();
 builder.Services.AddValidation();
 builder.Services.AddEndpoints();
+builder.Services.AddHealthCheckConfiguration(builder.Configuration);
 
 var app = builder.Build();
 
 app.UseRequestPerformanceLogging();
+app.UseHealthCheckConfiguration(builder.Configuration);
 
 // Configure the HTTP request pipeline.
 app.MapApiDocumentation(app.Environment);
