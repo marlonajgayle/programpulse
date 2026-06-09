@@ -2,6 +2,7 @@ using ProgramPulse.Api.Infrastructure.ExceptionHandling;
 using ProgramPulse.Api.Infrastructure.HealthChecks;
 using ProgramPulse.Api.Infrastructure.Logging;
 using ProgramPulse.Api.Infrastructure.RateLimiting;
+using ProgramPulse.Api.Infrastructure.SecurityHeaders;
 using ProgramPulse.Api.SharedKernel;
 using ProgramPulse.Api.SharedKernel.OpenApi;
 using ProgramPulse.Api.SharedKernel.Validation;
@@ -19,10 +20,13 @@ builder.Services.AddValidation();
 builder.Services.AddEndpoints();
 builder.Services.AddHealthCheckConfiguration(builder.Configuration);
 builder.Services.AddRateLimitingConfiguration(builder.Configuration);
+builder.Services.AddSecurityHeadersConfiguration(builder.Configuration);
 
 var app = builder.Build();
 
 app.UseGlobalExceptionHandling();
+
+app.UseSecurityHeadersConfiguration(builder.Configuration);
 
 app.UseRequestPerformanceLogging();
 app.UseRateLimitingConfiguration(builder.Configuration);
