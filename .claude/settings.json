@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet add *)"
+      "Bash(dotnet add *)",
+      "Bash(ls -la .gitignore)",
+      "Bash(grep -n \"logs\" .gitignore)",
+      "Bash(rm -rf logs)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5199\" dotnet run --no-build)",
+      "Bash(tee /tmp/pp_run.log)",
+      "Bash(curl -s -o /dev/null -w \"openapi: %{http_code}\\\\n\" http://localhost:5017/openapi/v1.json)",
+      "Bash(curl -s -o /dev/null -w \"with-corr: %{http_code}\\\\n\" -H \"X-Correlation-ID: test-corr-123\" http://localhost:5017/openapi/v1.json)",
+      "Bash(curl -s -o /dev/null -w \"404path: %{http_code}\\\\n\" http://localhost:5017/does-not-exist)",
+      "Bash(kill 27041)"
     ]
   }
 }
