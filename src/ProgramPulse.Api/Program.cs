@@ -1,3 +1,4 @@
+using ProgramPulse.Api.Infrastructure.ExceptionHandling;
 using ProgramPulse.Api.Infrastructure.HealthChecks;
 using ProgramPulse.Api.Infrastructure.Logging;
 using ProgramPulse.Api.Infrastructure.RateLimiting;
@@ -13,12 +14,15 @@ builder.Host.ConfigureSerilog();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddApiVersioningWithOpenApi();
+builder.Services.AddGlobalExceptionHandling();
 builder.Services.AddValidation();
 builder.Services.AddEndpoints();
 builder.Services.AddHealthCheckConfiguration(builder.Configuration);
 builder.Services.AddRateLimitingConfiguration(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseGlobalExceptionHandling();
 
 app.UseRequestPerformanceLogging();
 app.UseRateLimitingConfiguration(builder.Configuration);
