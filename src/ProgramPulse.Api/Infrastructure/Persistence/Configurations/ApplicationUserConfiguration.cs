@@ -17,5 +17,16 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
 
         builder.Property(user => user.Email)
             .HasMaxLength(256);
+
+        builder.Property(u => u.CreatedAt)
+            .IsRequired();
+
+        builder.Property(u => u.LastLoginAt)
+            .IsRequired(false);
+
+        builder.HasMany(u => u.RefreshTokens)
+            .WithOne()
+            .HasForeignKey("ApplicationUserId")
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
