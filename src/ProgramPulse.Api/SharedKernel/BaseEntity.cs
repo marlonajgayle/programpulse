@@ -1,6 +1,6 @@
 namespace ProgramPulse.Api.SharedKernel;
 
-public abstract class BaseEntity<TId>
+public abstract class BaseEntity<TId> : ISoftDeletable
 {
     public  TId? Id { get; init; }
 

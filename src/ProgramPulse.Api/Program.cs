@@ -1,6 +1,7 @@
 using ProgramPulse.Api.Infrastructure.ExceptionHandling;
 using ProgramPulse.Api.Infrastructure.HealthChecks;
 using ProgramPulse.Api.Infrastructure.Logging;
+using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.Infrastructure.RateLimiting;
 using ProgramPulse.Api.Infrastructure.SecurityHeaders;
 using ProgramPulse.Api.SharedKernel;
@@ -21,8 +22,11 @@ builder.Services.AddEndpoints();
 builder.Services.AddHealthCheckConfiguration(builder.Configuration);
 builder.Services.AddRateLimitingConfiguration(builder.Configuration);
 builder.Services.AddSecurityHeadersConfiguration(builder.Configuration);
+builder.Services.AddPersistence(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
+
+await app.UseInitializeDatabaseAsync();
 
 app.UseGlobalExceptionHandling();
 

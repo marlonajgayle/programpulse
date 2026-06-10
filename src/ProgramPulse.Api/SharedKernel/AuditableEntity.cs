@@ -1,6 +1,6 @@
 namespace ProgramPulse.Api.SharedKernel;
 
-public abstract class AuditableEntity<T> : AggregateRoot<T>
+public abstract class AuditableEntity<T> : AggregateRoot<T>, IAuditableEntity
 {
     public string CreatedBy { get; private set; } = string.Empty;
     public DateTime CreatedDate { get;  private set; }
