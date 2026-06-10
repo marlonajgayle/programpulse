@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ProgramPulse.Api.Domain.Entities.Users;
+using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
 using ProgramPulse.Api.SharedKernel;
 
 namespace ProgramPulse.Api.Infrastructure.Persistence;
@@ -26,6 +27,8 @@ public sealed class ApplicationDbContext
     }
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

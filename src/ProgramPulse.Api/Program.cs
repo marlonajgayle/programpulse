@@ -1,6 +1,7 @@
 using ProgramPulse.Api.Infrastructure.ExceptionHandling;
 using ProgramPulse.Api.Infrastructure.HealthChecks;
 using ProgramPulse.Api.Infrastructure.Logging;
+using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.Infrastructure.RateLimiting;
 using ProgramPulse.Api.Infrastructure.SecurityHeaders;
@@ -23,6 +24,7 @@ builder.Services.AddHealthCheckConfiguration(builder.Configuration);
 builder.Services.AddRateLimitingConfiguration(builder.Configuration);
 builder.Services.AddSecurityHeadersConfiguration(builder.Configuration);
 builder.Services.AddPersistence(builder.Configuration, builder.Environment);
+builder.Services.AddOutboxMessaging();
 
 var app = builder.Build();
 
