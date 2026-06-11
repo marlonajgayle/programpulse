@@ -24,7 +24,12 @@
       "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5099 dotnet run --project src/ProgramPulse.Api --no-build --launch-profile http > /tmp/pp_run.log 2>&1 & *)",
       "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/ProgramPulse.Api --launch-profile http --no-build)",
       "Bash(dotnet --version)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "Bash(dotnet ef *)",
+      "Bash(export ASPNETCORE_ENVIRONMENT=Development)",
+      "Bash(export DATABASE_CONNECTION_STRING=\"Server=localhost,1433;Database=ProgramPulseDb;User Id=sa;Password=YPa55w0rd2023;TrustServerCertificate=True;MultipleActiveResultSets=True\")",
+      "Bash(export ASPNETCORE_URLS=\"http://localhost:5080\")",
+      "Bash(dotnet run *)"
     ],
     "additionalDirectories": [
       "/private/tmp"
