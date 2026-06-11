@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ProgramPulse.Api.Domain.Entities.Users;
 
 namespace ProgramPulse.Api.Infrastructure.Persistence;
 
@@ -66,9 +64,8 @@ public static class PersistenceConfiguration
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
-        services.AddIdentityCore<ApplicationUser>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+        // ASP.NET Core Identity (including SignInManager) and JWT authentication are
+        // registered by AddIdentityServices in Infrastructure/Authentication/IdentitySetup.
 
         return services;
     }
