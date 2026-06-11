@@ -27,6 +27,7 @@ builder.Services.AddRateLimitingConfiguration(builder.Configuration);
 builder.Services.AddSecurityHeadersConfiguration(builder.Configuration);
 builder.Services.AddCurrentUserService();
 builder.Services.AddPersistence(builder.Configuration, builder.Environment);
+builder.Services.AddIdentityServices(builder.Configuration, builder.Environment);
 builder.Services.AddOutboxMessaging();
 builder.Services.AddEmailConfiguration(builder.Configuration);
 
@@ -46,6 +47,9 @@ app.UseHealthCheckConfiguration(builder.Configuration);
 app.MapApiDocumentation(app.Environment);
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapApiEndpoints();
 

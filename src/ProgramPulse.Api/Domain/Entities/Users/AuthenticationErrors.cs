@@ -1,6 +1,6 @@
 using ProgramPulse.Api.SharedKernel.Primitives;
 
-namespace VitalDonor.Api.Domain.Entities.Authentications;
+namespace ProgramPulse.Api.Domain.Entities.Users;
 
 public static class AuthenticationErrors
 {
@@ -41,5 +41,16 @@ public static class AuthenticationErrors
             code: "Authentication.InvalidTwoFactorCode",
             message: "The provided two-factor authentication code is invalid."
         );
-    
+
+    public static Error AccountLocked() =>
+        Error.Forbidden(
+            code: "Authentication.AccountLocked",
+            message: "The account is locked due to too many failed sign-in attempts. Try again later."
+        );
+
+    public static Error InvalidRefreshToken() =>
+        Error.Unauthorized(
+            code: "Authentication.InvalidRefreshToken",
+            message: "The refresh token is invalid, expired, or has been revoked."
+        );
 }
