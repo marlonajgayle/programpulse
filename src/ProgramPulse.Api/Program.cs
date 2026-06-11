@@ -1,3 +1,4 @@
+using ProgramPulse.Api.Infrastructure.Email;
 using ProgramPulse.Api.Infrastructure.ExceptionHandling;
 using ProgramPulse.Api.Infrastructure.HealthChecks;
 using ProgramPulse.Api.Infrastructure.Logging;
@@ -25,6 +26,7 @@ builder.Services.AddRateLimitingConfiguration(builder.Configuration);
 builder.Services.AddSecurityHeadersConfiguration(builder.Configuration);
 builder.Services.AddPersistence(builder.Configuration, builder.Environment);
 builder.Services.AddOutboxMessaging();
+builder.Services.AddEmailConfiguration(builder.Configuration);
 
 var app = builder.Build();
 
