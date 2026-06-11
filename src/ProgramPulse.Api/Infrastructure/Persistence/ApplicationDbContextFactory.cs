@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using ProgramPulse.Api.Infrastructure.Authentication;
 
 namespace ProgramPulse.Api.Infrastructure.Persistence;
 
@@ -38,6 +39,10 @@ public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Ap
                 sql.EnableRetryOnFailure(3);
             });
 
-        return new ApplicationDbContext(optionsBuilder.Options);
+        // No HTTP context exists at design time, so the current user resolves to
+        // null and audit stamping falls back to the system principal.
+        var currentUser = new CurrentUserService(new HttpContextAccessor());
+
+        return new ApplicationDbContext(optionsBuilder.Options, currentUser);
     }
 }

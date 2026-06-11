@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ProgramPulse.Api.Domain.Entities.Users;
+using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
 using ProgramPulse.Api.SharedKernel;
 
@@ -17,13 +18,18 @@ namespace ProgramPulse.Api.Infrastructure.Persistence;
 public sealed class ApplicationDbContext
     : IdentityDbContext<ApplicationUser>, IApplicationDbContext
 {
-    // Fallback principal for audit stamping until an authenticated-user
-    // context is wired in (Bearer auth is planned, see OpenApi config).
+    // Fallback principal for audit stamping when there is no authenticated user,
+    // e.g. EF design-time/migrations, seeding, or outbox background dispatch.
     private const string SystemUser = "system";
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    private readonly ICurrentUser _currentUser;
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        ICurrentUser currentUser)
         : base(options)
     {
+        _currentUser = currentUser;
     }
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
@@ -76,10 +82,12 @@ public sealed class ApplicationDbContext
         {
             if (entry.Entity is IAuditableEntity auditable)
             {
+                var currentUser = _currentUser.UserId ?? SystemUser;
+
                 if (entry.State == EntityState.Added)
-                    auditable.SetCreatedAuditInfo(SystemUser);
+                    auditable.SetCreatedAuditInfo(currentUser);
                 else if (entry.State == EntityState.Modified)
-                    auditable.SetModifiedAuditInfo(SystemUser);
+                    auditable.SetModifiedAuditInfo(currentUser);
             }
 
             if (entry.State == EntityState.Deleted && entry.Entity is ISoftDeletable softDeletable)

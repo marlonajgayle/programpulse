@@ -1,3 +1,4 @@
+using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Email;
 using ProgramPulse.Api.Infrastructure.ExceptionHandling;
 using ProgramPulse.Api.Infrastructure.HealthChecks;
@@ -24,6 +25,7 @@ builder.Services.AddEndpoints();
 builder.Services.AddHealthCheckConfiguration(builder.Configuration);
 builder.Services.AddRateLimitingConfiguration(builder.Configuration);
 builder.Services.AddSecurityHeadersConfiguration(builder.Configuration);
+builder.Services.AddCurrentUserService();
 builder.Services.AddPersistence(builder.Configuration, builder.Environment);
 builder.Services.AddOutboxMessaging();
 builder.Services.AddEmailConfiguration(builder.Configuration);
