@@ -1,4 +1,5 @@
 using ProgramPulse.Api.Features.Authentication.Login;
+using ProgramPulse.Api.Features.Authentication.Logout;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Email;
 using ProgramPulse.Api.Infrastructure.ExceptionHandling;
@@ -24,6 +25,7 @@ builder.Services.AddGlobalExceptionHandling();
 builder.Services.AddValidation();
 builder.Services.AddEndpoints();
 builder.Services.AddScoped<LoginCommandHandler>();
+builder.Services.AddScoped<LogoutCommandHandler>();
 builder.Services.AddHealthCheckConfiguration(builder.Configuration);
 builder.Services.AddRateLimitingConfiguration(builder.Configuration);
 builder.Services.AddSecurityHeadersConfiguration(builder.Configuration);
