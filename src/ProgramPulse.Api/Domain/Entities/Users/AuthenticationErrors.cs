@@ -53,4 +53,10 @@ public static class AuthenticationErrors
             code: "Authentication.InvalidRefreshToken",
             message: "The refresh token is invalid, expired, or has been revoked."
         );
+
+    public static Error PasswordResetFailed(string message) =>
+        Error.Validation(
+            code: "Authentication.PasswordResetFailed",
+            message: message
+        );
 }

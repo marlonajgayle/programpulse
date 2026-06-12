@@ -1,6 +1,7 @@
 using ProgramPulse.Api.Features.Authentication.ForgotPassword;
 using ProgramPulse.Api.Features.Authentication.Login;
 using ProgramPulse.Api.Features.Authentication.Logout;
+using ProgramPulse.Api.Features.Authentication.ResetPassword;
 using ProgramPulse.Api.Features.Faqs.Create;
 using ProgramPulse.Api.Features.Faqs.Delete;
 using ProgramPulse.Api.Features.Faqs.GetAll;
@@ -33,6 +34,7 @@ builder.Services.AddEndpoints();
 builder.Services.AddScoped<LoginCommandHandler>();
 builder.Services.AddScoped<LogoutCommandHandler>();
 builder.Services.AddScoped<ForgotPasswordCommandHandler>();
+builder.Services.AddScoped<ResetPasswordCommandHandler>();
 builder.Services.AddScoped<CreateFaqCommandHandler>();
 builder.Services.AddScoped<UpdateFaqCommandHandler>();
 builder.Services.AddScoped<DeleteFaqCommandHandler>();
