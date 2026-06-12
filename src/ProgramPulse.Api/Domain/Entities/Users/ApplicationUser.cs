@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using ProgramPulse.Api.Domain.Entities.Tenants;
 
 namespace ProgramPulse.Api.Domain.Entities.Users;
 
@@ -12,5 +13,7 @@ public sealed class ApplicationUser : IdentityUser
     public string? LastName { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }
+    public Guid? TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
 }
