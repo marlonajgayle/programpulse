@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using ProgramPulse.Api.Domain.Entities.Faqs;
 using ProgramPulse.Api.Domain.Entities.Users;
 using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
 
@@ -17,6 +18,8 @@ public interface IApplicationDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
 
     DbSet<OutboxMessage> OutboxMessages { get; }
+
+    DbSet<Faq> Faqs { get; }
 
     void Attach<TEntity>(TEntity entity) where TEntity : class;
 
