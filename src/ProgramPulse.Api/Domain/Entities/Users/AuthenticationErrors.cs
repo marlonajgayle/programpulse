@@ -59,4 +59,10 @@ public static class AuthenticationErrors
             code: "Authentication.PasswordResetFailed",
             message: message
         );
+
+    public static Error PasswordChangeFailed(string message) =>
+        Error.Validation(
+            code: "Authentication.PasswordChangeFailed",
+            message: message
+        );
 }
