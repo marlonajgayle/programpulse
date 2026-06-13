@@ -65,4 +65,10 @@ public static class AuthenticationErrors
             code: "Authentication.PasswordChangeFailed",
             message: message
         );
+
+    public static Error EmailConfirmationFailed(string message) =>
+        Error.Validation(
+            code: "Authentication.EmailConfirmationFailed",
+            message: message
+        );
 }
