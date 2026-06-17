@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ProgramPulse.Api.Domain.Entities.Faqs;
 using ProgramPulse.Api.Domain.Entities.Tenants;
+using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
 using ProgramPulse.Api.Domain.Entities.Users;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
@@ -41,6 +42,14 @@ public sealed class ApplicationDbContext
     public DbSet<Faq> Faqs => Set<Faq>();
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
+
+    public DbSet<Initiative> Initiatives => Set<Initiative>();
+
+    public DbSet<Objective> Objectives => Set<Objective>();
+
+    public DbSet<Kpi> Kpis => Set<Kpi>();
+
+    public DbSet<Measurement> Measurements => Set<Measurement>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

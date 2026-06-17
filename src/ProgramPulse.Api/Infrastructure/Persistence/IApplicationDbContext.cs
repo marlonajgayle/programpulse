@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ProgramPulse.Api.Domain.Entities.Faqs;
 using ProgramPulse.Api.Domain.Entities.Tenants;
+using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
 using ProgramPulse.Api.Domain.Entities.Users;
 using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
 
@@ -23,6 +24,14 @@ public interface IApplicationDbContext
     DbSet<Faq> Faqs { get; }
 
     DbSet<Tenant> Tenants { get; }
+
+    DbSet<Initiative> Initiatives { get; }
+
+    DbSet<Objective> Objectives { get; }
+
+    DbSet<Kpi> Kpis { get; }
+
+    DbSet<Measurement> Measurements { get; }
 
     void Attach<TEntity>(TEntity entity) where TEntity : class;
 
