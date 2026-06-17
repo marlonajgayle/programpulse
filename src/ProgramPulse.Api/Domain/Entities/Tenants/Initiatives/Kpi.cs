@@ -4,6 +4,8 @@ namespace ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
 
 public sealed class Kpi : AuditableEntity<Guid>
 {
+    private readonly List<Measurement> _measurements = [];
+
     // EF Core materialization
     private Kpi() { }
 
@@ -17,6 +19,8 @@ public sealed class Kpi : AuditableEntity<Guid>
     public KpiStatus Status { get; private set; }
     public Guid ObjectiveId { get; private set; }
     public Objective Objective { get; private set; } = null!;
+
+    public IReadOnlyCollection<Measurement> Measurements => _measurements.AsReadOnly();
 
     // Internal so KPIs are only created through the Objective.
     internal static Kpi Create(
@@ -68,6 +72,14 @@ public sealed class Kpi : AuditableEntity<Guid>
     {
         CurrentValue = currentValue;
         Status = status;
+    }
+
+    public Measurement AddMeasurement(decimal value, string? notes)
+    {
+        var measurement = Measurement.Create(value, notes, Id);
+        _measurements.Add(measurement);
+        CurrentValue = value; // keep current reading in sync with latest measurement
+        return measurement;
     }
 
     // MarkAsDeleted() is inherited (public) from BaseEntity<Guid>.
