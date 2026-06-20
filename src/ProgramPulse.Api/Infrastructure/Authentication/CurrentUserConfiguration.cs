@@ -12,6 +12,7 @@ public static class CurrentUserConfiguration
     {
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUserService>();
+        services.AddScoped<ICurrentTenant, CurrentTenantService>();
 
         return services;
     }
