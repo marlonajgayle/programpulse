@@ -1,0 +1,20 @@
+using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+
+namespace ProgramPulse.Api.Features.Kpis;
+
+/// <summary>
+/// API representation of a KPI returned by the read endpoints.
+/// </summary>
+public sealed record KpiResponse(
+    Guid Id,
+    string Name,
+    string Unit,
+    KpiDirection Direction,
+    decimal BaselineValue,
+    decimal TargetValue,
+    decimal CurrentValue,
+    DateTime DueDate,
+    KpiStatus Status,
+    Guid ObjectiveId,
+    DateTime CreatedDate,
+    DateTime? LastModifiedDate);
