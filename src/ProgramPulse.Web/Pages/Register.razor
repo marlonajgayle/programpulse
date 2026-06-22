@@ -1,0 +1,171 @@
+@page "/register"
+@layout MarketingLayout
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Create account — ProgramPulse</PageTitle>
+
+<div class="pp-auth">
+    <!-- ===== LEFT: brand panel ===== -->
+    <aside class="pp-auth__art" aria-hidden="true">
+        <div class="pp-auth__art-top">
+            <span class="pp-logo__text pp-auth__brand">Program<span class="pp-auth__brand-accent">Pulse</span></span>
+        </div>
+
+        <div class="pp-auth__art-center">
+            <svg class="pp-ekg" viewBox="0 0 600 220" preserveAspectRatio="none">
+                <line x1="0" y1="110" x2="600" y2="110" class="pp-auth__baseline" />
+                <path class="pp-auth__trace"
+                      d="M0,110 L90,110 L108,70 L122,150 L140,110 L230,110
+                         L250,60 L268,160 L286,110 L380,110 L398,40 L418,180
+                         L436,110 L520,110 L540,30 L560,190 L578,110 L600,110"
+                      fill="none" stroke="#ffffff" stroke-width="3"
+                      stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </div>
+
+        <div class="pp-auth__art-bottom">
+            <span class="pp-auth__badge">Trusted by 2,800+ teams</span>
+            <p class="pp-auth__tagline">
+                Track every initiative's pulse — on track, at risk, and off track
+                stop being opinions and start being signals.
+            </p>
+        </div>
+    </aside>
+
+    <!-- ===== RIGHT: form panel ===== -->
+    <section class="pp-auth__panel">
+        <div class="pp-auth__form">
+            <h1 class="pp-auth__title">Create your account</h1>
+            <p class="pp-auth__subtitle">Start tracking every initiative's pulse.</p>
+
+            <EditForm Model="model" OnValidSubmit="HandleRegister">
+                <DataAnnotationsValidator />
+
+                <div class="pp-field">
+                    <svg class="pp-field__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+                        <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    <InputText @bind-Value="model.FirstName" class="pp-input pp-input--icon"
+                               placeholder="First name" autocomplete="given-name" aria-label="First name" />
+                </div>
+                <ValidationMessage For="() => model.FirstName" class="pp-field__error" />
+
+                <div class="pp-field">
+                    <svg class="pp-field__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+                        <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    <InputText @bind-Value="model.LastName" class="pp-input pp-input--icon"
+                               placeholder="Last name" autocomplete="family-name" aria-label="Last name" />
+                </div>
+                <ValidationMessage For="() => model.LastName" class="pp-field__error" />
+
+                <div class="pp-field">
+                    <svg class="pp-field__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8" />
+                        <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <InputText @bind-Value="model.Email" type="email" class="pp-input pp-input--icon"
+                               placeholder="Enter your e-mail" autocomplete="email" aria-label="Email address" />
+                </div>
+                <ValidationMessage For="() => model.Email" class="pp-field__error" />
+
+                <div class="pp-field">
+                    <svg class="pp-field__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8" />
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    <InputText @bind-Value="model.Password" type="password" class="pp-input pp-input--icon"
+                               placeholder="Create a password" autocomplete="new-password" aria-label="Password" />
+                </div>
+                <ValidationMessage For="() => model.Password" class="pp-field__error" />
+
+                <div class="pp-field">
+                    <svg class="pp-field__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8" />
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    <InputText @bind-Value="model.ConfirmPassword" type="password" class="pp-input pp-input--icon"
+                               placeholder="Confirm your password" autocomplete="new-password" aria-label="Confirm password" />
+                </div>
+                <ValidationMessage For="() => model.ConfirmPassword" class="pp-field__error" />
+
+                <label class="pp-auth__terms">
+                    <InputCheckbox @bind-Value="model.AcceptTerms" aria-label="Accept terms and conditions" />
+                    <span>I agree to the <a href="/terms" class="pp-auth__link">Terms of Service</a> and <a href="/privacy" class="pp-auth__link">Privacy Policy</a>.</span>
+                </label>
+                <ValidationMessage For="() => model.AcceptTerms" class="pp-field__error" />
+
+                <button type="submit" class="pp-btn pp-btn--primary pp-btn--block pp-btn--lg pp-auth__submit">Create account</button>
+            </EditForm>
+
+            @if (submitted)
+            {
+                <p class="pp-auth__ok">Account created (demo) — backend not wired up yet.</p>
+            }
+
+            <div class="pp-auth__divider"><span>or</span></div>
+
+            <button type="button" class="pp-auth__social" disabled>
+                <svg class="pp-auth__social-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z" />
+                    <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1 .7-2.3 1.1-4 1.1-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z" />
+                    <path fill="#FBBC05" d="M5.4 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.4a12 12 0 0 0 0 10.8l4-3.1z" />
+                    <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z" />
+                </svg>
+                Continue with Google
+            </button>
+
+            <button type="button" class="pp-auth__social" disabled>
+                <svg class="pp-auth__social-icon" viewBox="0 0 23 23" aria-hidden="true">
+                    <path fill="#F25022" d="M1 1h10v10H1z" />
+                    <path fill="#7FBA00" d="M12 1h10v10H12z" />
+                    <path fill="#00A4EF" d="M1 12h10v10H1z" />
+                    <path fill="#FFB900" d="M12 12h10v10H12z" />
+                </svg>
+                Continue with Microsoft
+            </button>
+
+            <p class="pp-auth__signup">
+                Already have an account? <a href="/login" class="pp-auth__link">Sign in</a>
+            </p>
+        </div>
+    </section>
+</div>
+
+@code {
+    private readonly RegisterModel model = new();
+    private bool submitted;
+
+    private void HandleRegister()
+    {
+        // TODO: POST model to /api/v1/auth/register once the WASM client is wired to the API
+        // (needs API base URL config + CORS). For now this is a UI-only stub.
+        submitted = true;
+    }
+
+    private sealed class RegisterModel
+    {
+        [Required(ErrorMessage = "First name is required.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required.")]
+        [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please confirm your password.")]
+        [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the terms.")]
+        public bool AcceptTerms { get; set; }
+    }
+}
