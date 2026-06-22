@@ -1,0 +1,24 @@
+@page "/404"
+
+<PageTitle>Page not found — ProgramPulse</PageTitle>
+
+<section class="pp-notfound">
+    <div class="pp-container pp-notfound__inner">
+        <!-- Flatline: the one trace that means "no signal" -->
+        <svg class="pp-notfound__ekg" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true">
+            <line x1="0" y1="60" x2="600" y2="60" class="pp-notfound__flatline" />
+        </svg>
+
+        <span class="pp-eyebrow">Error 404</span>
+        <h1 class="pp-notfound__title">No pulse here</h1>
+        <p class="pp-notfound__lede">
+            This page isn't being measured — it may have moved, or never existed.
+            Let's get you back to something with a signal.
+        </p>
+
+        <div class="pp-notfound__cta">
+            <a href="/" class="pp-btn pp-btn--primary pp-btn--lg">Back to home</a>
+            <a href="/login" class="pp-btn pp-btn--ghost pp-btn--lg">Go to dashboard</a>
+        </div>
+    </div>
+</section>
