@@ -1,0 +1,321 @@
+@page "/"
+@layout MarketingLayout
+
+<PageTitle>ProgramPulse — See every initiative's pulse</PageTitle>
+
+<!-- ===== TOP MENU ===== -->
+<header class="pp-nav">
+    <div class="pp-container pp-nav__inner">
+        <a href="/" class="pp-logo">
+            <svg class="pp-logo__mark" viewBox="0 0 40 24" fill="none" aria-hidden="true">
+                <path d="M1 12 H10 L13 4 L18 20 L23 8 L26 12 H39"
+                      stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="pp-logo__text">Program<span class="pp-logo__accent">Pulse</span></span>
+        </a>
+
+        <nav class="pp-nav__links">
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#faq">FAQ</a>
+            <a href="#newsletter">Updates</a>
+        </nav>
+
+        <div class="pp-nav__actions">
+            <a href="/login" class="pp-link-muted">Sign in</a>
+            <a href="/signup" class="pp-btn pp-btn--primary">Start free</a>
+        </div>
+    </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="pp-hero">
+    <div class="pp-container pp-hero__inner">
+        <div class="pp-hero__copy">
+            <span class="pp-eyebrow">Program performance, in real time</span>
+            <h1 class="pp-hero__title">
+                See every initiative's
+                <span class="pp-hero__title-accent">pulse</span>
+            </h1>
+            <p class="pp-hero__lede">
+                Track initiatives against objectives and KPIs. Status is computed
+                from the measurements you log — so on track, at risk, and off track
+                stop being opinions and start being signals.
+            </p>
+            <div class="pp-hero__cta">
+                <a href="/signup" class="pp-btn pp-btn--primary pp-btn--lg">Start free</a>
+                <a href="#features" class="pp-btn pp-btn--ghost pp-btn--lg">See how it works</a>
+            </div>
+            <dl class="pp-hero__stats">
+                <div><dt>4-level</dt><dd>Initiative → Objective → KPI → Measurement</dd></div>
+                <div><dt>Auto status</dt><dd>computed from logged data</dd></div>
+            </dl>
+        </div>
+
+        <!-- SIGNATURE: live EKG trace that shifts through status states -->
+        <div class="pp-hero__pulse" aria-hidden="true">
+            <svg class="pp-ekg" viewBox="0 0 600 220" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="ekgFade" x1="0" x2="1" y1="0" y2="0">
+                        <stop offset="0%" stop-color="var(--pp-track)" stop-opacity="0" />
+                        <stop offset="12%" stop-color="var(--pp-track)" stop-opacity="1" />
+                        <stop offset="55%" stop-color="var(--pp-warn)" stop-opacity="1" />
+                        <stop offset="100%" stop-color="var(--pp-off)" stop-opacity="1" />
+                    </linearGradient>
+                </defs>
+                <line x1="0" y1="110" x2="600" y2="110" class="pp-ekg__baseline" />
+                <path class="pp-ekg__trace"
+                      d="M0,110 L90,110 L108,70 L122,150 L140,110 L230,110
+                         L250,60 L268,160 L286,110 L380,110 L398,40 L418,180
+                         L436,110 L520,110 L540,30 L560,190 L578,110 L600,110"
+                      fill="none" stroke="url(#ekgFade)" stroke-width="3"
+                      stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="pp-pulse-tags">
+                <span class="pp-tag pp-tag--track">On track</span>
+                <span class="pp-tag pp-tag--warn">At risk</span>
+                <span class="pp-tag pp-tag--off">Off track</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section id="features" class="pp-features">
+    <div class="pp-container">
+        <span class="pp-eyebrow">What you get</span>
+        <h2 class="pp-section-title">From measurement to meaning</h2>
+
+        <div class="pp-bento">
+            <article class="pp-card pp-bento__tile--lg">
+                <span class="pp-card__index">01</span>
+                <h3>Structured hierarchy</h3>
+                <p>Roll measurements up through KPIs and objectives to the initiatives
+                   leadership actually asks about.</p>
+                <div class="pp-bento__levels">
+                    <div class="pp-bento__level">Initiative <span>— the outcome</span></div>
+                    <div class="pp-bento__level">Objective <span>— the goal</span></div>
+                    <div class="pp-bento__level">KPI <span>— the target</span></div>
+                    <div class="pp-bento__level">Measurement <span>— the data</span></div>
+                </div>
+            </article>
+
+            <article class="pp-card pp-bento__tile--sm">
+                <span class="pp-card__index">02</span>
+                <h3>Computed status</h3>
+                <p>No manual red-yellow-green guesswork. Status is derived from the
+                   data you log against each KPI's target.</p>
+                <div class="pp-pulse-tags">
+                    <span class="pp-tag pp-tag--track">On track</span>
+                    <span class="pp-tag pp-tag--warn">At risk</span>
+                    <span class="pp-tag pp-tag--off">Off track</span>
+                </div>
+            </article>
+
+            <article class="pp-card pp-bento__tile--sm">
+                <span class="pp-card__index">03</span>
+                <h3>Multi-tenant by design</h3>
+                <p>Org-scoped isolation and role-based access from day one, so teams
+                   only ever see their own programs.</p>
+            </article>
+
+            <article class="pp-card pp-bento__tile--tall">
+                <span class="pp-card__index">04</span>
+                <h3>Built for accountability</h3>
+                <p>A clear trail from a single logged number to the initiative it
+                   moves — auditable, shareable, honest.</p>
+                <div class="pp-bento__levels">
+                    <div class="pp-bento__level">Every measurement stamped <span>— who &amp; when</span></div>
+                    <div class="pp-bento__level">Soft-delete &amp; audit history <span>— nothing lost</span></div>
+                    <div class="pp-bento__level">Shareable status <span>— one source of truth</span></div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section id="pricing" class="pp-pricing">
+    <div class="pp-container">
+        <span class="pp-eyebrow">Pricing</span>
+        <h2 class="pp-section-title">Pricing that scales with your programs</h2>
+
+        <div class="pp-billing-toggle" role="group" aria-label="Billing period">
+            <button type="button" class="@(annual ? "" : "is-active")" @onclick="() => annual = false">Monthly</button>
+            <button type="button" class="@(annual ? "is-active" : "")" @onclick="() => annual = true">Annually</button>
+        </div>
+
+        <div class="pp-price-grid">
+            <article class="pp-price">
+                <h3 class="pp-price__name">Free</h3>
+                <p class="pp-price__amount">$0<span>@Period</span></p>
+                <p class="pp-price__note">Try the full hierarchy on one program.</p>
+                <ul class="pp-price__list">
+                    <li>1 initiative</li>
+                    <li>Core KPI tracking</li>
+                    <li>Computed status</li>
+                </ul>
+                <a href="/signup" class="pp-btn pp-btn--ghost pp-btn--block">Get started</a>
+            </article>
+
+            <article class="pp-price">
+                <h3 class="pp-price__name">Starter</h3>
+                <p class="pp-price__amount">@Price(9, 7)<span>@Period</span></p>
+                <p class="pp-price__note">For small teams getting their first programs off the ground.</p>
+                <ul class="pp-price__list">
+                    <li>Up to 5 initiatives</li>
+                    <li>Objectives &amp; KPIs</li>
+                    <li>Measurement history</li>
+                    <li>Email support</li>
+                </ul>
+                <a href="/signup" class="pp-btn pp-btn--ghost pp-btn--block">Start free trial</a>
+            </article>
+
+            <article class="pp-price pp-price--featured">
+                <span class="pp-price__badge">Most popular</span>
+                <h3 class="pp-price__name">Pro</h3>
+                <p class="pp-price__amount">@Price(19, 15)<span>@Period</span></p>
+                <p class="pp-price__note">For teams running programs in production.</p>
+                <ul class="pp-price__list">
+                    <li>Unlimited initiatives</li>
+                    <li>Roles &amp; permissions</li>
+                    <li>Full audit trail</li>
+                    <li>Priority support</li>
+                </ul>
+                <a href="/signup" class="pp-btn pp-btn--primary pp-btn--block">Start free trial</a>
+            </article>
+
+            <article class="pp-price">
+                <h3 class="pp-price__name">Enterprise</h3>
+                <p class="pp-price__amount">@Price(49, 39)<span>@Period</span></p>
+                <p class="pp-price__note">Dedicated support and controls for org-wide rollout.</p>
+                <ul class="pp-price__list">
+                    <li>Everything in Pro</li>
+                    <li>SSO &amp; advanced roles</li>
+                    <li>Tenant isolation guarantees</li>
+                    <li>Dedicated success manager</li>
+                </ul>
+                <a href="/contact" class="pp-btn pp-btn--ghost pp-btn--block">Contact sales</a>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" class="pp-faq">
+    <div class="pp-container">
+        <span class="pp-eyebrow">FAQ</span>
+        <h2 class="pp-section-title">Frequently asked questions</h2>
+
+        <div class="pp-faq__list">
+            @for (var i = 0; i < faqs.Count; i++)
+            {
+                var index = i;
+                var item = faqs[index];
+                var open = openFaq == index;
+                <div class="pp-faq__item @(open ? "is-open" : "")">
+                    <button type="button" class="pp-faq__q" @onclick="() => ToggleFaq(index)"
+                            aria-expanded="@open.ToString().ToLowerInvariant()">
+                        <span>@item.Question</span>
+                        <span class="pp-faq__icon" aria-hidden="true"></span>
+                    </button>
+                    @if (open)
+                    {
+                        <p class="pp-faq__a">@item.Answer</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ===== NEWSLETTER ===== -->
+<section id="newsletter" class="pp-newsletter">
+    <div class="pp-container pp-newsletter__inner">
+        <div>
+            <h2 class="pp-section-title">Get product updates</h2>
+            <p class="pp-newsletter__lede">New features, build notes, and the occasional
+               founder's log. No noise.</p>
+        </div>
+        <div class="pp-newsletter__form">
+            <input type="email" class="pp-input" placeholder="you@company.com"
+                   @bind="email" aria-label="Email address" />
+            <button class="pp-btn pp-btn--primary" @onclick="Subscribe">Subscribe</button>
+        </div>
+    </div>
+    @if (subscribed)
+    {
+        <p class="pp-newsletter__ok">Thanks — you're on the list.</p>
+    }
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="pp-footer">
+    <div class="pp-container pp-footer__inner">
+        <div class="pp-footer__brand">
+            <span class="pp-logo__text">Program<span class="pp-logo__accent">Pulse</span></span>
+            <p>Program performance tracking that's honest about status.</p>
+        </div>
+        <div class="pp-footer__cols">
+            <div>
+                <h4>Product</h4>
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#faq">FAQ</a>
+            </div>
+            <div>
+                <h4>Company</h4>
+                <a href="/about">About</a>
+                <a href="/contact">Contact</a>
+            </div>
+            <div>
+                <h4>Legal</h4>
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+            </div>
+        </div>
+    </div>
+    <div class="pp-footer__bar">
+        <div class="pp-container">
+            <span>© @DateTime.Now.Year ProgramPulse</span>
+        </div>
+    </div>
+</footer>
+
+@code {
+    private string email = string.Empty;
+    private bool subscribed;
+
+    // Pricing: false = monthly, true = annually (price shown per month, billed yearly)
+    private bool annual;
+    private string Period => annual ? "/mo, billed yearly" : "/mo";
+    private string Price(int monthly, int annualPerMo) => annual ? $"${annualPerMo}" : $"${monthly}";
+
+    // FAQ accordion: one open at a time
+    private int? openFaq;
+    private void ToggleFaq(int i) => openFaq = openFaq == i ? null : i;
+
+    private readonly List<(string Question, string Answer)> faqs = new()
+    {
+        ("How is status computed?",
+         "Status isn't set by hand. Each KPI has a target, and ProgramPulse derives on track, at risk, or off track from the measurements you log against it — so the colour you see always reflects real data."),
+        ("Can I invite my whole team?",
+         "Yes. From the Starter plan up you can add teammates with role-based permissions, so people see and edit only what their role allows within your organisation."),
+        ("Is my data isolated from other organisations?",
+         "Every organisation is its own tenant. Data is org-scoped end to end, so your initiatives, objectives, and measurements are never visible to anyone outside your tenant."),
+        ("Can I export my measurements?",
+         "Your data is yours. You can export measurements and KPI history at any time, and every record carries an audit stamp of who logged it and when."),
+        ("Do you offer a free plan?",
+         "Yes — the Free plan lets you run one program through the full Initiative → Objective → KPI → Measurement hierarchy with computed status, no card required."),
+    };
+
+    private void Subscribe()
+    {
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            // TODO: wire to Azure Communication Services / your subscribe endpoint
+            subscribed = true;
+        }
+    }
+}
