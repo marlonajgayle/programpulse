@@ -58,3 +58,6 @@ nunit-*.xml
 
 node_modules/
 wwwroot/css/app.css
+
+# macOS Finder metadata
+.DS_Store
