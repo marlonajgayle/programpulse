@@ -1,0 +1,211 @@
+@page "/dashboard"
+@layout DashboardLayout
+
+<PageTitle>Dashboard — ProgramPulse</PageTitle>
+
+<h1 class="pp-dash__heading">Dashboard overview</h1>
+
+<div class="pp-dash">
+
+    <!-- ===== IDENTITY CARD ===== -->
+    <article class="pp-card pp-idcard pp-dash__id">
+        <div class="pp-idcard__top">
+            <span class="pp-logo__text">Program<span class="pp-logo__accent">Pulse</span></span>
+        </div>
+        <div class="pp-idcard__body">
+            <span class="pp-idcard__avatar" aria-hidden="true">JS</span>
+            <div>
+                <p class="pp-idcard__name">Joe<br />Stark</p>
+            </div>
+        </div>
+        <div class="pp-idcard__foot">
+            <span class="pp-idcard__qr" aria-hidden="true">
+                <svg viewBox="0 0 48 48" fill="currentColor">
+                    <rect x="0" y="0" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="3" />
+                    <rect x="5" y="5" width="4" height="4" />
+                    <rect x="34" y="0" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="3" />
+                    <rect x="39" y="5" width="4" height="4" />
+                    <rect x="0" y="34" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="3" />
+                    <rect x="5" y="39" width="4" height="4" />
+                    <rect x="20" y="4" width="4" height="4" /><rect x="28" y="4" width="4" height="4" />
+                    <rect x="20" y="12" width="4" height="4" /><rect x="20" y="20" width="4" height="4" />
+                    <rect x="28" y="20" width="4" height="4" /><rect x="36" y="20" width="4" height="4" />
+                    <rect x="44" y="20" width="4" height="4" /><rect x="20" y="28" width="4" height="4" />
+                    <rect x="36" y="28" width="4" height="4" /><rect x="28" y="36" width="4" height="4" />
+                    <rect x="44" y="36" width="4" height="4" /><rect x="36" y="44" width="4" height="4" />
+                    <rect x="28" y="44" width="4" height="4" /><rect x="20" y="44" width="4" height="4" />
+                </svg>
+            </span>
+            <div class="pp-idcard__role">
+                <strong>Program Lead</strong>
+                <span>Strategy office</span>
+            </div>
+        </div>
+    </article>
+
+    <!-- ===== STAT: OVERDUE KPIs ===== -->
+    <article class="pp-card pp-stat pp-dash__stat-a">
+        <div class="pp-stat__head">
+            <span>Overdue KPIs</span>
+            <span class="pp-stat__more" aria-hidden="true">···</span>
+        </div>
+        <p class="pp-stat__value pp-stat__value--warn">11</p>
+    </article>
+
+    <!-- ===== STAT: AT-RISK INITIATIVES ===== -->
+    <article class="pp-card pp-stat pp-dash__stat-b">
+        <div class="pp-stat__head">
+            <span>At-risk initiatives</span>
+            <span class="pp-stat__more" aria-hidden="true">···</span>
+        </div>
+        <p class="pp-stat__value pp-stat__value--off">2</p>
+    </article>
+
+    <!-- ===== MY INITIATIVES (BAR CHART) ===== -->
+    <article class="pp-card pp-dash__initiatives">
+        <div class="pp-card__bar-head">
+            <h3>My initiatives</h3>
+            <span class="pp-datepill pp-datepill--ghost">Last 7 days</span>
+        </div>
+
+        <div class="pp-bars" role="img" aria-label="Initiative status over the last 7 days">
+            @foreach (var bar in initiativeBars)
+            {
+                <div class="pp-bars__col">
+                    <div class="pp-bars__stack">
+                        @if (bar.Track > 0)
+                        {
+                            <span class="pp-bars__seg pp-bars__seg--track" style="height:@(bar.Track)%">@bar.Track%</span>
+                        }
+                        @if (bar.Warn > 0)
+                        {
+                            <span class="pp-bars__seg pp-bars__seg--warn" style="height:@(bar.Warn)%">@bar.Warn%</span>
+                        }
+                        @if (bar.Off > 0)
+                        {
+                            <span class="pp-bars__seg pp-bars__seg--off" style="height:@(bar.Off)%">@bar.Off%</span>
+                        }
+                        @{ var inactive = 100 - bar.Track - bar.Warn - bar.Off; }
+                        @if (inactive > 0)
+                        {
+                            <span class="pp-bars__seg pp-bars__seg--inactive" style="height:@(inactive)%">@inactive%</span>
+                        }
+                    </div>
+                    <span class="pp-bars__label">@bar.Day</span>
+                </div>
+            }
+        </div>
+
+        <div class="pp-legend">
+            <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--track"></span>On track</span>
+            <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--warn"></span>At risk</span>
+            <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--off"></span>Off track</span>
+            <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--inactive"></span>Inactive</span>
+        </div>
+    </article>
+
+    <!-- ===== PROGRAM HEALTH (LINE) ===== -->
+    <article class="pp-card pp-line-card pp-dash__health">
+        <div class="pp-line-card__copy">
+            <span class="pp-line-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M3 17l5-6 4 3 5-7 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+            <div>
+                <h3>Program health</h3>
+                <p>It's up 15% in the past week</p>
+            </div>
+        </div>
+        <svg class="pp-line-card__chart" viewBox="0 0 320 90" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+                <linearGradient id="healthFade" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stop-color="var(--pp-track)" />
+                    <stop offset="60%" stop-color="var(--pp-accent-strong)" />
+                    <stop offset="100%" stop-color="var(--pp-track)" />
+                </linearGradient>
+            </defs>
+            <path d="M0,70 C40,68 60,40 90,42 C120,44 140,66 170,60 C200,54 220,30 250,34 C280,38 300,52 320,46"
+                  fill="none" stroke="url(#healthFade)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="170" cy="60" r="5" fill="var(--pp-surface-2)" stroke="var(--pp-accent-strong)" stroke-width="3" />
+        </svg>
+    </article>
+
+    <!-- ===== UPCOMING REVIEWS ===== -->
+    <article class="pp-card pp-dash__reviews">
+        <div class="pp-card__bar-head">
+            <h3>Upcoming reviews</h3>
+            <span class="pp-iconbtn pp-iconbtn--sm" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+        </div>
+        <ul class="pp-reviews">
+            @foreach (var review in reviews)
+            {
+                <li class="pp-reviews__row">
+                    <span class="pp-reviews__time">@review.Time</span>
+                    <span class="pp-reviews__meta">
+                        <strong>@review.Title</strong>
+                        <span>@review.Detail</span>
+                    </span>
+                </li>
+            }
+        </ul>
+    </article>
+
+    <!-- ===== KPI STATISTICS (FLOW) ===== -->
+    <article class="pp-card pp-dash__kpi">
+        <h3>KPI statistics</h3>
+        <p class="pp-kpi-flow__lede">How measurements flow up through KPIs and objectives into each initiative's computed status.</p>
+        <svg class="pp-kpi-flow" viewBox="0 0 360 150" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M10,40 C120,40 130,30 180,75 C230,120 250,110 350,110" fill="none" stroke="var(--pp-track)" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+            <path d="M10,75 C120,75 130,75 180,75 C230,75 250,75 350,40" fill="none" stroke="var(--pp-accent-strong)" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+            <path d="M10,110 C120,110 130,120 180,75 C230,30 250,40 350,75" fill="none" stroke="var(--pp-off)" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+            <line x1="180" y1="20" x2="180" y2="130" stroke="var(--pp-line)" stroke-width="2" stroke-dasharray="3 5" />
+        </svg>
+        <div class="pp-legend">
+            <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--track"></span>On track</span>
+            <span class="pp-legend__item"><span class="pp-legend__dot" style="background:var(--pp-accent-strong)"></span>At target</span>
+            <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--off"></span>Off track</span>
+        </div>
+    </article>
+
+    <!-- ===== PROMO ===== -->
+    <article class="pp-promo pp-dash__promo">
+        <span class="pp-promo__pill">Marie's program report is ready!</span>
+        <h3 class="pp-promo__title">Download and view the 2026 program report</h3>
+        <button type="button" class="pp-btn pp-btn--primary pp-promo__btn">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+                <path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Download report
+        </button>
+    </article>
+
+</div>
+
+@code {
+    private record InitiativeBar(string Day, int Track, int Warn, int Off);
+
+    // Mock status mix per day (percent on track / at risk / off track; remainder is inactive)
+    private readonly List<InitiativeBar> initiativeBars = new()
+    {
+        new("Mon", 50, 17, 0),
+        new("Tue", 53, 0, 17),
+        new("Wed", 100, 0, 0),
+        new("Thu", 30, 40, 0),
+        new("Fri", 0, 30, 40),
+        new("Sat", 100, 0, 0),
+        new("Sun", 30, 0, 70),
+    };
+
+    private record Review(string Time, string Title, string Detail);
+
+    private readonly List<Review> reviews = new()
+    {
+        new("09:30", "Q3 design review", "Strategy office"),
+        new("10:30", "Onboarding KPI sync", "Growth team"),
+        new("11:30", "Retention deep-dive", "New initiative"),
+        new("13:45", "Steering call", "Programme leads"),
+    };
+}
