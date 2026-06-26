@@ -1,0 +1,63 @@
+@page "/notifications"
+@layout DashboardLayout
+@inject SampleData Data
+
+<PageTitle>Notifications — ProgramPulse</PageTitle>
+
+<div class="pp-page__head">
+    <div>
+        <h1 class="pp-dash__heading">Notifications</h1>
+        <p class="pp-page__subtitle">
+            @if (unread > 0)
+            {
+                <span>@unread unread @(unread == 1 ? "notification" : "notifications")</span>
+            }
+            else
+            {
+                <span>You're all caught up.</span>
+            }
+        </p>
+    </div>
+    @if (unread > 0)
+    {
+        <button type="button" class="pp-btn pp-btn--ghost" @onclick="MarkAllRead">Mark all as read</button>
+    }
+</div>
+
+@if (notifications.Count == 0)
+{
+    <div class="pp-empty">
+        <p class="pp-empty__title">No notifications</p>
+        <p class="pp-empty__note">Activity across your programme will show up here.</p>
+    </div>
+}
+else
+{
+    <div class="pp-card pp-notif__page">
+        <ul class="pp-notif__list pp-notif__list--page">
+            @foreach (var n in notifications)
+            {
+                <NotificationItem Notification="n" />
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<NotificationVm> notifications = Array.Empty<NotificationVm>();
+    private int unread;
+
+    protected override void OnInitialized() => Load();
+
+    private void Load()
+    {
+        notifications = Data.GetNotifications();
+        unread = Data.UnreadNotificationCount;
+    }
+
+    private void MarkAllRead()
+    {
+        Data.MarkAllNotificationsRead();
+        Load();
+    }
+}

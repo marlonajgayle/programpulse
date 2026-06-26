@@ -18,6 +18,59 @@ public sealed class SampleData
 
     public IReadOnlyList<InitiativeVm> GetInitiatives() => _initiatives;
 
+    // ----- Notifications (in-memory only) -----
+    private readonly List<NotificationVm> _notifications = BuildNotifications();
+
+    public IReadOnlyList<NotificationVm> GetNotifications() => _notifications;
+
+    public int UnreadNotificationCount => _notifications.Count(n => n.Unread);
+
+    public void MarkAllNotificationsRead()
+    {
+        for (var i = 0; i < _notifications.Count; i++)
+        {
+            if (_notifications[i].Unread)
+            {
+                _notifications[i] = _notifications[i] with { Unread = false };
+            }
+        }
+    }
+
+    private static List<NotificationVm> BuildNotifications() =>
+    [
+        new(Guid.CreateVersion7(), "Damien Green", "DG", Unread: true, "5 min ago",
+            [
+                new("Just completed "),
+                new("Task Name", Highlight: true),
+                new(" from "),
+                new("Project Name", Highlight: true),
+            ],
+            new NotificationAttachment(NotificationAttachmentKind.CompletedTask,
+                "Completed the prototypes for new product")),
+
+        new(Guid.CreateVersion7(), "Sarah Smith", "SS", Unread: false, "1 hour ago",
+            [
+                new("Updated the "),
+                new("due date", Highlight: true),
+                new(" for "),
+                new("Task Name Here", Highlight: true),
+            ]),
+
+        new(Guid.CreateVersion7(), "Allen Greenspan", "AG", Unread: false, "1 hour ago",
+            [
+                new("Added a file into "),
+                new("Project Name", Highlight: true),
+            ],
+            new NotificationAttachment(NotificationAttachmentKind.File,
+                "filename.jpg", "18 Apr, 2021 - 2847kb")),
+
+        new(Guid.CreateVersion7(), "Karen Hayden", "KH", Unread: false, "1 hour ago",
+            [
+                new("Assigned 9 points to the upcoming "),
+                new("Task Name", Highlight: true),
+            ]),
+    ];
+
     public InitiativeVm? GetInitiative(Guid id) =>
         _initiatives.FirstOrDefault(i => i.Id == id);
 

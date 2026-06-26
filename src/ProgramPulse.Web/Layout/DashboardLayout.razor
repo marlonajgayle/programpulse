@@ -79,6 +79,14 @@
                     </svg>
                     <span>Help centre</span>
                 </NavLink>
+
+                <NavLink class="pp-nav-item" href="/login">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2M10 17l5-5-5-5M15 12H3"
+                              stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span>Log Out</span>
+                </NavLink>
             </div>
         </nav>
 
@@ -88,12 +96,6 @@
                 <strong>Joe Stark</strong>
                 <span>stark.j11@programpulse.io</span>
             </div>
-            <a href="/login" class="pp-sidebar__logout" aria-label="Sign out">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M15 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2M10 17l5-5-5-5M15 12H3"
-                          stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-            </a>
         </div>
     </aside>
 
@@ -109,13 +111,19 @@
             </div>
 
             <div class="pp-topbar__actions">
-                <button type="button" class="pp-iconbtn" aria-label="Notifications">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                    </svg>
-                    <span class="pp-iconbtn__dot" aria-hidden="true"></span>
-                </button>
+                <div class="pp-notif-wrap">
+                    <button type="button" class="pp-iconbtn @(showNotifications ? "pp-iconbtn--active" : "")"
+                            aria-label="Notifications" aria-haspopup="dialog" aria-expanded="@showNotifications"
+                            @onclick="ToggleNotifications">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                        <span class="pp-iconbtn__dot" aria-hidden="true"></span>
+                    </button>
+
+                    <NotificationsDialog Visible="showNotifications" OnClose="() => showNotifications = false" />
+                </div>
 
                 <span class="pp-datepill">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -136,4 +144,8 @@
 @code {
     // App shell for authenticated pages: persistent sidebar nav + topbar.
     // Distinct from the thin MarketingLayout used by public/marketing pages.
+
+    private bool showNotifications;
+
+    private void ToggleNotifications() => showNotifications = !showNotifications;
 }

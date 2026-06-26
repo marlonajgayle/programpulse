@@ -1,0 +1,61 @@
+@* A single notification row. Shared by the topbar NotificationsDialog popover
+   and the full Notifications page so both render the same format. *@
+
+<li class="pp-notif__item">
+    <span class="pp-notif__avatar @(Notification.Unread ? "pp-notif__avatar--unread" : "")" aria-hidden="true">@Notification.Initials</span>
+
+    <div class="pp-notif__body">
+        <div class="pp-notif__row">
+            <strong class="pp-notif__name">@Notification.Author</strong>
+            <span class="pp-notif__time">@Notification.TimeAgo</span>
+        </div>
+
+        <p class="pp-notif__text">
+            @foreach (var seg in Notification.Message)
+            {
+                @if (seg.Highlight)
+                {
+                    <span class="pp-notif__hl">@seg.Text</span>
+                }
+                else
+                {
+                    @seg.Text
+                }
+            }
+        </p>
+
+        @if (Notification.Attachment is { } att)
+        {
+            @if (att.Kind == NotificationAttachmentKind.CompletedTask)
+            {
+                <div class="pp-notif__card">
+                    <span class="pp-notif__check" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="m5 12 4 4 10-10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    <span class="pp-notif__card-text">@att.Title</span>
+                </div>
+            }
+            else
+            {
+                <div class="pp-notif__file">
+                    <span class="pp-notif__file-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                            <path d="M14 3v5h5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    <div class="pp-notif__file-meta">
+                        <strong class="pp-notif__file-name">@att.Title</strong>
+                        <span class="pp-notif__file-sub">@att.Meta</span>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</li>
+
+@code {
+    [Parameter, EditorRequired] public NotificationVm Notification { get; set; } = default!;
+}

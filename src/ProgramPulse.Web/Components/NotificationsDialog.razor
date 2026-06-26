@@ -1,0 +1,27 @@
+@inject SampleData Data
+
+@if (Visible)
+{
+    <div class="pp-notif-overlay" @onclick="Close"></div>
+
+    <div class="pp-notif-panel" role="dialog" aria-modal="true" aria-label="Notifications" @onclick:stopPropagation="true">
+        <div class="pp-notif__head">
+            <h2 class="pp-notif__title">Notifications</h2>
+            <a href="/notifications" class="pp-notif__seeall" @onclick="Close">See All</a>
+        </div>
+
+        <ul class="pp-notif__list">
+            @foreach (var n in Data.GetNotifications())
+            {
+                <NotificationItem Notification="n" />
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Task Close() => OnClose.InvokeAsync();
+}
