@@ -1,0 +1,100 @@
+@page "/initiatives"
+@layout DashboardLayout
+@inject SampleData Data
+@inject NavigationManager Nav
+
+<PageTitle>Initiatives — ProgramPulse</PageTitle>
+
+<div class="pp-page__head">
+    <div>
+        <h1 class="pp-dash__heading">Initiatives</h1>
+        <p class="pp-page__subtitle">@initiatives.Count active @(initiatives.Count == 1 ? "initiative" : "initiatives") across your programme.</p>
+    </div>
+    <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreate = true">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        New initiative
+    </button>
+</div>
+
+<!-- Visual-only filter row -->
+<div class="pp-toolbar">
+    <div class="pp-topbar__search pp-toolbar__search">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7" />
+            <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+        </svg>
+        <input class="pp-input pp-input--icon" type="search" placeholder="Filter initiatives" aria-label="Filter initiatives" />
+    </div>
+    <span class="pp-legend">
+        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--track"></span>On track</span>
+        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--warn"></span>At risk</span>
+        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--off"></span>Off track</span>
+    </span>
+</div>
+
+@if (initiatives.Count == 0)
+{
+    <div class="pp-empty">
+        <p class="pp-empty__title">No initiatives yet</p>
+        <p class="pp-empty__note">Create your first initiative to start tracking objectives and KPIs.</p>
+    </div>
+}
+else
+{
+    <div class="pp-list-grid">
+        @foreach (var initiative in initiatives)
+        {
+            <article class="pp-card pp-init-card" role="button" tabindex="0"
+                     @onclick="() => Open(initiative.Id)"
+                     @onkeydown="@(e => OnKey(e, initiative.Id))">
+                <div class="pp-init-card__top">
+                    <h3 class="pp-init-card__name">@initiative.Name</h3>
+                    <span class="pp-badge pp-badge--@StatusRollup.Modifier(initiative.AggregateStatus)">
+                        @StatusRollup.Label(initiative.AggregateStatus)
+                    </span>
+                </div>
+                <p class="pp-init-card__desc">@initiative.Description</p>
+                <div class="pp-init-card__foot">
+                    <span class="pp-meta__item">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" />
+                            <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                        @DateRange(initiative)
+                    </span>
+                    <span class="pp-init-card__counts">
+                        <span>@initiative.ObjectiveCount @(initiative.ObjectiveCount == 1 ? "objective" : "objectives")</span>
+                        <span class="pp-dot-sep">·</span>
+                        <span>@initiative.KpiCount KPIs</span>
+                    </span>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+<CreateInitiativeDialog Visible="showCreate" OnClose="() => showCreate = false" />
+
+@code {
+    private IReadOnlyList<InitiativeVm> initiatives = Array.Empty<InitiativeVm>();
+    private bool showCreate;
+
+    protected override void OnInitialized() => initiatives = Data.GetInitiatives();
+
+    private void Open(Guid id) => Nav.NavigateTo($"/initiatives/{id}");
+
+    private void OnKey(KeyboardEventArgs e, Guid id)
+    {
+        if (e.Key is "Enter" or " ")
+        {
+            Open(id);
+        }
+    }
+
+    private static string DateRange(InitiativeVm i) =>
+        i.EndDate is { } end
+            ? $"{i.StartDate:MMM yyyy} – {end:MMM yyyy}"
+            : $"{i.StartDate:MMM yyyy} – ongoing";
+}

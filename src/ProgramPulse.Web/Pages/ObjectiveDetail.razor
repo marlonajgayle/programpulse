@@ -1,0 +1,157 @@
+@page "/initiatives/{Id:guid}/objectives/{ObjectiveId:guid}"
+@layout DashboardLayout
+@inject SampleData Data
+
+<PageTitle>@(objective?.Name ?? "Objective") — ProgramPulse</PageTitle>
+
+@if (initiative is null || objective is null)
+{
+    <nav class="pp-crumbs" aria-label="Breadcrumb">
+        <a href="/initiatives">Initiatives</a>
+        <span class="pp-crumbs__sep">/</span>
+        <span class="pp-crumbs__current">Not found</span>
+    </nav>
+    <div class="pp-empty">
+        <p class="pp-empty__title">Objective not found</p>
+        <p class="pp-empty__note">It may have been removed. Head back to the <a class="pp-auth__link" href="/initiatives">initiatives list</a>.</p>
+    </div>
+}
+else
+{
+    <nav class="pp-crumbs" aria-label="Breadcrumb">
+        <a href="/initiatives">Initiatives</a>
+        <span class="pp-crumbs__sep">/</span>
+        <a href="/initiatives/@initiative.Id">@initiative.Name</a>
+        <span class="pp-crumbs__sep">/</span>
+        <span class="pp-crumbs__current">@objective.Name</span>
+    </nav>
+
+    <header class="pp-detail__head">
+        <div class="pp-detail__title-row">
+            <h1 class="pp-dash__heading">@objective.Name</h1>
+            <span class="pp-badge pp-badge--@StatusRollup.Modifier(objective.AggregateStatus)">
+                @StatusRollup.Label(objective.AggregateStatus)
+            </span>
+        </div>
+        <p class="pp-detail__desc">@objective.Description</p>
+    </header>
+
+    <div class="pp-section-head-row">
+        <h2 class="pp-section-head">Key performance indicators</h2>
+        <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreateKpi = true">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Add KPI
+        </button>
+    </div>
+
+    @if (objective.Kpis.Count == 0)
+    {
+        <div class="pp-empty">
+            <p class="pp-empty__title">No KPIs yet</p>
+            <p class="pp-empty__note">This objective has no measurable indicators defined.</p>
+        </div>
+    }
+    else
+    {
+        <div class="pp-kpi-grid">
+            @foreach (var kpi in objective.Kpis)
+            {
+                <article class="pp-card pp-kpi-card">
+                    <div class="pp-kpi-card__head">
+                        <div>
+                            <h3 class="pp-kpi-card__name">@kpi.Name</h3>
+                            <span class="pp-kpi-card__unit">Measured in @kpi.Unit</span>
+                        </div>
+                        <span class="pp-badge pp-badge--@kpi.StatusModifier">@kpi.StatusLabel</span>
+                    </div>
+
+                    <div class="pp-kpi-card__chips">
+                        <span class="pp-chip">
+                            @if (kpi.Direction == KpiDirection.Increase)
+                            {
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M19 5h-7M19 5v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                            }
+                            else
+                            {
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5 19 19M19 19h-7M19 19v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                            }
+                            @kpi.DirectionLabel
+                        </span>
+                        <span class="pp-chip @(kpi.IsOverdue ? "pp-chip--off" : "")">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.7" />
+                                <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            Due @kpi.DueDate.ToString("d MMM yyyy")@(kpi.IsOverdue ? " · overdue" : "")
+                        </span>
+                    </div>
+
+                    <!-- Progress: baseline -> current -> target -->
+                    <div class="pp-progress">
+                        <div class="pp-progress__track">
+                            <div class="pp-progress__fill pp-progress__fill--@kpi.StatusModifier" style="width:@(kpi.ProgressPercent)%"></div>
+                        </div>
+                        <span class="pp-progress__pct">@kpi.ProgressPercent% to target</span>
+                    </div>
+
+                    <dl class="pp-kpi-card__figures">
+                        <div><dt>Baseline</dt><dd>@Fmt(kpi.BaselineValue) @kpi.Unit</dd></div>
+                        <div><dt>Current</dt><dd class="pp-kpi-card__current">@Fmt(kpi.CurrentValue) @kpi.Unit</dd></div>
+                        <div><dt>Target</dt><dd>@Fmt(kpi.TargetValue) @kpi.Unit</dd></div>
+                    </dl>
+
+                    @if (kpi.Measurements.Count > 0)
+                    {
+                        <details class="pp-history">
+                            <summary class="pp-history__summary">@kpi.Measurements.Count measurements</summary>
+                            <ul class="pp-history__list">
+                                @foreach (var m in kpi.Measurements.OrderByDescending(x => x.CreatedDate))
+                                {
+                                    <li class="pp-history__row">
+                                        <span class="pp-history__value">@Fmt(m.Value) @kpi.Unit</span>
+                                        <span class="pp-history__meta">
+                                            <span class="pp-history__date">@m.CreatedDate.ToString("d MMM yyyy")</span>
+                                            @if (!string.IsNullOrWhiteSpace(m.Notes))
+                                            {
+                                                <span class="pp-history__note">@m.Notes</span>
+                                            }
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </details>
+                    }
+                </article>
+            }
+        </div>
+    }
+
+    <CreateKpiDialog InitiativeId="Id" ObjectiveId="ObjectiveId" Visible="showCreateKpi"
+                     OnClose="() => showCreateKpi = false" OnSaved="Reload" />
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    [Parameter] public Guid ObjectiveId { get; set; }
+
+    private InitiativeVm? initiative;
+    private ObjectiveVm? objective;
+    private bool showCreateKpi;
+
+    protected override void OnParametersSet()
+    {
+        initiative = Data.GetInitiative(Id);
+        objective = Data.GetObjective(Id, ObjectiveId);
+    }
+
+    private void Reload()
+    {
+        initiative = Data.GetInitiative(Id);
+        objective = Data.GetObjective(Id, ObjectiveId);
+    }
+
+    private static string Fmt(decimal value) =>
+        value == Math.Truncate(value) ? value.ToString("0") : value.ToString("0.##");
+}

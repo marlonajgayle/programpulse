@@ -17,11 +17,13 @@
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="pp-loading">
+            <!-- Flatline: the one trace that means "no signal" -->
+            <svg class="pp-loading__ekg" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true">
+                <line x1="0" y1="60" x2="600" y2="60" class="pp-loading__flatline" />
+            </svg>
+            <p class="pp-loading__text">Loading</p>
+        </div>
     </div>
 
     <div id="blazor-error-ui">

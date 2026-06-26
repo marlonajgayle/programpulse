@@ -1,0 +1,137 @@
+@page "/initiatives/{Id:guid}"
+@layout DashboardLayout
+@inject SampleData Data
+@inject NavigationManager Nav
+
+<PageTitle>@(initiative?.Name ?? "Initiative") — ProgramPulse</PageTitle>
+
+@if (initiative is null)
+{
+    <nav class="pp-crumbs" aria-label="Breadcrumb">
+        <a href="/initiatives">Initiatives</a>
+        <span class="pp-crumbs__sep">/</span>
+        <span class="pp-crumbs__current">Not found</span>
+    </nav>
+    <div class="pp-empty">
+        <p class="pp-empty__title">Initiative not found</p>
+        <p class="pp-empty__note">It may have been removed. Head back to the <a class="pp-auth__link" href="/initiatives">initiatives list</a>.</p>
+    </div>
+}
+else
+{
+    <nav class="pp-crumbs" aria-label="Breadcrumb">
+        <a href="/initiatives">Initiatives</a>
+        <span class="pp-crumbs__sep">/</span>
+        <span class="pp-crumbs__current">@initiative.Name</span>
+    </nav>
+
+    <header class="pp-detail__head">
+        <div class="pp-detail__title-row">
+            <h1 class="pp-dash__heading">@initiative.Name</h1>
+            <span class="pp-badge pp-badge--@StatusRollup.Modifier(initiative.AggregateStatus)">
+                @StatusRollup.Label(initiative.AggregateStatus)
+            </span>
+        </div>
+        <p class="pp-detail__desc">@initiative.Description</p>
+        <div class="pp-meta">
+            <span class="pp-meta__item">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" />
+                    <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+                @initiative.StartDate.ToString("d MMM yyyy") – @(initiative.EndDate is { } e ? e.ToString("d MMM yyyy") : "ongoing")
+            </span>
+            <span class="pp-meta__item">Created @initiative.CreatedDate.ToString("d MMM yyyy")</span>
+            @if (initiative.LastModifiedDate is { } modified)
+            {
+                <span class="pp-meta__item">Updated @modified.ToString("d MMM yyyy")</span>
+            }
+        </div>
+    </header>
+
+    <div class="pp-summary">
+        <article class="pp-card pp-stat pp-summary__cell">
+            <div class="pp-stat__head"><span>Objectives</span></div>
+            <p class="pp-stat__value">@initiative.ObjectiveCount</p>
+        </article>
+        <article class="pp-card pp-stat pp-summary__cell">
+            <div class="pp-stat__head"><span>Total KPIs</span></div>
+            <p class="pp-stat__value">@initiative.KpiCount</p>
+        </article>
+        <article class="pp-card pp-stat pp-summary__cell">
+            <div class="pp-stat__head"><span>On track</span></div>
+            <p class="pp-stat__value pp-stat__value--ok">@CountBy(KpiStatus.OnTrack)</p>
+        </article>
+        <article class="pp-card pp-stat pp-summary__cell">
+            <div class="pp-stat__head"><span>At risk</span></div>
+            <p class="pp-stat__value pp-stat__value--warn">@CountBy(KpiStatus.AtRisk)</p>
+        </article>
+        <article class="pp-card pp-stat pp-summary__cell">
+            <div class="pp-stat__head"><span>Off track</span></div>
+            <p class="pp-stat__value pp-stat__value--off">@CountBy(KpiStatus.OffTrack)</p>
+        </article>
+    </div>
+
+    <div class="pp-section-head-row">
+        <h2 class="pp-section-head">Objectives</h2>
+        <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreateObjective = true">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Add objective
+        </button>
+    </div>
+    <div class="pp-list-grid">
+        @foreach (var objective in initiative.Objectives)
+        {
+            <article class="pp-card pp-obj-card" role="button" tabindex="0"
+                     @onclick="() => OpenObjective(objective.Id)"
+                     @onkeydown="@(ev => OnKey(ev, objective.Id))">
+                <div class="pp-init-card__top">
+                    <h3 class="pp-init-card__name">@objective.Name</h3>
+                    <span class="pp-badge pp-badge--@StatusRollup.Modifier(objective.AggregateStatus)">
+                        @StatusRollup.Label(objective.AggregateStatus)
+                    </span>
+                </div>
+                <p class="pp-init-card__desc">@objective.Description</p>
+                <div class="pp-obj-card__foot">
+                    <span class="pp-init-card__counts">@objective.KpiCount KPIs</span>
+                    <span class="pp-pills">
+                        @foreach (var kpi in objective.Kpis)
+                        {
+                            <span class="pp-pill-dot pp-pill-dot--@kpi.StatusModifier" title="@kpi.Name — @kpi.StatusLabel"></span>
+                        }
+                    </span>
+                </div>
+            </article>
+        }
+    </div>
+
+    <CreateObjectiveDialog InitiativeId="Id" Visible="showCreateObjective"
+                           OnClose="() => showCreateObjective = false" OnSaved="Reload" />
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private InitiativeVm? initiative;
+    private bool showCreateObjective;
+
+    protected override void OnParametersSet() => initiative = Data.GetInitiative(Id);
+
+    private void Reload() => initiative = Data.GetInitiative(Id);
+
+    private int CountBy(KpiStatus status) =>
+        initiative?.AllKpis.Count(k => k.Status == status) ?? 0;
+
+    private void OpenObjective(Guid objectiveId) =>
+        Nav.NavigateTo($"/initiatives/{Id}/objectives/{objectiveId}");
+
+    private void OnKey(KeyboardEventArgs e, Guid objectiveId)
+    {
+        if (e.Key is "Enter" or " ")
+        {
+            OpenObjective(objectiveId);
+        }
+    }
+}

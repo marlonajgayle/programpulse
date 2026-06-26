@@ -1,0 +1,288 @@
+@page "/settings"
+@layout DashboardLayout
+
+<PageTitle>Settings — ProgramPulse</PageTitle>
+
+<div class="pp-settings__head">
+    <h1 class="pp-dash__heading pp-settings__title">Settings</h1>
+    <svg class="pp-settings__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span class="pp-settings__crumb">@SectionLabel</span>
+</div>
+
+<div class="pp-settings">
+    <!-- ===== Sub-navigation ===== -->
+    <aside class="pp-settings__nav" aria-label="Settings sections">
+        <div class="pp-settings__group">
+            <span class="pp-settings__label">Account</span>
+
+            <button type="button"
+                    class="pp-settings__item @(section == Section.Profile ? "is-active" : "")"
+                    @onclick="() => section = Section.Profile">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.7" />
+                    <path d="M5 20a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+                <span>My Profile</span>
+            </button>
+
+            <button type="button"
+                    class="pp-settings__item @(section == Section.General ? "is-active" : "")"
+                    @onclick="() => section = Section.General">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 11 12 4l8 7M6 9.5V20h12V9.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>General</span>
+            </button>
+
+            <button type="button"
+                    class="pp-settings__item @(section == Section.Security ? "is-active" : "")"
+                    @onclick="() => section = Section.Security">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="5" y="10" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="1.7" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+                <span>Security</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ===== Panel ===== -->
+    <section class="pp-settings__panel">
+        @switch (section)
+        {
+            case Section.Profile:
+                @ProfilePanel();
+                break;
+            case Section.Security:
+                @SecurityPanel();
+                break;
+            default:
+                @GeneralPanel();
+                break;
+        }
+    </section>
+</div>
+
+@code {
+    private enum Section { Profile, General, Security }
+
+    private Section section = Section.General;
+
+    private string SectionLabel => section switch
+    {
+        Section.Profile => "My Profile",
+        Section.Security => "Security",
+        _ => "General"
+    };
+
+    // ----- General: notifications -----
+    private bool notifyDaily = true;
+    private bool notifyNewEvent = true;
+    private bool notifyAddedTeam = true;
+    private bool mobilePush = true;
+    private bool desktopNotification = true;
+    private bool emailNotification;
+
+    // ----- General: my settings -----
+    private string appearance = "Light";
+    private bool twoFactor = true;
+    private string language = "English";
+
+    // ----- Profile -----
+    private string firstName = "Joe";
+    private string lastName = "Stark";
+    private string email = "stark.j11@programpulse.io";
+    private string jobTitle = "Programme Director";
+    private string bio = "Leading delivery across the strategic initiative portfolio.";
+
+    // ----- Security -----
+    private bool securityTwoFactor = true;
+    private bool loginAlerts = true;
+
+    private RenderFragment GeneralPanel() =>@<text>
+        <div class="pp-settings__section">
+            <div class="pp-settings__row-head">
+                <h2 class="pp-settings__section-title">My Notifications</h2>
+                <a href="#" class="pp-settings__link">About notifications?</a>
+            </div>
+            <hr class="pp-settings__divider" />
+
+            <p class="pp-settings__sublabel">Notify me when…</p>
+            <div class="pp-checklist">
+                <label class="pp-check">
+                    <input type="checkbox" @bind="notifyDaily" />
+                    <span class="pp-check__box">@CheckMark</span>
+                    <span>Daily productivity update</span>
+                </label>
+                <label class="pp-check">
+                    <input type="checkbox" @bind="notifyNewEvent" />
+                    <span class="pp-check__box">@CheckMark</span>
+                    <span>New event created</span>
+                </label>
+                <label class="pp-check">
+                    <input type="checkbox" @bind="notifyAddedTeam" />
+                    <span class="pp-check__box">@CheckMark</span>
+                    <span>When added on new team</span>
+                </label>
+            </div>
+
+            <div class="pp-setting-list">
+                @ToggleRow("Mobile push notifications",
+                           "Receive push notification whenever your organisation requires your attention.",
+                           () => mobilePush, v => mobilePush = v)
+                @ToggleRow("Desktop Notification",
+                           "Receive desktop notification whenever your organisation requires your attention.",
+                           () => desktopNotification, v => desktopNotification = v)
+                @ToggleRow("Email Notification",
+                           "Receive email whenever your organisation requires your attention.",
+                           () => emailNotification, v => emailNotification = v)
+            </div>
+        </div>
+
+        <div class="pp-settings__section">
+            <h2 class="pp-settings__section-title">My Settings</h2>
+            <div class="pp-setting-list">
+                <div class="pp-setting-row">
+                    <div class="pp-setting-row__text">
+                        <p class="pp-setting-row__title">Appearance</p>
+                        <p class="pp-setting-row__desc">Customise how ProgramPulse looks on your device.</p>
+                    </div>
+                    <div class="pp-setting-row__control">
+                        <div class="pp-minselect">
+                            <select @bind="appearance" aria-label="Appearance">
+                                <option>Light</option>
+                                <option>Dark</option>
+                                <option>System</option>
+                            </select>
+                            @Chevron
+                        </div>
+                    </div>
+                </div>
+
+                @ToggleRow("Two-factor authentication",
+                           "Keep your account secure by enabling 2FA via SMS or using a temporary one-time passcode (TOTP).",
+                           () => twoFactor, v => twoFactor = v)
+
+                <div class="pp-setting-row">
+                    <div class="pp-setting-row__text">
+                        <p class="pp-setting-row__title">Language</p>
+                        <p class="pp-setting-row__desc">Customise the language used across your workspace.</p>
+                    </div>
+                    <div class="pp-setting-row__control">
+                        <div class="pp-minselect">
+                            <select @bind="language" aria-label="Language">
+                                <option>English</option>
+                                <option>Français</option>
+                                <option>Español</option>
+                                <option>Deutsch</option>
+                            </select>
+                            @Chevron
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </text>;
+
+    private RenderFragment ProfilePanel() =>@<text>
+        <div class="pp-settings__section">
+            <h2 class="pp-settings__section-title">My Profile</h2>
+
+            <div class="pp-profile-head">
+                <span class="pp-profile-head__avatar" aria-hidden="true">@Initials</span>
+                <div class="pp-profile-head__meta">
+                    <p class="pp-profile-head__name">@firstName @lastName</p>
+                    <p class="pp-profile-head__email">@email</p>
+                </div>
+                <div class="pp-profile-head__actions">
+                    <button type="button" class="pp-btn pp-btn--ghost">Change photo</button>
+                </div>
+            </div>
+
+            <div class="pp-form-grid">
+                <div class="pp-form__field">
+                    <label class="pp-form__label" for="pp-first">First name</label>
+                    <input id="pp-first" class="pp-input" @bind="firstName" />
+                </div>
+                <div class="pp-form__field">
+                    <label class="pp-form__label" for="pp-last">Last name</label>
+                    <input id="pp-last" class="pp-input" @bind="lastName" />
+                </div>
+                <div class="pp-form__field pp-form__field--full">
+                    <label class="pp-form__label" for="pp-email">Email address</label>
+                    <input id="pp-email" type="email" class="pp-input" @bind="email" />
+                </div>
+                <div class="pp-form__field pp-form__field--full">
+                    <label class="pp-form__label" for="pp-title">Job title</label>
+                    <input id="pp-title" class="pp-input" @bind="jobTitle" />
+                </div>
+                <div class="pp-form__field pp-form__field--full">
+                    <label class="pp-form__label" for="pp-bio">Bio</label>
+                    <textarea id="pp-bio" class="pp-input pp-input--area" @bind="bio"></textarea>
+                </div>
+            </div>
+
+            <div class="pp-settings__actions">
+                <button type="button" class="pp-btn pp-btn--primary">Save changes</button>
+            </div>
+        </div>
+    </text>;
+
+    private RenderFragment SecurityPanel() =>@<text>
+        <div class="pp-settings__section">
+            <h2 class="pp-settings__section-title">Password</h2>
+            <hr class="pp-settings__divider" />
+            <div class="pp-form-grid">
+                <div class="pp-form__field pp-form__field--full">
+                    <label class="pp-form__label" for="pp-current">Current password</label>
+                    <input id="pp-current" type="password" class="pp-input" placeholder="••••••••" />
+                </div>
+                <div class="pp-form__field">
+                    <label class="pp-form__label" for="pp-new">New password</label>
+                    <input id="pp-new" type="password" class="pp-input" placeholder="••••••••" />
+                </div>
+                <div class="pp-form__field">
+                    <label class="pp-form__label" for="pp-confirm">Confirm new password</label>
+                    <input id="pp-confirm" type="password" class="pp-input" placeholder="••••••••" />
+                </div>
+            </div>
+            <div class="pp-settings__actions">
+                <button type="button" class="pp-btn pp-btn--primary">Update password</button>
+            </div>
+        </div>
+
+        <div class="pp-settings__section">
+            <h2 class="pp-settings__section-title">Account security</h2>
+            <div class="pp-setting-list">
+                @ToggleRow("Two-factor authentication",
+                           "Require a one-time passcode in addition to your password when signing in.",
+                           () => securityTwoFactor, v => securityTwoFactor = v)
+                @ToggleRow("Login alerts",
+                           "Email me whenever a new device signs in to my account.",
+                           () => loginAlerts, v => loginAlerts = v)
+            </div>
+        </div>
+    </text>;
+
+    private RenderFragment ToggleRow(string title, string description, Func<bool> get, Action<bool> set) =>@<text>
+        <div class="pp-setting-row">
+            <div class="pp-setting-row__text">
+                <p class="pp-setting-row__title">@title</p>
+                <p class="pp-setting-row__desc">@description</p>
+            </div>
+            <label class="pp-toggle">
+                <input type="checkbox" checked="@get()" @onchange="e => set((bool)e.Value!)" />
+                <span class="pp-toggle__track"><span class="pp-toggle__thumb"></span></span>
+            </label>
+        </div>
+    </text>;
+
+    private static readonly RenderFragment CheckMark =@<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /></svg>;
+
+    private static readonly RenderFragment Chevron =@<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>;
+
+    private string Initials =>
+        $"{(firstName.Length > 0 ? firstName[0] : ' ')}{(lastName.Length > 0 ? lastName[0] : ' ')}".Trim().ToUpperInvariant();
+}

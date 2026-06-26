@@ -1,0 +1,219 @@
+@page "/help"
+@layout DashboardLayout
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Help Centre — ProgramPulse</PageTitle>
+
+<div class="pp-page__head">
+    <div>
+        <h1 class="pp-dash__heading">Help Centre</h1>
+        <p class="pp-page__subtitle">Get help and find answers to your questions.</p>
+    </div>
+</div>
+
+<!-- ===== Contact channels ===== -->
+<div class="pp-help-channels">
+    <article class="pp-help-channel">
+        <span class="pp-help-channel__icon pp-help-channel__icon--chat" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 3v-3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+                      stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+            </svg>
+        </span>
+        <h3 class="pp-help-channel__title">Live Chat</h3>
+        <p class="pp-help-channel__sub">Chat with our support team</p>
+        <button type="button" class="pp-btn pp-btn--ghost">Start Chat</button>
+    </article>
+
+    <article class="pp-help-channel">
+        <span class="pp-help-channel__icon pp-help-channel__icon--mail" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7" />
+                <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </span>
+        <h3 class="pp-help-channel__title">Email Support</h3>
+        <p class="pp-help-channel__sub">support@programpulse.io</p>
+        <a class="pp-btn pp-btn--ghost" href="mailto:support@programpulse.io">Send Email</a>
+    </article>
+
+    <article class="pp-help-channel">
+        <span class="pp-help-channel__icon pp-help-channel__icon--phone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M6 4h3l1.5 4.5L8.5 10a11 11 0 0 0 5.5 5.5l1.5-2L20 15v3a2 2 0 0 1-2 2A14 14 0 0 1 4 6a2 2 0 0 1 2-2Z"
+                      stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+            </svg>
+        </span>
+        <h3 class="pp-help-channel__title">Phone Support</h3>
+        <p class="pp-help-channel__sub">+1 (555) 123-4567</p>
+        <a class="pp-btn pp-btn--ghost" href="tel:+15551234567">Call Now</a>
+    </article>
+</div>
+
+<!-- ===== FAQ + ticket ===== -->
+<div class="pp-help-grid">
+    <!-- FAQ -->
+    <section class="pp-card pp-help-faq">
+        <div class="pp-help-panel__head">
+            <span class="pp-help-panel__icon pp-help-panel__icon--faq" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" />
+                    <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7M12 17h.01"
+                          stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+            </span>
+            <div class="pp-help-panel__heading">
+                <h2 class="pp-help-panel__title">Frequently Asked Questions</h2>
+                <p class="pp-help-panel__sub">Find quick answers to common questions</p>
+            </div>
+        </div>
+
+        <div class="pp-help-faq__search pp-topbar__search">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7" />
+                <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+            <input class="pp-input pp-input--icon" type="search" placeholder="Search FAQs…"
+                   aria-label="Search FAQs" @bind="faqSearch" @bind:event="oninput" />
+        </div>
+
+        @if (FilteredFaqs.Count == 0)
+        {
+            <div class="pp-empty">
+                <p class="pp-empty__title">No matching questions</p>
+                <p class="pp-empty__note">Try a different search term, or submit a ticket and we'll help you out.</p>
+            </div>
+        }
+        else
+        {
+            <div class="pp-help-faq__list">
+                @foreach (var (item, index) in FilteredFaqs.Select((f, i) => (f, i)))
+                {
+                    var open = openFaq == index;
+                    <div class="pp-help-faq__item @(open ? "is-open" : "")">
+                        <button type="button" class="pp-help-faq__q" @onclick="() => ToggleFaq(index)"
+                                aria-expanded="@open.ToString().ToLowerInvariant()">
+                            <span>@item.Question</span>
+                            <svg class="pp-help-faq__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        @if (open)
+                        {
+                            <p class="pp-help-faq__a">@item.Answer</p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <!-- Submit a ticket -->
+    <section class="pp-card pp-help-ticket">
+        <div class="pp-help-panel__head">
+            <span class="pp-help-panel__icon pp-help-panel__icon--ticket" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 3v-3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+                          stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                </svg>
+            </span>
+            <div class="pp-help-panel__heading">
+                <h2 class="pp-help-panel__title">Submit a Ticket</h2>
+                <p class="pp-help-panel__sub">We'll respond within 24h</p>
+            </div>
+        </div>
+
+        @if (submitted)
+        {
+            <div class="pp-help-ticket__success" role="status">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" />
+                    <path d="m8 12 2.5 2.5L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>Thanks — your ticket has been submitted. Our team will be in touch shortly.</span>
+            </div>
+        }
+
+        <EditForm Model="ticket" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="pp-form__field">
+                <label class="pp-form__label" for="ticket-subject">Subject <span class="pp-req">*</span></label>
+                <InputText id="ticket-subject" class="pp-input" @bind-Value="ticket.Subject"
+                           placeholder="Brief description of your issue" />
+                <ValidationMessage For="() => ticket.Subject" class="pp-field__error" />
+            </div>
+
+            <div class="pp-form__field">
+                <label class="pp-form__label" for="ticket-message">Message <span class="pp-req">*</span></label>
+                <InputTextArea id="ticket-message" class="pp-input pp-input--area" @bind-Value="ticket.Message"
+                               placeholder="Describe your issue in detail…" />
+                <ValidationMessage For="() => ticket.Message" class="pp-field__error" />
+            </div>
+
+            <button type="submit" class="pp-btn pp-btn--primary pp-help-ticket__submit">
+                <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+                    <path d="M5 12 20 5l-4 15-4-6-7-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                </svg>
+                Submit Ticket
+            </button>
+        </EditForm>
+
+        <hr class="pp-help-ticket__rule" />
+        <p class="pp-help-ticket__foot">
+            <span class="pp-help-ticket__dot" aria-hidden="true"></span>
+            Average response time: 2–4 hours
+        </p>
+    </section>
+</div>
+
+@code {
+    private string faqSearch = string.Empty;
+    private int openFaq = -1;
+    private bool submitted;
+
+    private readonly TicketModel ticket = new();
+
+    private readonly List<FaqItem> faqs = new()
+    {
+        new("How do I create a new initiative?",
+            "Open Initiatives from the sidebar and select \"New initiative\". Give it a name, description, and date range, then start adding objectives and KPIs to track progress."),
+        new("How do I add objectives and KPIs?",
+            "Open an initiative, then use \"Add objective\" to break the initiative into measurable goals. Within each objective, add KPIs and record measurements to monitor performance over time."),
+        new("What do the status colours mean?",
+            "Green means on track, gold/amber means at risk, and red means off track. An initiative's badge rolls up the status of its objectives and KPIs so you can spot problems at a glance."),
+        new("How do I export reports?",
+            "Go to Reports from the sidebar and choose the data you want. You can filter by initiative and date range, then export the results for sharing with stakeholders."),
+        new("How can I add a teammate?",
+            "Team management lives under Settings. Invite a colleague by email and assign them a role so they can collaborate on your initiatives."),
+        new("How do I reset my password?",
+            "Open Settings → Security to change your password while signed in. If you're locked out, use the \"Forgot password\" link on the login screen to receive a reset email."),
+    };
+
+    private List<FaqItem> FilteredFaqs =>
+        string.IsNullOrWhiteSpace(faqSearch)
+            ? faqs
+            : faqs.Where(f => f.Question.Contains(faqSearch, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private void ToggleFaq(int index) => openFaq = openFaq == index ? -1 : index;
+
+    private void HandleSubmit()
+    {
+        submitted = true;
+        ticket.Subject = string.Empty;
+        ticket.Message = string.Empty;
+    }
+
+    private sealed record FaqItem(string Question, string Answer);
+
+    private sealed class TicketModel
+    {
+        [Required(ErrorMessage = "Please enter a subject.")]
+        [StringLength(120, ErrorMessage = "Subject must be 120 characters or fewer.")]
+        public string Subject { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please describe your issue.")]
+        [StringLength(2000, MinimumLength = 10, ErrorMessage = "Message must be at least 10 characters.")]
+        public string Message { get; set; } = string.Empty;
+    }
+}
