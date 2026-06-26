@@ -33,12 +33,12 @@
                     <span>Initiatives</span>
                 </NavLink>
 
-                <NavLink class="pp-nav-item" href="/inbox">
+                <NavLink class="pp-nav-item" href="/notifications">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7" />
-                        <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
                     </svg>
-                    <span>Inbox</span>
+                    <span>Notifications</span>
                     <span class="pp-sidebar__badge">7</span>
                 </NavLink>
 
@@ -117,12 +117,6 @@
                     <span class="pp-iconbtn__dot" aria-hidden="true"></span>
                 </button>
 
-                <button type="button" class="pp-iconbtn" aria-label="Toggle theme">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </button>
-
                 <span class="pp-datepill">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" />
@@ -130,8 +124,6 @@
                     </svg>
                     @DateTime.Now.ToString("MMMM d, yyyy")
                 </span>
-
-                <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreate = true">Create</button>
             </div>
         </header>
 
@@ -141,11 +133,7 @@
     </div>
 </div>
 
-<CreateInitiativeDialog Visible="showCreate" OnClose="() => showCreate = false" />
-
 @code {
     // App shell for authenticated pages: persistent sidebar nav + topbar.
     // Distinct from the thin MarketingLayout used by public/marketing pages.
-
-    private bool showCreate;
 }
