@@ -1,0 +1,47 @@
+@* The primary panel and the single dark (deep-green) card per view: the worst initiatives
+   ranked by impact, each with the specific failing metric vs target and % to target. *@
+@inject NavigationManager Nav
+
+<article class="pp-card pp-attention">
+    <div class="pp-attention__head">
+        <h3>Needs your attention</h3>
+        <span class="pp-attention__count">@Items.Count flagged</span>
+    </div>
+
+    @if (Items.Count == 0)
+    {
+        <p class="pp-attention__empty">Nothing flagged — the whole portfolio is on track.</p>
+    }
+    else
+    {
+        <ul class="pp-attention__list">
+            @foreach (var item in Items)
+            {
+                <li class="pp-attention__row">
+                    <span class="pp-attention__dot pp-attention__dot--@item.StatusModifier" aria-hidden="true"></span>
+                    <div class="pp-attention__body">
+                        <strong class="pp-attention__name">@item.Name</strong>
+                        <span class="pp-attention__meta">
+                            @item.Team · @item.Owner · @item.FailingMetric
+                            <span class="pp-attention__vs">@Format(item.CurrentValue) vs @Format(item.TargetValue) target</span>
+                        </span>
+                    </div>
+                    <span class="pp-attention__pct">@item.PercentToTarget%<small>to target</small></span>
+                </li>
+            }
+        </ul>
+
+        <button type="button" class="pp-btn pp-attention__cta" @onclick="ViewAll">
+            View all @Items.Count flagged initiatives
+        </button>
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<FlaggedInitiativeVm> Items { get; set; } = [];
+
+    private void ViewAll() => Nav.NavigateTo("/initiatives?filter=flagged");
+
+    private static string Format(decimal value) =>
+        value == Math.Truncate(value) ? value.ToString("0") : value.ToString("0.##");
+}

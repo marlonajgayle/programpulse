@@ -31,6 +31,12 @@ else
             <span class="pp-badge pp-badge--@StatusRollup.Modifier(initiative.AggregateStatus)">
                 @StatusRollup.Label(initiative.AggregateStatus)
             </span>
+            <button type="button" class="pp-btn pp-btn--ghost" @onclick="() => showEditInitiative = true">
+                <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+                    <path d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Edit
+            </button>
         </div>
         <p class="pp-detail__desc">@initiative.Description</p>
         <div class="pp-meta">
@@ -109,6 +115,9 @@ else
 
     <CreateObjectiveDialog InitiativeId="Id" Visible="showCreateObjective"
                            OnClose="() => showCreateObjective = false" OnSaved="Reload" />
+
+    <EditInitiativeDialog Initiative="initiative" Visible="showEditInitiative"
+                          OnClose="() => showEditInitiative = false" OnSaved="Reload" />
 }
 
 @code {
@@ -116,6 +125,7 @@ else
 
     private InitiativeVm? initiative;
     private bool showCreateObjective;
+    private bool showEditInitiative;
 
     protected override void OnParametersSet() => initiative = Data.GetInitiative(Id);
 

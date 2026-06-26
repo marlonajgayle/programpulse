@@ -74,8 +74,103 @@ public sealed class SampleData
     public InitiativeVm? GetInitiative(Guid id) =>
         _initiatives.FirstOrDefault(i => i.Id == id);
 
+    // ----- Dashboard summary -----
+    // Mirrors the API's DashboardSummaryResponse. Status counts, health, overdue and flagged
+    // are computed from the mock initiatives; the 8-week trend, today's reviews and velocity
+    // deltas are hand-authored because the domain has no status history or Review entity yet.
+    // TODO: replace with a single GET /api/v1/dashboard call once the WASM client hits the API.
+    public DashboardSummaryVm GetDashboardSummary()
+    {
+        const int overdueThresholdDays = 14;
+        var today = DateTime.Today;
+
+        var allKpis = _initiatives.SelectMany(i => i.AllKpis).ToList();
+
+        var onTrack = _initiatives.Count(i => i.AggregateStatus is KpiStatus.OnTrack
+            or KpiStatus.Completed or KpiStatus.NotStarted);
+        var atRisk = _initiatives.Count(i => i.AggregateStatus == KpiStatus.AtRisk);
+        var offTrack = _initiatives.Count(i => i.AggregateStatus == KpiStatus.OffTrack);
+
+        var onTrackKpis = allKpis.Count(k => k.Status == KpiStatus.OnTrack);
+        var health = allKpis.Count == 0 ? 0 : (int)Math.Round((double)onTrackKpis / allKpis.Count * 100);
+
+        var overdue = allKpis.Count(k =>
+            k.Measurements.Count == 0
+            || k.Measurements.Max(m => m.CreatedDate) < today.AddDays(-overdueThresholdDays));
+
+        var flagged = _initiatives
+            .Where(i => i.AggregateStatus is KpiStatus.AtRisk or KpiStatus.OffTrack)
+            .OrderByDescending(i => i.AggregateStatus == KpiStatus.OffTrack)
+            .Select(i =>
+            {
+                var worst = i.AllKpis.FirstOrDefault(k => k.Status == i.AggregateStatus)
+                            ?? i.AllKpis.First();
+                return new FlaggedInitiativeVm(
+                    i.Id,
+                    i.Name,
+                    i.AggregateStatus == KpiStatus.OffTrack ? "off" : "warn",
+                    "Strategy office",
+                    i.AggregateStatus == KpiStatus.OffTrack ? "Mara Lin" : "Devon Pell",
+                    worst.Name,
+                    worst.CurrentValue,
+                    worst.TargetValue,
+                    worst.ProgressPercent);
+            })
+            .ToList();
+
+        // Hand-authored 8-week trajectory ending at the current real counts (no status history).
+        var trend = new List<TrendPointVm>
+        {
+            new(DateOnly.FromDateTime(today.AddDays(-49)), 4, 0, 0),
+            new(DateOnly.FromDateTime(today.AddDays(-42)), 4, 1, 0),
+            new(DateOnly.FromDateTime(today.AddDays(-35)), 3, 1, 0),
+            new(DateOnly.FromDateTime(today.AddDays(-28)), 3, 2, 0),
+            new(DateOnly.FromDateTime(today.AddDays(-21)), 2, 2, 1),
+            new(DateOnly.FromDateTime(today.AddDays(-14)), 2, 1, 1),
+            new(DateOnly.FromDateTime(today.AddDays(-7)), Math.Max(onTrack, 1), Math.Max(atRisk - 1, 0), offTrack),
+            new(DateOnly.FromDateTime(today), onTrack, atRisk, offTrack),
+        };
+
+        // No Review entity in the domain — these are illustrative until one exists.
+        var reviews = new List<UpcomingReviewVm>
+        {
+            new("09:30", "Platform Reliability review", "Strategy office · availability off track", "off"),
+            new("11:00", "Retention onboarding sync", "Growth team · 2 KPIs stale >14d", "warn"),
+            new("14:30", "Expansion Revenue kickoff", "New initiative · not started", "warn"),
+            new("16:00", "Weekly steering call", "Programme leads · portfolio review", "track"),
+        };
+
+        var coverage = allKpis.Count == 0
+            ? 0
+            : (int)Math.Round((double)allKpis.Count(k => k.Measurements.Count > 0) / allKpis.Count * 100);
+
+        var velocity = new VelocityStatsVm(
+            KpisHitTargetThisWeek: allKpis.Count(k => k.Status == KpiStatus.Completed),
+            KpisNewlySlipped: 1,
+            MeasurementCoveragePercent: coverage,
+            AvgDaysToTargetClose: 38);
+
+        return new DashboardSummaryVm(
+            TeamName: "Strategy office",
+            ActiveInitiativeCount: _initiatives.Count,
+            GeneratedAtUtc: DateTime.UtcNow.AddMinutes(-4),
+            HealthScore: health,
+            HealthDeltaPercent: 6.2,
+            Status: new StatusCountsVm(onTrack, atRisk, offTrack, _initiatives.Count),
+            AtRiskDeltaSinceLastWeek: 2,
+            OverdueKpiCount: overdue,
+            TotalKpiCount: allKpis.Count,
+            Flagged: flagged,
+            Trend: trend,
+            Reviews: reviews,
+            Velocity: velocity);
+    }
+
     public ObjectiveVm? GetObjective(Guid initiativeId, Guid objectiveId) =>
         GetInitiative(initiativeId)?.Objectives.FirstOrDefault(o => o.Id == objectiveId);
+
+    public KpiVm? GetKpi(Guid initiativeId, Guid objectiveId, Guid kpiId) =>
+        GetObjective(initiativeId, objectiveId)?.Kpis.FirstOrDefault(k => k.Id == kpiId);
 
     // ----- Mutations (in-memory only) -----
     // TODO: POST to /api/v1/initiatives/{id}/objectives once the WASM client is wired to the API.
@@ -106,6 +201,119 @@ public sealed class SampleData
 
         ((List<KpiVm>)objective.Kpis).Add(kpi);
         return kpi;
+    }
+
+    // TODO: PUT /api/v1/initiatives/{id} once the WASM client is wired to the API.
+    public InitiativeVm UpdateInitiative(
+        Guid id, string name, string description, DateTime startDate, DateTime? endDate)
+    {
+        var index = _initiatives.FindIndex(i => i.Id == id);
+        if (index < 0)
+        {
+            throw new InvalidOperationException("Initiative not found.");
+        }
+
+        var updated = _initiatives[index] with
+        {
+            Name = name,
+            Description = description,
+            StartDate = startDate,
+            EndDate = endDate,
+            LastModifiedDate = DateTime.Today,
+        };
+
+        _initiatives[index] = updated;
+        return updated;
+    }
+
+    // TODO: PUT /api/v1/objectives/{id} once the WASM client is wired to the API.
+    public ObjectiveVm UpdateObjective(
+        Guid initiativeId, Guid objectiveId, string name, string description)
+    {
+        var initiative = GetInitiative(initiativeId)
+            ?? throw new InvalidOperationException("Initiative not found.");
+
+        var objectives = (List<ObjectiveVm>)initiative.Objectives;
+        var index = objectives.FindIndex(o => o.Id == objectiveId);
+        if (index < 0)
+        {
+            throw new InvalidOperationException("Objective not found.");
+        }
+
+        var updated = objectives[index] with
+        {
+            Name = name,
+            Description = description,
+            LastModifiedDate = DateTime.Today,
+        };
+
+        objectives[index] = updated;
+        return updated;
+    }
+
+    // TODO: PUT /api/v1/kpis/{id} once the WASM client is wired to the API.
+    // Mirrors the API's UpdateKpi: baseline, current value, status and measurements
+    // are not editable here (current is measurement-driven, baseline is immutable).
+    public KpiVm UpdateKpi(
+        Guid initiativeId, Guid objectiveId, Guid kpiId, string name, string unit,
+        KpiDirection direction, decimal target, DateTime due)
+    {
+        var objective = GetObjective(initiativeId, objectiveId)
+            ?? throw new InvalidOperationException("Objective not found.");
+
+        var kpis = (List<KpiVm>)objective.Kpis;
+        var index = kpis.FindIndex(k => k.Id == kpiId);
+        if (index < 0)
+        {
+            throw new InvalidOperationException("KPI not found.");
+        }
+
+        var updated = kpis[index] with
+        {
+            Name = name,
+            Unit = unit,
+            Direction = direction,
+            TargetValue = target,
+            DueDate = due,
+            LastModifiedDate = DateTime.Today,
+        };
+
+        kpis[index] = updated;
+        return updated;
+    }
+
+    // TODO: POST /api/v1/kpis/{id}/measurements once the WASM client is wired to the API.
+    public MeasurementVm AddMeasurement(
+        Guid initiativeId, Guid objectiveId, Guid kpiId, decimal value, string? notes)
+    {
+        var kpi = GetKpi(initiativeId, objectiveId, kpiId)
+            ?? throw new InvalidOperationException("KPI not found.");
+
+        var measurement = new MeasurementVm(
+            Guid.CreateVersion7(), value, notes, kpiId, DateTime.Today);
+
+        ((List<MeasurementVm>)kpi.Measurements).Add(measurement);
+        return measurement;
+    }
+
+    // TODO: PUT /api/v1/measurements/{id} once the WASM client is wired to the API.
+    public MeasurementVm UpdateMeasurement(
+        Guid initiativeId, Guid objectiveId, Guid kpiId, Guid measurementId,
+        decimal value, string? notes)
+    {
+        var kpi = GetKpi(initiativeId, objectiveId, kpiId)
+            ?? throw new InvalidOperationException("KPI not found.");
+
+        var measurements = (List<MeasurementVm>)kpi.Measurements;
+        var index = measurements.FindIndex(m => m.Id == measurementId);
+        if (index < 0)
+        {
+            throw new InvalidOperationException("Measurement not found.");
+        }
+
+        var updated = measurements[index] with { Value = value, Notes = notes };
+        measurements[index] = updated;
+        return updated;
     }
 
     // ----- Mock dataset -----

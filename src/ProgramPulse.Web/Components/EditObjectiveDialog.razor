@@ -1,0 +1,102 @@
+@using System.ComponentModel.DataAnnotations
+@inject SampleData Data
+
+@if (Visible)
+{
+    <div class="pp-modal" @onclick="Close">
+        <div class="pp-modal__dialog" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-labelledby="pp-edit-obj-title">
+            <!-- ===== Header ===== -->
+            <div class="pp-modal__head">
+                <span class="pp-modal__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 21a9 9 0 1 0-9-9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7" />
+                    </svg>
+                </span>
+                <div class="pp-modal__heading">
+                    <h2 id="pp-edit-obj-title" class="pp-modal__title">Edit Objective</h2>
+                    <p class="pp-modal__subtitle">Update this objective's name and description.</p>
+                </div>
+                <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Close dialog" @onclick="Close">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+
+            <hr class="pp-modal__rule" />
+
+            <!-- ===== Body ===== -->
+            <EditForm Model="model" OnValidSubmit="HandleSave">
+                <DataAnnotationsValidator />
+
+                <div class="pp-form__field pp-form__field--full">
+                    <label class="pp-form__label" for="pp-edit-obj-name">Objective name <span class="pp-req">*</span></label>
+                    <InputText id="pp-edit-obj-name" @bind-Value="model.Name" class="pp-input" placeholder="Type here" />
+                    <ValidationMessage For="() => model.Name" class="pp-field__error" />
+                </div>
+
+                <div class="pp-form__field pp-form__field--full">
+                    <label class="pp-form__label" for="pp-edit-obj-desc">Description</label>
+                    <InputTextArea id="pp-edit-obj-desc" @bind-Value="model.Description" class="pp-input pp-input--area"
+                                   placeholder="Describe what this objective aims to achieve" />
+                </div>
+
+                <!-- ===== Footer ===== -->
+                <div class="pp-modal__foot">
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close">Cancel</button>
+                    <button type="submit" class="pp-btn pp-btn--primary">Save changes</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public ObjectiveVm? Objective { get; set; }
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private ObjectiveModel model = new();
+
+    protected override void OnParametersSet()
+    {
+        if (Visible && Objective is { } objective)
+        {
+            model = new ObjectiveModel
+            {
+                Name = objective.Name,
+                Description = objective.Description,
+            };
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        if (Objective is null)
+        {
+            return;
+        }
+
+        Data.UpdateObjective(
+            Objective.InitiativeId, Objective.Id, model.Name, model.Description ?? string.Empty);
+
+        await OnSaved.InvokeAsync();
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        model = new();
+        await OnClose.InvokeAsync();
+    }
+
+    private sealed class ObjectiveModel
+    {
+        [Required(ErrorMessage = "Objective name is required.")]
+        public string Name { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+    }
+}

@@ -1,0 +1,39 @@
+@* A single portfolio metric: label, a large number with its denominator, and a context
+   sub-line. Status cards stay white with a thin status-colored accent (StatusModifier);
+   Variant="accent" renders the single gold card reserved for the primary metric. *@
+
+<article class="pp-card pp-metric @(Accent ? "pp-metric--accent" : null)">
+    <div class="pp-metric__head">
+        <span>@Label</span>
+    </div>
+    <p class="pp-metric__value@(ValueModifier)">
+        @Value@if (!string.IsNullOrEmpty(Denominator))
+        {
+            <span class="pp-metric__denom">/ @Denominator</span>
+        }
+    </p>
+    @if (!string.IsNullOrEmpty(Subline))
+    {
+        <p class="pp-metric__sub@(SublineModifier)">@Subline</p>
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
+    [Parameter] public string? Denominator { get; set; }
+    [Parameter] public string? Subline { get; set; }
+
+    /// <summary>Status accent suffix: "track" | "warn" | "off". Null = neutral.</summary>
+    [Parameter] public string? StatusModifier { get; set; }
+
+    /// <summary>Renders the single gold accent card. Use once per view.</summary>
+    [Parameter] public bool Accent { get; set; }
+
+    /// <summary>Colors the sub-line with the status token (for deltas). Defaults to muted.</summary>
+    [Parameter] public bool TintSubline { get; set; }
+
+    private string ValueModifier => StatusModifier is null ? string.Empty : $" pp-metric__value--{StatusModifier}";
+
+    private string SublineModifier => TintSubline && StatusModifier is not null ? $" pp-metric__sub--{StatusModifier}" : string.Empty;
+}

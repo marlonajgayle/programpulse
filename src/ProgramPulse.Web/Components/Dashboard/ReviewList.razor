@@ -1,0 +1,33 @@
+@* Today's reviews. Each row states why the review matters (the context line), not just the
+   meeting name — a stakeholder scanning this should see where to spend attention. *@
+
+<article class="pp-card pp-dash__reviews">
+    <div class="pp-card__bar-head">
+        <h3>Upcoming reviews</h3>
+        <span class="pp-datepill pp-datepill--ghost">Today</span>
+    </div>
+
+    @if (Items.Count == 0)
+    {
+        <p class="pp-attention__empty">No reviews scheduled today.</p>
+    }
+    else
+    {
+        <ul class="pp-reviews">
+            @foreach (var review in Items)
+            {
+                <li class="pp-reviews__row">
+                    <span class="pp-reviews__time">@review.Time</span>
+                    <span class="pp-reviews__meta">
+                        <strong>@review.Title</strong>
+                        <span class="pp-reviews__why pp-reviews__why--@review.StatusModifier">@review.Context</span>
+                    </span>
+                </li>
+            }
+        </ul>
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<UpcomingReviewVm> Items { get; set; } = [];
+}

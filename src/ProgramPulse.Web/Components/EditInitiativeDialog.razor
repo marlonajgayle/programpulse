@@ -1,0 +1,133 @@
+@using System.ComponentModel.DataAnnotations
+@inject SampleData Data
+
+@if (Visible)
+{
+    <div class="pp-modal" @onclick="Close">
+        <div class="pp-modal__dialog" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-labelledby="pp-edit-init-title">
+            <!-- ===== Header ===== -->
+            <div class="pp-modal__head">
+                <span class="pp-modal__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h6a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"
+                              stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <div class="pp-modal__heading">
+                    <h2 id="pp-edit-init-title" class="pp-modal__title">Edit Initiative</h2>
+                    <p class="pp-modal__subtitle">Update the details of this initiative.</p>
+                </div>
+                <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Close dialog" @onclick="Close">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+
+            <hr class="pp-modal__rule" />
+
+            <!-- ===== Body ===== -->
+            <EditForm Model="model" OnValidSubmit="HandleSave">
+                <DataAnnotationsValidator />
+
+                <div class="pp-form-grid">
+                    <div class="pp-form__field pp-form__field--full">
+                        <label class="pp-form__label" for="pp-edit-init-name">Initiative name <span class="pp-req">*</span></label>
+                        <InputText id="pp-edit-init-name" @bind-Value="model.Name" class="pp-input" placeholder="Type here" />
+                        <ValidationMessage For="() => model.Name" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-edit-init-start">Start Date <span class="pp-req">*</span></label>
+                        <InputDate id="pp-edit-init-start" @bind-Value="model.StartDate" class="pp-input" />
+                        <ValidationMessage For="() => model.StartDate" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-edit-init-end">End Date</label>
+                        <InputDate id="pp-edit-init-end" @bind-Value="model.EndDate" class="pp-input" />
+                        <ValidationMessage For="() => model.EndDate" class="pp-field__error" />
+                    </div>
+                </div>
+
+                <div class="pp-form__field pp-form__field--full">
+                    <label class="pp-form__label" for="pp-edit-init-desc">Description</label>
+                    <InputTextArea id="pp-edit-init-desc" @bind-Value="model.Description" class="pp-input pp-input--area"
+                                   placeholder="Enter the goals and scope for your initiative here" />
+                </div>
+
+                <!-- ===== Footer ===== -->
+                <div class="pp-modal__foot">
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close">Cancel</button>
+                    <button type="submit" class="pp-btn pp-btn--primary">Save changes</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public InitiativeVm? Initiative { get; set; }
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private InitiativeModel model = new();
+
+    protected override void OnParametersSet()
+    {
+        if (Visible && Initiative is { } initiative)
+        {
+            model = new InitiativeModel
+            {
+                Name = initiative.Name,
+                Description = initiative.Description,
+                StartDate = initiative.StartDate,
+                EndDate = initiative.EndDate,
+            };
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        if (Initiative is null)
+        {
+            return;
+        }
+
+        Data.UpdateInitiative(
+            Initiative.Id, model.Name, model.Description ?? string.Empty,
+            model.StartDate!.Value, model.EndDate);
+
+        await OnSaved.InvokeAsync();
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        model = new();
+        await OnClose.InvokeAsync();
+    }
+
+    private sealed class InitiativeModel : IValidatableObject
+    {
+        [Required(ErrorMessage = "Initiative name is required.")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Start date is required.")]
+        public DateTime? StartDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
+
+        public string? Description { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (StartDate.HasValue && EndDate.HasValue && EndDate < StartDate)
+            {
+                yield return new ValidationResult(
+                    "The end date cannot be earlier than the start date.", [nameof(EndDate)]);
+            }
+        }
+    }
+}

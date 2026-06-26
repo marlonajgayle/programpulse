@@ -1,0 +1,52 @@
+@* Leading-indicator velocity stats for the steering call, plus a button that triggers the
+   AI portfolio-summary feature. *@
+
+<article class="pp-card pp-velocity">
+    <div class="pp-card__bar-head">
+        <h3>Velocity</h3>
+        <span class="pp-datepill pp-datepill--ghost">This week</span>
+    </div>
+
+    <div class="pp-velocity__grid">
+        <div class="pp-velocity__stat">
+            <span class="pp-velocity__num pp-velocity__num--track">@Stats.KpisHitTargetThisWeek</span>
+            <span class="pp-velocity__label">KPIs hit target</span>
+        </div>
+        <div class="pp-velocity__stat">
+            <span class="pp-velocity__num pp-velocity__num--off">@Stats.KpisNewlySlipped</span>
+            <span class="pp-velocity__label">Newly slipped</span>
+        </div>
+        <div class="pp-velocity__stat">
+            <span class="pp-velocity__num">@Stats.MeasurementCoveragePercent%</span>
+            <span class="pp-velocity__label">Measurement coverage</span>
+        </div>
+        <div class="pp-velocity__stat">
+            <span class="pp-velocity__num">@Stats.AvgDaysToTargetClose<small>d</small></span>
+            <span class="pp-velocity__label">Avg days to target close</span>
+        </div>
+    </div>
+
+    <button type="button" class="pp-btn pp-btn--primary pp-velocity__cta" @onclick="DraftSummary">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+            <path d="M12 3v4m0 0 2.5-1.5M12 7 9.5 5.5M5 12h4m11 0h-4m-7 9h10a2 2 0 0 0 2-2v-7H5v7a2 2 0 0 0 2 2Z"
+                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Draft steering-call summary
+    </button>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public VelocityStatsVm Stats { get; set; } = default!;
+
+    /// <summary>Optional hook for the AI portfolio-summary feature. Stubbed until wired up.</summary>
+    [Parameter] public EventCallback OnDraftSummary { get; set; }
+
+    private async Task DraftSummary()
+    {
+        if (OnDraftSummary.HasDelegate)
+        {
+            await OnDraftSummary.InvokeAsync();
+        }
+        // TODO: trigger the AI portfolio-summary generation once that feature exists.
+    }
+}

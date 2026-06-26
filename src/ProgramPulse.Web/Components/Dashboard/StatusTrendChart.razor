@@ -1,0 +1,80 @@
+@* Multi-line trend of on-track / at-risk / off-track initiative counts over the last 8 weeks.
+   Inline SVG (project convention — no chart library). Answers which direction the portfolio
+   is moving, replacing the old per-day status-mix bars. *@
+
+<article class="pp-card pp-trend">
+    <div class="pp-card__bar-head">
+        <h3>Status mix trend</h3>
+        <span class="pp-datepill pp-datepill--ghost">Last 8 weeks</span>
+    </div>
+
+    <svg class="pp-trend__chart" viewBox="0 0 @W @H" preserveAspectRatio="none" role="img"
+         aria-label="On-track, at-risk and off-track initiative counts over the last 8 weeks">
+        @for (var g = 1; g <= _max; g++)
+        {
+            var y = Y(g);
+            <line x1="@PadL" y1="@y" x2="@(W - PadR)" y2="@y" class="pp-trend__grid" />
+        }
+        <polyline points="@Line(p => p.OnTrack)" class="pp-trend__line pp-trend__line--track" />
+        <polyline points="@Line(p => p.AtRisk)" class="pp-trend__line pp-trend__line--warn" />
+        <polyline points="@Line(p => p.OffTrack)" class="pp-trend__line pp-trend__line--off" />
+
+        @foreach (var (point, i) in Points.Select((p, i) => (p, i)))
+        {
+            <circle cx="@X(i)" cy="@Y(point.OnTrack)" r="3" class="pp-trend__dot pp-trend__dot--track" />
+            <circle cx="@X(i)" cy="@Y(point.AtRisk)" r="3" class="pp-trend__dot pp-trend__dot--warn" />
+            <circle cx="@X(i)" cy="@Y(point.OffTrack)" r="3" class="pp-trend__dot pp-trend__dot--off" />
+        }
+    </svg>
+
+    <div class="pp-trend__axis">
+        @foreach (var point in Points)
+        {
+            <span>@point.WeekStart.ToString("d/M")</span>
+        }
+    </div>
+
+    <div class="pp-legend">
+        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--track"></span>On track</span>
+        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--warn"></span>At risk</span>
+        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--off"></span>Off track</span>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TrendPointVm> Points { get; set; } = [];
+
+    private const int W = 320;
+    private const int H = 150;
+    private const int PadL = 8;
+    private const int PadR = 8;
+    private const int PadT = 10;
+    private const int PadB = 14;
+
+    private int _max;
+
+    protected override void OnParametersSet()
+    {
+        var peak = Points.Count == 0
+            ? 1
+            : Points.Max(p => Math.Max(p.OnTrack, Math.Max(p.AtRisk, p.OffTrack)));
+        _max = Math.Max(peak, 1);
+    }
+
+    private double X(int index)
+    {
+        if (Points.Count <= 1) return PadL;
+        var span = W - PadL - PadR;
+        return PadL + span * index / (double)(Points.Count - 1);
+    }
+
+    private double Y(double value)
+    {
+        var span = H - PadT - PadB;
+        return PadT + span * (1 - value / _max);
+    }
+
+    private string Line(Func<TrendPointVm, int> selector) =>
+        string.Join(" ", Points.Select((p, i) =>
+            $"{X(i).ToString(System.Globalization.CultureInfo.InvariantCulture)},{Y(selector(p)).ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
+}
