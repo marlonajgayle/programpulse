@@ -68,6 +68,37 @@ public sealed class AuthApiClient(HttpClient httpClient)
         return await SendAsync(message, cancellationToken);
     }
 
+    /// <summary>
+    /// Fetches the signed-in user's profile, or <c>null</c> when the session is missing/expired
+    /// (401) or the server is unreachable. The JWT lives in an HttpOnly cookie, so this is the
+    /// only way the WASM client can learn who is logged in.
+    /// </summary>
+    public async Task<CurrentUserResponse?> GetCurrentUserAsync(CancellationToken cancellationToken)
+    {
+        using var message = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/me");
+
+        // Include credentials so the browser sends the auth cookie the endpoint authenticates with.
+        message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        try
+        {
+            using var response = await _httpClient.SendAsync(message, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            return await response.Content.ReadFromJsonAsync<CurrentUserResponse>(cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     private async Task<AuthResult> SendAsync(HttpRequestMessage message, CancellationToken cancellationToken)
     {
         HttpResponseMessage response;
@@ -126,6 +157,9 @@ public sealed record RegisterRequest(
     string Password);
 
 public sealed record LoginRequest(string Email, string Password);
+
+/// <summary>The signed-in user's profile, as returned by <c>GET auth/me</c>.</summary>
+public sealed record CurrentUserResponse(string? FirstName, string? LastName, string? Email);
 
 public sealed record ForgotPasswordRequest(string Email);
 

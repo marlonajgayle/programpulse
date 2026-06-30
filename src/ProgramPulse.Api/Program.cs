@@ -1,5 +1,6 @@
 using ProgramPulse.Api.Features.Authentication.ChangePassword;
 using ProgramPulse.Api.Features.Authentication.ConfirmEmail;
+using ProgramPulse.Api.Features.Authentication.CurrentUser;
 using ProgramPulse.Api.Features.Authentication.ForgotPassword;
 using ProgramPulse.Api.Features.Authentication.Login;
 using ProgramPulse.Api.Features.Authentication.Logout;
@@ -60,6 +61,7 @@ builder.Services.AddScoped<ResetPasswordCommandHandler>();
 builder.Services.AddScoped<ChangePasswordCommandHandler>();
 builder.Services.AddScoped<ConfirmEmailCommandHandler>();
 builder.Services.AddScoped<RegisterCommandHandler>();
+builder.Services.AddScoped<GetCurrentUserQueryHandler>();
 builder.Services.AddScoped<AddUserCommandHandler>();
 builder.Services.AddScoped<CreateFaqCommandHandler>();
 builder.Services.AddScoped<UpdateFaqCommandHandler>();

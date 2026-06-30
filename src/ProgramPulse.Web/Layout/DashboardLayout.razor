@@ -92,13 +92,16 @@
             </div>
         </nav>
 
-        <div class="pp-sidebar__user">
-            <span class="pp-sidebar__avatar" aria-hidden="true">JS</span>
-            <div class="pp-sidebar__user-meta">
-                <strong>Joe Stark</strong>
-                <span>stark.j11@programpulse.io</span>
+        @if (currentUser is not null)
+        {
+            <div class="pp-sidebar__user">
+                <span class="pp-sidebar__avatar" aria-hidden="true">@Initials</span>
+                <div class="pp-sidebar__user-meta">
+                    <strong>@FullName</strong>
+                    <span>@currentUser.Email</span>
+                </div>
             </div>
-        </div>
+        }
     </aside>
 
     <!-- ===== MAIN ===== -->
@@ -149,6 +152,40 @@
 
     private bool showNotifications;
     private bool loggingOut;
+
+    private CurrentUserResponse? currentUser;
+
+    private string FullName => $"{currentUser?.FirstName} {currentUser?.LastName}".Trim();
+
+    private string Initials
+    {
+        get
+        {
+            var first = currentUser?.FirstName?.Trim();
+            var last = currentUser?.LastName?.Trim();
+
+            var initials = string.Concat(
+                first is { Length: > 0 } ? first[0].ToString() : string.Empty,
+                last is { Length: > 0 } ? last[0].ToString() : string.Empty);
+
+            if (initials.Length == 0)
+            {
+                var email = currentUser?.Email?.Trim();
+                initials = email is { Length: > 0 } ? email[0].ToString() : "?";
+            }
+
+            return initials.ToUpperInvariant();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // The dashboard is authenticated-only; a null result means no/expired session.
+        currentUser = await AuthApi.GetCurrentUserAsync(CancellationToken.None);
+
+        if (currentUser is null)
+            Navigation.NavigateTo("/login");
+    }
 
     private void ToggleNotifications() => showNotifications = !showNotifications;
 
