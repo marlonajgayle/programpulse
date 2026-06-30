@@ -30,7 +30,8 @@
       "Bash(export DATABASE_CONNECTION_STRING=\"Server=localhost,1433;Database=ProgramPulseDb;User Id=sa;Password=YPa55w0rd2023;TrustServerCertificate=True;MultipleActiveResultSets=True\")",
       "Bash(export ASPNETCORE_URLS=\"http://localhost:5080\")",
       "Bash(dotnet run *)",
-      "Bash(grep -ivE '\\\\.\\(cs|csproj|sln|json|md\\)$')"
+      "Bash(grep -ivE '\\\\.\\(cs|csproj|sln|json|md\\)$')",
+      "Bash(break)"
     ],
     "additionalDirectories": [
       "/private/tmp"
