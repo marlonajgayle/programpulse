@@ -71,7 +71,23 @@ public static class LoggingConfiguration
                             "{HttpMethod} {RequestPath} " +
                             "{StatusCode} {DurationMs}ms " +
                             "{PerformanceLevel} " +
-                            "{CorrelationId}{NewLine}"));
+                            "{CorrelationId}{NewLine}"))
+
+                // ---- Uncategorized application logs (no LogSource, e.g. EmailService) ----
+                // Catch-all so infrastructure errors are never silently dropped between sinks.
+                .WriteTo.Logger(lc => lc
+                    .Filter.ByExcluding(e => e.MessageTemplate.Text.Contains("responded"))
+                    .Filter.ByIncludingOnly(e => !e.Properties.ContainsKey("LogSource"))
+                    .WriteTo.File(
+                        "logs/programpulse-app-.log",
+                        rollingInterval: RollingInterval.Day,
+                        retainedFileCountLimit: 30,
+                        shared: true,
+                        outputTemplate:
+                            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} " +
+                            "[{Level:u3}] " +
+                            "{Message:lj} " +
+                            "{Properties}{NewLine}{Exception}"));
 
             // ---- Console (dev only) ----
             if (isDevelopment)

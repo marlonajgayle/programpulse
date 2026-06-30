@@ -1,6 +1,9 @@
 @page "/register"
 @layout MarketingLayout
 @using System.ComponentModel.DataAnnotations
+@using ProgramPulse.Web.Services
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
 
 <PageTitle>Create account — ProgramPulse</PageTitle>
 
@@ -38,8 +41,17 @@
             <h1 class="pp-auth__title">Create your account</h1>
             <p class="pp-auth__subtitle">Start tracking every initiative's pulse.</p>
 
-            <EditForm Model="model" OnValidSubmit="HandleRegister">
+            <EditForm EditContext="editContext" OnValidSubmit="HandleRegister">
                 <DataAnnotationsValidator />
+
+                <div class="pp-field">
+                    <svg class="pp-field__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 21V7l6-3 6 3v14M9 21v-4h2v4M5 9h2M5 12h2M5 15h2M13 9h2M13 12h2M13 15h2M15 21V11l4-2v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <InputText @bind-Value="model.OrganizationName" class="pp-input pp-input--icon"
+                               placeholder="Organization name" autocomplete="organization" aria-label="Organization name" />
+                </div>
+                <ValidationMessage For="() => model.OrganizationName" class="pp-field__error" />
 
                 <div class="pp-field">
                     <svg class="pp-field__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -97,13 +109,15 @@
                 </label>
                 <ValidationMessage For="() => model.AcceptTerms" class="pp-field__error" />
 
-                <button type="submit" class="pp-btn pp-btn--primary pp-btn--block pp-btn--lg pp-auth__submit">Create account</button>
-            </EditForm>
+                @if (!string.IsNullOrEmpty(generalError))
+                {
+                    <p class="pp-field__error" role="alert">@generalError</p>
+                }
 
-            @if (submitted)
-            {
-                <p class="pp-auth__ok">Account created (demo) — backend not wired up yet.</p>
-            }
+                <button type="submit" class="pp-btn pp-btn--primary pp-btn--block pp-btn--lg pp-auth__submit" disabled="@busy">
+                    @(busy ? "Creating account…" : "Create account")
+                </button>
+            </EditForm>
 
             <div class="pp-auth__divider"><span>or</span></div>
 
@@ -136,17 +150,81 @@
 
 @code {
     private readonly RegisterModel model = new();
-    private bool submitted;
+    private EditContext editContext = default!;
+    private ValidationMessageStore messageStore = default!;
+    private string? generalError;
+    private bool busy;
 
-    private void HandleRegister()
+    // Maps API ProblemDetails field keys to this form's model property names.
+    private static readonly Dictionary<string, string> ServerFieldMap = new()
     {
-        // TODO: POST model to /api/v1/auth/register once the WASM client is wired to the API
-        // (needs API base URL config + CORS). For now this is a UI-only stub.
-        submitted = true;
+        ["TenantName"] = nameof(RegisterModel.OrganizationName),
+        ["FirstName"] = nameof(RegisterModel.FirstName),
+        ["LastName"] = nameof(RegisterModel.LastName),
+        ["Email"] = nameof(RegisterModel.Email),
+        ["Password"] = nameof(RegisterModel.Password)
+    };
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(model);
+        messageStore = new ValidationMessageStore(editContext);
+    }
+
+    private async Task HandleRegister()
+    {
+        if (busy)
+            return;
+
+        busy = true;
+        generalError = null;
+        messageStore.Clear();
+        editContext.NotifyValidationStateChanged();
+
+        try
+        {
+            var request = new RegisterRequest(
+                model.OrganizationName, model.FirstName, model.LastName, model.Email, model.Password);
+
+            var result = await AuthApi.RegisterAsync(request, CancellationToken.None);
+
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/login?registered=1");
+                return;
+            }
+
+            ApplyServerErrors(result);
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void ApplyServerErrors(AuthResult result)
+    {
+        if (result.FieldErrors is { Count: > 0 } fieldErrors)
+        {
+            foreach (var (field, messages) in fieldErrors)
+            {
+                if (ServerFieldMap.TryGetValue(field, out var property))
+                    messageStore.Add(editContext.Field(property), messages);
+            }
+
+            editContext.NotifyValidationStateChanged();
+        }
+
+        // Show a general error when there is no field-specific detail (e.g. duplicate email/org).
+        if (result.FieldErrors is null or { Count: 0 })
+            generalError = result.GeneralError;
     }
 
     private sealed class RegisterModel
     {
+        [Required(ErrorMessage = "Organization name is required.")]
+        public string OrganizationName { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "First name is required.")]
         public string FirstName { get; set; } = string.Empty;
 

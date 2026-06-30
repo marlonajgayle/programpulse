@@ -1,6 +1,8 @@
 @page "/login"
 @layout MarketingLayout
 @using System.ComponentModel.DataAnnotations
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
 
 <PageTitle>Sign in — ProgramPulse</PageTitle>
 
@@ -38,6 +40,11 @@
             <h1 class="pp-auth__title">Welcome back</h1>
             <p class="pp-auth__subtitle">Smart insights and seamless collaboration await.</p>
 
+            @if (showRegisteredNote)
+            {
+                <p class="pp-auth__ok">Account created — please sign in.</p>
+            }
+
             <EditForm Model="model" OnValidSubmit="HandleLogin">
                 <DataAnnotationsValidator />
 
@@ -61,13 +68,15 @@
                 </div>
                 <ValidationMessage For="() => model.Password" class="pp-field__error" />
 
-                <button type="submit" class="pp-btn pp-btn--primary pp-btn--block pp-btn--lg pp-auth__submit">Login</button>
-            </EditForm>
+                @if (!string.IsNullOrEmpty(generalError))
+                {
+                    <p class="pp-field__error" role="alert">@generalError</p>
+                }
 
-            @if (submitted)
-            {
-                <p class="pp-auth__ok">Signed in (demo) — backend not wired up yet.</p>
-            }
+                <button type="submit" class="pp-btn pp-btn--primary pp-btn--block pp-btn--lg pp-auth__submit" disabled="@busy">
+                    @(busy ? "Signing in…" : "Login")
+                </button>
+            </EditForm>
 
             <p class="pp-auth__forgot">
                 Forgot your password? <a href="/forgot-password" class="pp-auth__link">Reset it instantly</a>
@@ -104,13 +113,42 @@
 
 @code {
     private readonly LoginModel model = new();
-    private bool submitted;
+    private string? generalError;
+    private bool busy;
+    private bool showRegisteredNote;
 
-    private void HandleLogin()
+    protected override void OnInitialized()
     {
-        // TODO: POST model to /api/v1/auth/login once the WASM client is wired to the API
-        // (needs API base URL config + CORS). For now this is a UI-only stub.
-        submitted = true;
+        var query = new Uri(Navigation.Uri).Query;
+        showRegisteredNote = query.Contains("registered=1", StringComparison.Ordinal);
+    }
+
+    private async Task HandleLogin()
+    {
+        if (busy)
+            return;
+
+        busy = true;
+        generalError = null;
+
+        try
+        {
+            var result = await AuthApi.LoginAsync(
+                new LoginRequest(model.Email, model.Password), CancellationToken.None);
+
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/dashboard");
+                return;
+            }
+
+            // Login failures (invalid credentials / lockout) are general, not field-specific.
+            generalError = result.GeneralError;
+        }
+        finally
+        {
+            busy = false;
+        }
     }
 
     private sealed class LoginModel

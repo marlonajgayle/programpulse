@@ -91,6 +91,14 @@ builder.Services.AddIdentityServices(builder.Configuration, builder.Environment)
 builder.Services.AddOutboxMessaging();
 builder.Services.AddEmailConfiguration(builder.Configuration);
 
+const string WebCorsPolicy = "WebClient";
+builder.Services.AddCors(options => options.AddPolicy(WebCorsPolicy, policy => policy
+    .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+        ?? ["https://localhost:7208", "http://localhost:5031"])
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()));
+
 var app = builder.Build();
 
 await app.UseInitializeDatabaseAsync();
@@ -107,6 +115,8 @@ app.UseHealthCheckConfiguration(builder.Configuration);
 app.MapApiDocumentation(app.Environment);
 
 app.UseHttpsRedirection();
+
+app.UseCors(WebCorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();
