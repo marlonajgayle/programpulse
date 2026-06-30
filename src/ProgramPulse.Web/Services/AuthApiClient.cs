@@ -37,6 +37,17 @@ public sealed class AuthApiClient(HttpClient httpClient)
         return await SendAsync(message, cancellationToken);
     }
 
+    public async Task<AuthResult> LogoutAsync(CancellationToken cancellationToken)
+    {
+        using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/auth/logout");
+
+        // Include credentials so the browser sends the auth cookies (the endpoint needs them to
+        // authenticate and to read the refresh token) and stores the cleared Set-Cookie response.
+        message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        return await SendAsync(message, cancellationToken);
+    }
+
     private async Task<AuthResult> SendAsync(HttpRequestMessage message, CancellationToken cancellationToken)
     {
         HttpResponseMessage response;

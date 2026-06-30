@@ -1,4 +1,6 @@
 @inherits LayoutComponentBase
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
 
 <div class="pp-app">
     <!-- ===== SIDEBAR ===== -->
@@ -80,13 +82,13 @@
                     <span>Help centre</span>
                 </NavLink>
 
-                <NavLink class="pp-nav-item" href="/login">
+                <button type="button" class="pp-nav-item" @onclick="HandleLogout">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M15 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2M10 17l5-5-5-5M15 12H3"
                               stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     <span>Log Out</span>
-                </NavLink>
+                </button>
             </div>
         </nav>
 
@@ -146,6 +148,25 @@
     // Distinct from the thin MarketingLayout used by public/marketing pages.
 
     private bool showNotifications;
+    private bool loggingOut;
 
     private void ToggleNotifications() => showNotifications = !showNotifications;
+
+    private async Task HandleLogout()
+    {
+        if (loggingOut)
+            return;
+
+        loggingOut = true;
+        try
+        {
+            // Best-effort: server-side revocation/cookie clearing is idempotent, so head to
+            // /login regardless of the outcome.
+            await AuthApi.LogoutAsync(CancellationToken.None);
+        }
+        finally
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
 }
