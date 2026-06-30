@@ -13,9 +13,8 @@ public sealed class SendWelcomeEmailHandler(
     IEmailService emailService
 ) : IDomainEventHandler<WelcomeEmailRequestedEvent>
 {
-    private static readonly string TemplatePath = Path.Combine(
-        AppContext.BaseDirectory,
-        "Infrastructure", "Email", "Templates", "WelcomeEmail.cshtml");
+    private const string TemplatePath =
+        "~/Infrastructure/Email/Templates/WelcomeEmail.cshtml";
 
     public async Task HandleAsync(
         WelcomeEmailRequestedEvent domainEvent,

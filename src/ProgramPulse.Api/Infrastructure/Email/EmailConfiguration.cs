@@ -1,12 +1,14 @@
 using System.Net;
 using System.Net.Mail;
 using FluentEmail.Core;
+using Razor.Templating.Core;
 
 namespace ProgramPulse.Api.Infrastructure.Email;
 
 /// <summary>
-/// Wires up FluentEmail with the Razor renderer and an SMTP sender from the
-/// bound <see cref="EmailOption"/>, and registers <see cref="IEmailService"/>.
+/// Wires up FluentEmail with an SMTP sender from the bound <see cref="EmailOption"/>,
+/// the Razor.Templating.Core view engine (for rendering email templates to HTML),
+/// and registers <see cref="IEmailService"/>.
 /// </summary>
 public static class EmailConfiguration
 {
@@ -23,7 +25,6 @@ public static class EmailConfiguration
 
         services
             .AddFluentEmail(emailSettings.DefaultFromEmail, emailSettings.DefaultFromName)
-            .AddRazorRenderer()
             .AddSmtpSender(() => new SmtpClient(emailSettings.SmtpHost)
             {
                 Port = emailSettings.SmtpPort,
@@ -34,6 +35,9 @@ public static class EmailConfiguration
                     emailSettings.SmtpPassword),
                 EnableSsl = emailSettings.EnableSsl
             });
+
+        // Razor view engine used to render the .cshtml email templates to HTML.
+        services.AddRazorTemplating();
 
         services.AddScoped<IEmailService, EmailService>();
 

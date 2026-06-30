@@ -14,9 +14,8 @@ public sealed class SendNewUserWelcomeEmailHandler(
     IEmailService emailService
 ) : IDomainEventHandler<NewUserWelcomeEmailRequestedEvent>
 {
-    private static readonly string TemplatePath = Path.Combine(
-        AppContext.BaseDirectory,
-        "Infrastructure", "Email", "Templates", "NewUserWelcomeEmail.cshtml");
+    private const string TemplatePath =
+        "~/Infrastructure/Email/Templates/NewUserWelcomeEmail.cshtml";
 
     public async Task HandleAsync(
         NewUserWelcomeEmailRequestedEvent domainEvent,

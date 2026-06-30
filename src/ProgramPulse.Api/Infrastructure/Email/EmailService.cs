@@ -1,22 +1,27 @@
 using FluentEmail.Core;
 using FluentEmail.Core.Models;
+using Razor.Templating.Core;
 
 namespace ProgramPulse.Api.Infrastructure.Email;
 
 /// <summary>
 /// FluentEmail-backed <see cref="IEmailService"/>. Wraps each send in
 /// structured logging and never throws — callers branch on the boolean result.
+/// Templated emails are rendered to HTML with <see cref="IRazorTemplateEngine"/>.
 /// </summary>
 public sealed class EmailService : IEmailService
 {
     private readonly IFluentEmail _fluentEmail;
+    private readonly IRazorTemplateEngine _razorEngine;
     private readonly ILogger<EmailService> _logger;
 
     public EmailService(
         IFluentEmail fluentEmail,
+        IRazorTemplateEngine razorEngine,
         ILogger<EmailService> logger)
     {
         _fluentEmail = fluentEmail;
+        _razorEngine = razorEngine;
         _logger = logger;
     }
 
@@ -143,10 +148,13 @@ public sealed class EmailService : IEmailService
             _logger.LogInformation("Sending templated email to {To} using template: {Template}",
                 templatedEmailMessage.To, templatedEmailMessage.TemplatePath);
 
+            var body = await _razorEngine.RenderAsync(
+                templatedEmailMessage.TemplatePath, templatedEmailMessage.Model);
+
             var email = _fluentEmail
                 .To(templatedEmailMessage.To)
                 .Subject(templatedEmailMessage.Subject)
-                .UsingTemplateFromFile(templatedEmailMessage.TemplatePath, templatedEmailMessage.Model);
+                .Body(body, isHtml: true);
 
             if (!string.IsNullOrEmpty(templatedEmailMessage.From))
             {
