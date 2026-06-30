@@ -29,6 +29,7 @@ using ProgramPulse.Api.Features.Measurements.List;
 using ProgramPulse.Api.Features.Measurements.Update;
 using ProgramPulse.Api.Features.Users.AddUser;
 using ProgramPulse.Api.Infrastructure.Authentication;
+using ProgramPulse.Api.Infrastructure.Configuration;
 using ProgramPulse.Api.Infrastructure.Email;
 using ProgramPulse.Api.Infrastructure.ExceptionHandling;
 using ProgramPulse.Api.Infrastructure.HealthChecks;
@@ -90,6 +91,9 @@ builder.Services.AddPersistence(builder.Configuration, builder.Environment);
 builder.Services.AddIdentityServices(builder.Configuration, builder.Environment);
 builder.Services.AddOutboxMessaging();
 builder.Services.AddEmailConfiguration(builder.Configuration);
+
+builder.Services.Configure<FrontendOption>(
+    builder.Configuration.GetSection(FrontendOption.SectionName));
 
 const string WebCorsPolicy = "WebClient";
 builder.Services.AddCors(options => options.AddPolicy(WebCorsPolicy, policy => policy

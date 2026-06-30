@@ -45,6 +45,11 @@
                 <p class="pp-auth__ok">Account created — please sign in.</p>
             }
 
+            @if (showResetNote)
+            {
+                <p class="pp-auth__ok">Password reset — please sign in.</p>
+            }
+
             <EditForm Model="model" OnValidSubmit="HandleLogin">
                 <DataAnnotationsValidator />
 
@@ -116,11 +121,13 @@
     private string? generalError;
     private bool busy;
     private bool showRegisteredNote;
+    private bool showResetNote;
 
     protected override void OnInitialized()
     {
         var query = new Uri(Navigation.Uri).Query;
         showRegisteredNote = query.Contains("registered=1", StringComparison.Ordinal);
+        showResetNote = query.Contains("reset=1", StringComparison.Ordinal);
     }
 
     private async Task HandleLogin()

@@ -37,6 +37,26 @@ public sealed class AuthApiClient(HttpClient httpClient)
         return await SendAsync(message, cancellationToken);
     }
 
+    public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/auth/forgot-password")
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        return await SendAsync(message, cancellationToken);
+    }
+
+    public async Task<AuthResult> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/auth/reset-password")
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        return await SendAsync(message, cancellationToken);
+    }
+
     public async Task<AuthResult> LogoutAsync(CancellationToken cancellationToken)
     {
         using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/auth/logout");
@@ -106,6 +126,14 @@ public sealed record RegisterRequest(
     string Password);
 
 public sealed record LoginRequest(string Email, string Password);
+
+public sealed record ForgotPasswordRequest(string Email);
+
+public sealed record ResetPasswordRequest(
+    string Email,
+    string Token,
+    string NewPassword,
+    string ConfirmPassword);
 
 /// <summary>Subset of RFC-7807 ProblemDetails the API returns on failure.</summary>
 internal sealed record ProblemResponse(

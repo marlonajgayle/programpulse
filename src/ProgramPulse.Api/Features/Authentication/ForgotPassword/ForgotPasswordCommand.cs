@@ -1,8 +1,10 @@
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using ProgramPulse.Api.Domain.Entities.Users;
 using ProgramPulse.Api.Features.Notifications.Events;
+using ProgramPulse.Api.Infrastructure.Configuration;
 using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.SharedKernel.Primitives;
@@ -19,7 +21,7 @@ public sealed record ForgotPasswordCommand(string Email);
 /// </summary>
 public sealed class ForgotPasswordCommandHandler(
     UserManager<ApplicationUser> userManager,
-    IHttpContextAccessor httpContextAccessor,
+    IOptions<FrontendOption> frontendOptions,
     IOutboxPublisher outboxPublisher,
     IApplicationDbContext dbContext,
     ILogger<ForgotPasswordCommandHandler> logger)
@@ -28,7 +30,7 @@ public sealed class ForgotPasswordCommandHandler(
         "If the email is registered and confirmed, a password reset link will be sent.";
 
     private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly FrontendOption _frontendOptions = frontendOptions.Value;
     private readonly IOutboxPublisher _outboxPublisher = outboxPublisher;
     private readonly IApplicationDbContext _dbContext = dbContext;
     private readonly ILogger<ForgotPasswordCommandHandler> _logger = logger;
@@ -47,12 +49,22 @@ public sealed class ForgotPasswordCommandHandler(
             return Result<string>.Success(GenericMessage);
         }
 
+        var baseUrl = _frontendOptions.BaseUrl.TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            // Without the frontend base URL we'd email a link that points nowhere, so skip
+            // sending. Return the same generic message so the contract is unchanged for callers.
+            _logger.LogError(
+                "Frontend:BaseUrl is not configured; cannot build a password reset link for {Email}.",
+                command.Email);
+            return Result<string>.Success(GenericMessage);
+        }
+
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-        var request = _httpContextAccessor.HttpContext!.Request;
         var resetLink = QueryHelpers.AddQueryString(
-            $"{request.Scheme}://{request.Host}/reset-password",
+            $"{baseUrl}/reset-password",
             new Dictionary<string, string?>
             {
                 ["email"] = command.Email,
