@@ -1082,12 +1082,27 @@ body {
 .pp-section-head-row .pp-section-head { margin: 0; }
 
 /* Direction / due chips */
-.pp-kpi-card { gap: 1rem; }
+.pp-kpi-card { gap: 1rem; position: relative; overflow: hidden; }
 .pp-kpi-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
 .pp-kpi-card__head-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
-.pp-kpi-card__foot { display: flex; padding-top: .25rem; }
-.pp-kpi-card__name { font-family: var(--font-display); font-size: 1.1rem; margin: 0; line-height: 1.25; }
+.pp-kpi-card__name { font-family: var(--font-display); font-size: 1.2rem; margin: 0; line-height: 1.25; min-width: 0; }
 .pp-kpi-card__unit { color: var(--pp-muted); font-size: .82rem; }
+
+/* Status accent stripe — flush against the left edge; the card's rounded corners
+   clip its outer corners, so the stripe itself carries no radius. */
+.pp-kpi-card__stripe { position: absolute; top: 0; left: 0; bottom: 0; width: 5px; }
+.pp-kpi-card__stripe--track { background: var(--pp-track); }
+.pp-kpi-card__stripe--warn  { background: var(--pp-warn); }
+.pp-kpi-card__stripe--off   { background: var(--pp-off); }
+.pp-kpi-card__stripe--done  { background: var(--pp-accent); }
+.pp-kpi-card__stripe--idle  { background: var(--pp-line); }
+
+/* Meta row: unit + measurement recency */
+.pp-kpi-card__meta { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .5rem; margin-top: -.5rem; }
+.pp-kpi-card__recency { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; color: var(--pp-muted); }
+.pp-kpi-card__recency svg { width: .95rem; height: .95rem; flex: none; }
+.pp-kpi-card__recency--warn { color: var(--pp-gold-strong); }
+
 .pp-kpi-card__chips { display: flex; flex-wrap: wrap; gap: .5rem; }
 .pp-chip {
   display: inline-flex; align-items: center; gap: .35rem;
@@ -1096,7 +1111,23 @@ body {
   border-radius: 999px; padding: .3rem .7rem;
 }
 .pp-chip svg { width: .95rem; height: .95rem; }
-.pp-chip--off { color: var(--pp-off); border-color: color-mix(in srgb, var(--pp-off) 35%, transparent); background: color-mix(in srgb, var(--pp-off) 8%, transparent); }
+.pp-chip--warn { color: var(--pp-gold-strong); border-color: color-mix(in srgb, var(--pp-warn) 45%, transparent); background: color-mix(in srgb, var(--pp-warn) 12%, transparent); }
+.pp-chip--off  { color: var(--pp-off); border-color: color-mix(in srgb, var(--pp-off) 35%, transparent); background: color-mix(in srgb, var(--pp-off) 8%, transparent); }
+
+/* Measurement trend sparkline */
+.pp-spark { display: block; width: 100%; max-width: 250px; height: 44px; }
+.pp-spark__line { fill: none; stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; }
+.pp-spark__line--track { stroke: var(--pp-track); }
+.pp-spark__line--warn  { stroke: var(--pp-warn); }
+.pp-spark__line--off   { stroke: var(--pp-off); }
+.pp-spark__line--done  { stroke: var(--pp-accent); }
+.pp-spark__line--idle  { stroke: var(--pp-faint); }
+.pp-spark__dot--track { fill: var(--pp-track); }
+.pp-spark__dot--warn  { fill: var(--pp-warn); }
+.pp-spark__dot--off   { fill: var(--pp-off); }
+.pp-spark__dot--done  { fill: var(--pp-accent); }
+.pp-spark__dot--idle  { fill: var(--pp-faint); }
+.pp-spark__empty { font-size: .82rem; color: var(--pp-faint); font-style: italic; margin: 0; }
 
 /* Progress track (baseline -> current -> target) */
 .pp-progress { display: flex; align-items: center; gap: .75rem; }
@@ -1121,10 +1152,24 @@ body {
 .pp-kpi-card__figures dd { font-family: var(--font-display); font-weight: 600; font-size: 1rem; margin: .2rem 0 0; }
 .pp-kpi-card__current { color: var(--pp-accent-strong); }
 
-/* Measurement history (collapsible) */
-.pp-history { border-top: 1px solid var(--pp-line); padding-top: .85rem; }
-.pp-history__summary { cursor: pointer; font-size: .85rem; color: var(--pp-accent-strong); font-weight: 600; }
+/* Footer row: measurements toggle (left) + add measurement (right) */
+.pp-kpi-card__foot {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: .75rem; padding-top: 1rem; border-top: 1px solid var(--pp-line);
+}
+.pp-kpi-card__foot > .pp-btn { flex: none; }
+
+/* Measurement history (collapsible, nested in the footer) */
+.pp-history { flex: 1; min-width: 0; }
+.pp-history__summary {
+  display: inline-flex; align-items: center; gap: .4rem; list-style: none;
+  cursor: pointer; font-size: .85rem; color: var(--pp-accent-strong); font-weight: 600;
+}
+.pp-history__summary::-webkit-details-marker { display: none; }
 .pp-history__summary:hover { color: var(--pp-accent); }
+.pp-history__summary--static { cursor: default; color: var(--pp-muted); font-weight: 500; }
+.pp-history__chevron { width: 1rem; height: 1rem; flex: none; color: var(--pp-faint); transition: transform .2s; }
+.pp-history[open] .pp-history__chevron { transform: rotate(180deg); }
 .pp-history__list { list-style: none; margin: .75rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .25rem; }
 .pp-history__row { display: flex; align-items: baseline; gap: .85rem; padding: .5rem 0; border-bottom: 1px solid var(--pp-line); }
 .pp-history__row:last-child { border-bottom: none; }

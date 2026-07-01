@@ -81,7 +81,7 @@ public sealed class SampleData
     // TODO: replace with a single GET /api/v1/dashboard call once the WASM client hits the API.
     public DashboardSummaryVm GetDashboardSummary()
     {
-        const int overdueThresholdDays = 14;
+        const int overdueThresholdDays = KpiThresholds.OverdueMeasurementDays;
         var today = DateTime.Today;
 
         var allKpis = _initiatives.SelectMany(i => i.AllKpis).ToList();

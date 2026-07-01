@@ -74,6 +74,54 @@ public sealed record KpiVm(
 
     public bool IsOverdue => DueDate.Date < DateTime.Today && Status != KpiStatus.Completed;
 
+    /// <summary>Timestamp of the most recent measurement, or null when none have been
+    /// logged. Derived from <see cref="Measurements"/> so it needs no separate API field.</summary>
+    public DateTime? LastMeasuredAt =>
+        Measurements.Count == 0 ? null : Measurements.Max(m => m.CreatedDate);
+
+    public int MeasurementCount => Measurements.Count;
+
+    /// <summary>Whole days since the last measurement, or null when none have been logged.</summary>
+    public int? DaysSinceLastMeasured =>
+        LastMeasuredAt is null ? null : (int)(DateTime.Today - LastMeasuredAt.Value.Date).TotalDays;
+
+    /// <summary>True when a reading is overdue: either none has ever been logged, or the
+    /// latest is older than <see cref="KpiThresholds.OverdueMeasurementDays"/>.</summary>
+    public bool IsMeasurementOverdue =>
+        DaysSinceLastMeasured is null || DaysSinceLastMeasured > KpiThresholds.OverdueMeasurementDays;
+
+    /// <summary>The most recent measurement values, oldest → newest, capped for the sparkline.</summary>
+    public IReadOnlyList<decimal> RecentMeasurementValues =>
+        Measurements
+            .OrderBy(m => m.CreatedDate)
+            .Select(m => m.Value)
+            .TakeLast(KpiThresholds.SparklinePoints)
+            .ToList();
+
+    /// <summary>Due-date urgency: neutral until the due date is within
+    /// <see cref="KpiThresholds.DueSoonDays"/>, warn inside that window, danger once passed.</summary>
+    public KpiDueUrgency DueUrgency
+    {
+        get
+        {
+            if (IsOverdue)
+            {
+                return KpiDueUrgency.Overdue;
+            }
+
+            var daysUntilDue = (DueDate.Date - DateTime.Today).TotalDays;
+            return daysUntilDue <= KpiThresholds.DueSoonDays ? KpiDueUrgency.DueSoon : KpiDueUrgency.OnSchedule;
+        }
+    }
+
+    /// <summary>CSS modifier for the due-date chip colour (empty = neutral).</summary>
+    public string DueChipModifier => DueUrgency switch
+    {
+        KpiDueUrgency.Overdue => "off",
+        KpiDueUrgency.DueSoon => "warn",
+        _ => string.Empty,
+    };
+
     public string DirectionLabel => Direction == KpiDirection.Increase ? "Increase" : "Decrease";
 
     public string StatusLabel => Status switch
