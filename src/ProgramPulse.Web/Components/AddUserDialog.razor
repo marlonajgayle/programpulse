@@ -1,0 +1,190 @@
+@using System.ComponentModel.DataAnnotations
+@using ProgramPulse.Web.Services
+@inject UsersApiClient UsersApi
+
+@if (Visible)
+{
+    <div class="pp-modal" @onclick="Close">
+        <div class="pp-modal__dialog" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-labelledby="pp-adduser-title">
+            <!-- ===== Header ===== -->
+            <div class="pp-modal__head">
+                <span class="pp-modal__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="9" cy="8" r="4" stroke="currentColor" stroke-width="1.7" />
+                        <path d="M2 20c0-3.3 3.1-6 7-6 1.4 0 2.7.3 3.8.9M17 11v6M14 14h6"
+                              stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <div class="pp-modal__heading">
+                    <h2 id="pp-adduser-title" class="pp-modal__title">Add User</h2>
+                    <p class="pp-modal__subtitle">Invite a new member to your team. They'll receive a temporary password by email.</p>
+                </div>
+                <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Close dialog" @onclick="Close">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+
+            <hr class="pp-modal__rule" />
+
+            <!-- ===== Body ===== -->
+            <EditForm EditContext="editContext" OnValidSubmit="HandleSave">
+                <DataAnnotationsValidator />
+
+                <div class="pp-form-grid">
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-user-first">First name <span class="pp-req">*</span></label>
+                        <InputText id="pp-user-first" @bind-Value="model.FirstName" class="pp-input" placeholder="Type here" />
+                        <ValidationMessage For="() => model.FirstName" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-user-last">Last name <span class="pp-req">*</span></label>
+                        <InputText id="pp-user-last" @bind-Value="model.LastName" class="pp-input" placeholder="Type here" />
+                        <ValidationMessage For="() => model.LastName" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-user-email">Email <span class="pp-req">*</span></label>
+                        <InputText id="pp-user-email" @bind-Value="model.Email" type="email" class="pp-input" placeholder="name@example.com" />
+                        <ValidationMessage For="() => model.Email" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-user-role">Role <span class="pp-req">*</span></label>
+                        <div class="pp-select">
+                            <InputSelect id="pp-user-role" @bind-Value="model.Role" class="pp-input">
+                                @foreach (var role in RoleOptions)
+                                {
+                                    <option value="@role">@role</option>
+                                }
+                            </InputSelect>
+                            <svg class="pp-select__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <ValidationMessage For="() => model.Role" class="pp-field__error" />
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(generalError))
+                {
+                    <p class="pp-field__error" role="alert">@generalError</p>
+                }
+
+                <!-- ===== Footer ===== -->
+                <div class="pp-modal__foot">
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close">Cancel</button>
+                    <button type="submit" class="pp-btn pp-btn--primary" disabled="@busy">
+                        @(busy ? "Adding…" : "Add User")
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnUserAdded { get; set; }
+
+    private static readonly string[] RoleOptions = ["User", "Administrator"];
+
+    private AddUserModel model = new();
+    private EditContext editContext = default!;
+    private ValidationMessageStore messageStore = default!;
+    private string? generalError;
+    private bool busy;
+
+    // Maps API ProblemDetails field keys to this form's model property names.
+    private static readonly Dictionary<string, string> ServerFieldMap = new()
+    {
+        ["FirstName"] = nameof(AddUserModel.FirstName),
+        ["LastName"] = nameof(AddUserModel.LastName),
+        ["Email"] = nameof(AddUserModel.Email),
+        ["Roles"] = nameof(AddUserModel.Role)
+    };
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(model);
+        messageStore = new ValidationMessageStore(editContext);
+    }
+
+    private async Task HandleSave()
+    {
+        if (busy)
+            return;
+
+        busy = true;
+        generalError = null;
+        messageStore.Clear();
+        editContext.NotifyValidationStateChanged();
+
+        try
+        {
+            var request = new AddUserRequest(
+                model.FirstName, model.LastName, model.Email, [model.Role]);
+
+            var result = await UsersApi.AddUserAsync(request, CancellationToken.None);
+
+            if (result.Success)
+            {
+                await OnUserAdded.InvokeAsync();
+                await Close();
+                return;
+            }
+
+            ApplyServerErrors(result);
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void ApplyServerErrors(AuthResult result)
+    {
+        if (result.FieldErrors is { Count: > 0 } fieldErrors)
+        {
+            foreach (var (field, messages) in fieldErrors)
+            {
+                if (ServerFieldMap.TryGetValue(field, out var property))
+                    messageStore.Add(editContext.Field(property), messages);
+            }
+
+            editContext.NotifyValidationStateChanged();
+        }
+
+        // Show a general error when there is no field-specific detail (e.g. duplicate email).
+        if (result.FieldErrors is null or { Count: 0 })
+            generalError = result.GeneralError;
+    }
+
+    private async Task Close()
+    {
+        model = new();
+        editContext = new EditContext(model);
+        messageStore = new ValidationMessageStore(editContext);
+        generalError = null;
+        await OnClose.InvokeAsync();
+    }
+
+    private sealed class AddUserModel
+    {
+        [Required(ErrorMessage = "First name is required.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please choose a role.")]
+        public string Role { get; set; } = "User";
+    }
+}

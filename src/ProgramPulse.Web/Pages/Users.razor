@@ -1,0 +1,282 @@
+@page "/users"
+@layout DashboardLayout
+@inject UsersApiClient UsersApi
+
+<PageTitle>Users — ProgramPulse</PageTitle>
+
+<div class="pp-page__head">
+    <div>
+        <h1 class="pp-dash__heading">Users List</h1>
+        <p class="pp-page__subtitle">@_users.Count @(_users.Count == 1 ? "user" : "users") in your workspace.</p>
+    </div>
+    <div class="pp-page__head-actions">
+        <button type="button" class="pp-btn pp-btn--ghost" title="Export is not available yet">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+                <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Export Excel
+        </button>
+        <button type="button" class="pp-btn pp-btn--primary" @onclick="() => _showAdd = true">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            Add User
+        </button>
+    </div>
+</div>
+
+<!-- ===== Filter toolbar ===== -->
+<div class="pp-toolbar">
+    <div class="pp-topbar__search pp-toolbar__search">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7" />
+            <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+        </svg>
+        <input class="pp-input pp-input--icon" type="search" placeholder="Search by name or email"
+               aria-label="Search users" value="@_search" @oninput="OnSearchChanged" />
+    </div>
+
+    <div class="pp-billing-toggle" role="group" aria-label="Filter by status">
+        <button type="button" class="@StatusClass(StatusFilter.All)" @onclick="() => SetStatus(StatusFilter.All)">All</button>
+        <button type="button" class="@StatusClass(StatusFilter.Active)" @onclick="() => SetStatus(StatusFilter.Active)">Active</button>
+        <button type="button" class="@StatusClass(StatusFilter.Deactive)" @onclick="() => SetStatus(StatusFilter.Deactive)">Deactive</button>
+    </div>
+
+    <div class="pp-minselect">
+        <select aria-label="Filter by role" value="@_roleFilter" @onchange="OnRoleChanged">
+            <option value="">All roles</option>
+            <option value="Administrator">Administrator</option>
+            <option value="User">User</option>
+        </select>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <p class="pp-page__subtitle">Loading users…</p>
+}
+else if (_loadFailed)
+{
+    <div class="pp-empty">
+        <p class="pp-empty__title">Couldn't load users</p>
+        <p class="pp-empty__note">You need administrator access to view this page, or the server is unreachable.</p>
+    </div>
+}
+else if (Filtered.Count == 0)
+{
+    <div class="pp-empty">
+        <p class="pp-empty__title">No users found</p>
+        <p class="pp-empty__note">Try adjusting your search or filters, or add a new user.</p>
+    </div>
+}
+else
+{
+    <div class="pp-table" role="table" aria-label="Users">
+        <div class="pp-table__head" role="row">
+            <span role="columnheader">User</span>
+            <span role="columnheader">Role</span>
+            <span role="columnheader">Status</span>
+            <span role="columnheader">Last Login</span>
+            <span role="columnheader" class="pp-table__actions-col">Actions</span>
+        </div>
+
+        @foreach (var user in Page)
+        {
+            <div class="pp-table__row" role="row">
+                <div class="pp-table__user" role="cell">
+                    <span class="pp-sidebar__avatar" aria-hidden="true">@Initials(user)</span>
+                    <div class="pp-table__user-meta">
+                        <strong>@FullName(user)</strong>
+                        <span>@user.Email</span>
+                    </div>
+                </div>
+                <span role="cell" class="pp-table__role">@RoleLabel(user)</span>
+                <span role="cell">
+                    <span class="pp-badge pp-badge--@StatusModifier(user)">@StatusLabel(user)</span>
+                </span>
+                <span role="cell" class="pp-table__muted">@RelativeTime(user.LastLoginAt)</span>
+                <span role="cell" class="pp-table__actions">
+                    <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Edit user" title="Editing is not available yet">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                            <path d="m13.5 6.5 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                    </button>
+                    <button type="button" class="pp-iconbtn pp-iconbtn--sm pp-iconbtn--danger" aria-label="Delete user" title="Deleting is not available yet">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13"
+                                  stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </span>
+            </div>
+        }
+    </div>
+
+    @if (PageCount > 1)
+    {
+        <div class="pp-pagination">
+            <button type="button" class="pp-btn pp-btn--ghost pp-btn--sm" disabled="@(_page == 1)" @onclick="PrevPage">
+                ← Previous
+            </button>
+            <div class="pp-pagination__pages">
+                @for (var p = 1; p <= PageCount; p++)
+                {
+                    var pageNumber = p;
+                    <button type="button" class="pp-pagination__page @(pageNumber == _page ? "is-active" : "")"
+                            @onclick="() => GoToPage(pageNumber)">
+                        @pageNumber.ToString("00")
+                    </button>
+                }
+            </div>
+            <button type="button" class="pp-btn pp-btn--ghost pp-btn--sm" disabled="@(_page == PageCount)" @onclick="NextPage">
+                Next →
+            </button>
+        </div>
+    }
+}
+
+<AddUserDialog Visible="_showAdd" OnClose="() => _showAdd = false" OnUserAdded="ReloadUsers" />
+
+@code {
+    private const int PageSize = 9;
+
+    private enum StatusFilter { All, Active, Deactive }
+
+    private IReadOnlyList<UserListItem> _users = Array.Empty<UserListItem>();
+    private bool _loading = true;
+    private bool _loadFailed;
+    private bool _showAdd;
+
+    private string _search = string.Empty;
+    private string _roleFilter = string.Empty;
+    private StatusFilter _statusFilter = StatusFilter.All;
+    private int _page = 1;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await UsersApi.GetUsersAsync(CancellationToken.None);
+        _loadFailed = result is null;
+        _users = result ?? Array.Empty<UserListItem>();
+        _loading = false;
+    }
+
+    private async Task ReloadUsers()
+    {
+        await LoadAsync();
+        _page = 1;
+    }
+
+    // ----- Filtering / paging -----
+    private IReadOnlyList<UserListItem> Filtered
+    {
+        get
+        {
+            IEnumerable<UserListItem> query = _users;
+
+            if (!string.IsNullOrWhiteSpace(_search))
+            {
+                var term = _search.Trim();
+                query = query.Where(u =>
+                    FullName(u).Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    u.Email.Contains(term, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrEmpty(_roleFilter))
+                query = query.Where(u => u.Roles.Contains(_roleFilter));
+
+            query = _statusFilter switch
+            {
+                StatusFilter.Active => query.Where(IsActive),
+                StatusFilter.Deactive => query.Where(u => !IsActive(u)),
+                _ => query
+            };
+
+            return query.ToList();
+        }
+    }
+
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(Filtered.Count / (double)PageSize));
+
+    private IEnumerable<UserListItem> Page =>
+        Filtered.Skip((_page - 1) * PageSize).Take(PageSize);
+
+    private void OnSearchChanged(ChangeEventArgs e)
+    {
+        _search = e.Value?.ToString() ?? string.Empty;
+        _page = 1;
+    }
+
+    private void OnRoleChanged(ChangeEventArgs e)
+    {
+        _roleFilter = e.Value?.ToString() ?? string.Empty;
+        _page = 1;
+    }
+
+    private void SetStatus(StatusFilter status)
+    {
+        _statusFilter = status;
+        _page = 1;
+    }
+
+    private string StatusClass(StatusFilter status) => status == _statusFilter ? "is-active" : string.Empty;
+
+    private void PrevPage() { if (_page > 1) _page--; }
+    private void NextPage() { if (_page < PageCount) _page++; }
+    private void GoToPage(int page) => _page = page;
+
+    // ----- Display helpers -----
+    private static bool IsActive(UserListItem u) => u.EmailConfirmed && !u.IsLockedOut;
+
+    private static string StatusLabel(UserListItem u) =>
+        u.IsLockedOut ? "Inactive" : !u.EmailConfirmed ? "To Be Verified" : "Active";
+
+    private static string StatusModifier(UserListItem u) =>
+        u.IsLockedOut ? "off" : !u.EmailConfirmed ? "warn" : "track";
+
+    private static string FullName(UserListItem u)
+    {
+        var name = $"{u.FirstName} {u.LastName}".Trim();
+        return name.Length > 0 ? name : u.Email;
+    }
+
+    private static string RoleLabel(UserListItem u) =>
+        u.Roles.Count > 0 ? string.Join(", ", u.Roles) : "—";
+
+    private static string Initials(UserListItem u)
+    {
+        var first = u.FirstName?.Trim();
+        var last = u.LastName?.Trim();
+
+        var initials = string.Concat(
+            first is { Length: > 0 } ? first[0].ToString() : string.Empty,
+            last is { Length: > 0 } ? last[0].ToString() : string.Empty);
+
+        if (initials.Length == 0)
+            initials = u.Email is { Length: > 0 } ? u.Email[0].ToString() : "?";
+
+        return initials.ToUpperInvariant();
+    }
+
+    private static string RelativeTime(DateTime? value)
+    {
+        if (value is not { } time)
+            return "—";
+
+        var span = DateTime.UtcNow - time.ToUniversalTime();
+
+        if (span < TimeSpan.FromMinutes(1)) return "Just now";
+        if (span < TimeSpan.FromHours(1)) return $"{(int)span.TotalMinutes} mins ago";
+        if (span < TimeSpan.FromHours(24)) return $"{(int)span.TotalHours} hours ago";
+        if (span < TimeSpan.FromDays(7)) return $"{(int)span.TotalDays} days ago";
+        if (span < TimeSpan.FromDays(30)) return $"{(int)(span.TotalDays / 7)} weeks ago";
+
+        return time.ToLocalTime().ToString("d MMM, yyyy");
+    }
+}
