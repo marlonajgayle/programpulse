@@ -1043,6 +1043,39 @@ body {
 .pp-summary .pp-stat__value { font-size: 2rem; }
 .pp-stat__value--ok { border-left-color: var(--pp-track); }
 
+/* Detail two-column layout (main + health/timeline sidebar) */
+.pp-detail-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: 1.25rem; align-items: start;
+}
+.pp-detail__aside { display: flex; flex-direction: column; gap: 1.25rem; }
+.pp-detail-objs { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+
+/* Programme health card */
+.pp-health { gap: 1rem; }
+.pp-health__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.pp-health__title { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
+.pp-health__head svg { color: var(--pp-faint); }
+.pp-health__sub { margin: -.5rem 0 0; font-family: var(--font-mono); font-size: .78rem; color: var(--pp-muted); }
+.pp-health__bar {
+  display: flex; height: .5rem; border-radius: 999px; overflow: hidden;
+  background: var(--pp-line); gap: 2px;
+}
+.pp-health__seg--track { background: var(--pp-track); }
+.pp-health__seg--warn  { background: var(--pp-warn); }
+.pp-health__seg--off   { background: var(--pp-off); }
+.pp-health__rows { display: flex; flex-direction: column; gap: .75rem; }
+.pp-health__row { display: flex; align-items: center; gap: .6rem; }
+.pp-health__label { font-size: .9rem; color: var(--pp-text); }
+.pp-health__value { margin-left: auto; font-family: var(--font-mono); font-size: .82rem; color: var(--pp-muted); }
+
+/* Timeline card */
+.pp-timeline { gap: 1rem; }
+.pp-timeline__title { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
+.pp-timeline__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.pp-timeline__label { font-size: .9rem; color: var(--pp-muted); }
+.pp-timeline__value { font-weight: 600; color: var(--pp-text); }
+
 .pp-section-head { font-family: var(--font-display); font-size: 1.25rem; margin: 0 0 1rem; }
 
 .pp-section-head-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 0 1rem; }
@@ -1112,6 +1145,7 @@ body {
 /* Responsive */
 @media (max-width: 1040px) {
   .pp-summary { grid-template-columns: repeat(3, 1fr); }
+  .pp-detail-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 860px) {
   .pp-list-grid, .pp-kpi-grid { grid-template-columns: 1fr; }

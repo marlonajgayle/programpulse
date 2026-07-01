@@ -25,92 +25,122 @@ else
         <span class="pp-crumbs__current">@initiative.Name</span>
     </nav>
 
-    <header class="pp-detail__head">
-        <div class="pp-detail__title-row">
-            <h1 class="pp-dash__heading">@initiative.Name</h1>
-            <span class="pp-badge pp-badge--@StatusRollup.Modifier(initiative.AggregateStatus)">
-                @StatusRollup.Label(initiative.AggregateStatus)
-            </span>
-            <button type="button" class="pp-btn pp-btn--ghost" @onclick="() => showEditInitiative = true">
-                <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
-                    <path d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                Edit
-            </button>
-        </div>
-        <p class="pp-detail__desc">@initiative.Description</p>
-        <div class="pp-meta">
-            <span class="pp-meta__item">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" />
-                    <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                </svg>
-                @initiative.StartDate.ToString("d MMM yyyy") – @(initiative.EndDate is { } e ? e.ToString("d MMM yyyy") : "ongoing")
-            </span>
-            <span class="pp-meta__item">Created @initiative.CreatedDate.ToString("d MMM yyyy")</span>
-            @if (initiative.LastModifiedDate is { } modified)
-            {
-                <span class="pp-meta__item">Updated @modified.ToString("d MMM yyyy")</span>
-            }
-        </div>
-    </header>
-
-    <div class="pp-summary">
-        <article class="pp-card pp-stat pp-summary__cell">
-            <div class="pp-stat__head"><span>Objectives</span></div>
-            <p class="pp-stat__value">@initiative.ObjectiveCount</p>
-        </article>
-        <article class="pp-card pp-stat pp-summary__cell">
-            <div class="pp-stat__head"><span>Total KPIs</span></div>
-            <p class="pp-stat__value">@initiative.KpiCount</p>
-        </article>
-        <article class="pp-card pp-stat pp-summary__cell">
-            <div class="pp-stat__head"><span>On track</span></div>
-            <p class="pp-stat__value pp-stat__value--ok">@CountBy(KpiStatus.OnTrack)</p>
-        </article>
-        <article class="pp-card pp-stat pp-summary__cell">
-            <div class="pp-stat__head"><span>At risk</span></div>
-            <p class="pp-stat__value pp-stat__value--warn">@CountBy(KpiStatus.AtRisk)</p>
-        </article>
-        <article class="pp-card pp-stat pp-summary__cell">
-            <div class="pp-stat__head"><span>Off track</span></div>
-            <p class="pp-stat__value pp-stat__value--off">@CountBy(KpiStatus.OffTrack)</p>
-        </article>
-    </div>
-
-    <div class="pp-section-head-row">
-        <h2 class="pp-section-head">Objectives</h2>
-        <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreateObjective = true">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            Add objective
-        </button>
-    </div>
-    <div class="pp-list-grid">
-        @foreach (var objective in initiative.Objectives)
-        {
-            <article class="pp-card pp-obj-card" role="button" tabindex="0"
-                     @onclick="() => OpenObjective(objective.Id)"
-                     @onkeydown="@(ev => OnKey(ev, objective.Id))">
-                <div class="pp-init-card__top">
-                    <h3 class="pp-init-card__name">@objective.Name</h3>
-                    <span class="pp-badge pp-badge--@StatusRollup.Modifier(objective.AggregateStatus)">
-                        @StatusRollup.Label(objective.AggregateStatus)
+    <div class="pp-detail-grid">
+        <div class="pp-detail__main">
+            <header class="pp-detail__head">
+                <div class="pp-detail__title-row">
+                    <h1 class="pp-dash__heading">@initiative.Name</h1>
+                    <span class="pp-badge pp-badge--@StatusRollup.Modifier(initiative.AggregateStatus)">
+                        @StatusRollup.Label(initiative.AggregateStatus)
                     </span>
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="() => showEditInitiative = true">
+                        <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+                            <path d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Edit
+                    </button>
                 </div>
-                <p class="pp-init-card__desc">@objective.Description</p>
-                <div class="pp-obj-card__foot">
-                    <span class="pp-init-card__counts">@objective.KpiCount KPIs</span>
-                    <span class="pp-pills">
-                        @foreach (var kpi in objective.Kpis)
-                        {
-                            <span class="pp-pill-dot pp-pill-dot--@kpi.StatusModifier" title="@kpi.Name — @kpi.StatusLabel"></span>
-                        }
-                    </span>
+                <p class="pp-detail__desc">@initiative.Description</p>
+            </header>
+
+            <div class="pp-section-head-row">
+                <h2 class="pp-section-head">Objectives</h2>
+                <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreateObjective = true">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Add objective
+                </button>
+            </div>
+            <div class="pp-detail-objs">
+                @foreach (var objective in initiative.Objectives)
+                {
+                    <article class="pp-card pp-obj-card" role="button" tabindex="0"
+                             @onclick="() => OpenObjective(objective.Id)"
+                             @onkeydown="@(ev => OnKey(ev, objective.Id))">
+                        <div class="pp-init-card__top">
+                            <h3 class="pp-init-card__name">@objective.Name</h3>
+                            <span class="pp-badge pp-badge--@StatusRollup.Modifier(objective.AggregateStatus)">
+                                @StatusRollup.Label(objective.AggregateStatus)
+                            </span>
+                        </div>
+                        <p class="pp-init-card__desc">@objective.Description</p>
+                        <div class="pp-obj-card__foot">
+                            <span class="pp-init-card__counts">@objective.KpiCount KPIs</span>
+                            <span class="pp-pills">
+                                @foreach (var kpi in objective.Kpis)
+                                {
+                                    <span class="pp-pill-dot pp-pill-dot--@kpi.StatusModifier" title="@kpi.Name — @kpi.StatusLabel"></span>
+                                }
+                            </span>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+
+        <aside class="pp-detail__aside">
+            <article class="pp-card pp-health">
+                <div class="pp-health__head">
+                    <h3 class="pp-health__title">Programme health</h3>
+                    <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+                        <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <p class="pp-health__sub">@initiative.ObjectiveCount objectives · @initiative.KpiCount KPIs</p>
+                <div class="pp-health__bar">
+                    @if (OnTrackPct > 0)
+                    {
+                        <span class="pp-health__seg pp-health__seg--track" style="width:@(OnTrackPct)%"></span>
+                    }
+                    @if (AtRiskPct > 0)
+                    {
+                        <span class="pp-health__seg pp-health__seg--warn" style="width:@(AtRiskPct)%"></span>
+                    }
+                    @if (OffTrackPct > 0)
+                    {
+                        <span class="pp-health__seg pp-health__seg--off" style="width:@(OffTrackPct)%"></span>
+                    }
+                </div>
+                <div class="pp-health__rows">
+                    <div class="pp-health__row">
+                        <span class="pp-pill-dot pp-pill-dot--track"></span>
+                        <span class="pp-health__label">On track</span>
+                        <span class="pp-health__value">@OnTrackPct% · @OnTrackCount</span>
+                    </div>
+                    <div class="pp-health__row">
+                        <span class="pp-pill-dot pp-pill-dot--warn"></span>
+                        <span class="pp-health__label">At risk</span>
+                        <span class="pp-health__value">@AtRiskPct% · @AtRiskCount</span>
+                    </div>
+                    <div class="pp-health__row">
+                        <span class="pp-pill-dot pp-pill-dot--off"></span>
+                        <span class="pp-health__label">Off track</span>
+                        <span class="pp-health__value">@OffTrackPct% · @OffTrackCount</span>
+                    </div>
                 </div>
             </article>
-        }
+
+            <article class="pp-card pp-timeline">
+                <h3 class="pp-timeline__title">Timeline</h3>
+                <div class="pp-timeline__row">
+                    <span class="pp-timeline__label">Start</span>
+                    <span class="pp-timeline__value">@initiative.StartDate.ToString("d MMM yyyy")</span>
+                </div>
+                <div class="pp-timeline__row">
+                    <span class="pp-timeline__label">End</span>
+                    <span class="pp-timeline__value">@(initiative.EndDate is { } end ? end.ToString("d MMM yyyy") : "Ongoing")</span>
+                </div>
+                <div class="pp-timeline__row">
+                    <span class="pp-timeline__label">Created</span>
+                    <span class="pp-timeline__value">@initiative.CreatedDate.ToString("d MMM yyyy")</span>
+                </div>
+                <div class="pp-timeline__row">
+                    <span class="pp-timeline__label">Updated</span>
+                    <span class="pp-timeline__value">@(initiative.LastModifiedDate is { } modified ? modified.ToString("d MMM yyyy") : "—")</span>
+                </div>
+            </article>
+        </aside>
     </div>
 
     <CreateObjectiveDialog InitiativeId="Id" Visible="showCreateObjective"
@@ -131,8 +161,23 @@ else
 
     private void Reload() => initiative = Data.GetInitiative(Id);
 
-    private int CountBy(KpiStatus status) =>
-        initiative?.AllKpis.Count(k => k.Status == status) ?? 0;
+    // --- Programme health buckets (worst-of statuses roll each KPI into one of three) ---
+    private int TotalKpis => initiative?.KpiCount ?? 0;
+
+    private int OffTrackCount => initiative?.AllKpis.Count(k => k.Status == KpiStatus.OffTrack) ?? 0;
+
+    private int AtRiskCount => initiative?.AllKpis.Count(k => k.Status == KpiStatus.AtRisk) ?? 0;
+
+    // Everything that isn't off-track or at-risk (OnTrack / Completed / NotStarted) counts as on track.
+    private int OnTrackCount => TotalKpis - OffTrackCount - AtRiskCount;
+
+    private int OffTrackPct => Pct(OffTrackCount);
+
+    private int AtRiskPct => Pct(AtRiskCount);
+
+    private int OnTrackPct => Pct(OnTrackCount);
+
+    private int Pct(int count) => TotalKpis == 0 ? 0 : (int)Math.Round(count * 100.0 / TotalKpis);
 
     private void OpenObjective(Guid objectiveId) =>
         Nav.NavigateTo($"/initiatives/{Id}/objectives/{objectiveId}");
