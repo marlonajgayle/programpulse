@@ -1,0 +1,45 @@
+@* Shape-based status glyph so status is never conveyed by colour alone (WCAG 1.4.1).
+   Inherits its colour from the surrounding pill/chip via currentColor. *@
+
+<svg class="pp-status-icon" viewBox="0 0 24 24" fill="none" width="14" height="14"
+     role="img" aria-hidden="true">
+    @switch (Status)
+    {
+        case KpiStatus.OnTrack:
+            @* check *@
+            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+            break;
+
+        case KpiStatus.AtRisk:
+            @* warning triangle *@
+            <path d="M12 4 2.5 20.5h19L12 4z" stroke="currentColor" stroke-width="1.9"
+                  stroke-linejoin="round" />
+            <path d="M12 10v4M12 17.5h.01" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" />
+            break;
+
+        case KpiStatus.OffTrack:
+            @* cross *@
+            <path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" />
+            break;
+
+        case KpiStatus.Completed:
+            @* check in ring *@
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+            <path d="M8 12.5l2.5 2.5L16 9" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+            break;
+
+        default:
+            @* not started — dashed ring *@
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"
+                    stroke-dasharray="3 3.2" />
+            break;
+    }
+</svg>
+
+@code {
+    [Parameter, EditorRequired] public KpiStatus Status { get; set; }
+}

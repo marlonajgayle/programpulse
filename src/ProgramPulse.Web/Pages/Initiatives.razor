@@ -8,7 +8,7 @@
 <div class="pp-page__head">
     <div>
         <h1 class="pp-dash__heading">Initiatives</h1>
-        <p class="pp-page__subtitle">@initiatives.Count active @(initiatives.Count == 1 ? "initiative" : "initiatives") across your programme.</p>
+        <p class="pp-page__subtitle">@_all.Count active @(_all.Count == 1 ? "initiative" : "initiatives") across your programme.</p>
     </div>
     <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreate = true">
         <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
@@ -18,23 +18,32 @@
     </button>
 </div>
 
-<!-- Visual-only filter row -->
 <div class="pp-toolbar">
     <div class="pp-topbar__search pp-toolbar__search">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7" />
             <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
         </svg>
-        <input class="pp-input pp-input--icon" type="search" placeholder="Filter initiatives" aria-label="Filter initiatives" />
+        <input class="pp-input pp-input--icon" type="search" placeholder="Filter initiatives"
+               aria-label="Filter initiatives" value="@_search"
+               @oninput="e => _search = e.Value?.ToString() ?? string.Empty" />
     </div>
-    <span class="pp-legend">
-        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--track"></span>On track</span>
-        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--warn"></span>At risk</span>
-        <span class="pp-legend__item"><span class="pp-legend__dot pp-legend__dot--off"></span>Off track</span>
-    </span>
+    <div class="pp-legend pp-legend--filter" role="group" aria-label="Filter by status">
+        @foreach (var opt in FilterOptions)
+        {
+            var active = _activeFilters.Contains(opt.Status);
+            <button type="button"
+                    class="pp-legend__chip pp-legend__chip--@opt.Modifier @(active ? "is-active" : null)"
+                    aria-pressed="@active"
+                    @onclick="() => ToggleFilter(opt.Status)">
+                <StatusIcon Status="opt.Status" />
+                @opt.Label
+            </button>
+        }
+    </div>
 </div>
 
-@if (initiatives.Count == 0)
+@if (_all.Count == 0)
 {
     <div class="pp-empty">
         <p class="pp-empty__title">No initiatives yet</p>
@@ -43,58 +52,95 @@
 }
 else
 {
-    <div class="pp-list-grid">
-        @foreach (var initiative in initiatives)
-        {
-            <article class="pp-card pp-init-card" role="button" tabindex="0"
-                     @onclick="() => Open(initiative.Id)"
-                     @onkeydown="@(e => OnKey(e, initiative.Id))">
-                <div class="pp-init-card__top">
-                    <h3 class="pp-init-card__name">@initiative.Name</h3>
-                    <span class="pp-badge pp-badge--@StatusRollup.Modifier(initiative.AggregateStatus)">
-                        @StatusRollup.Label(initiative.AggregateStatus)
-                    </span>
-                </div>
-                <p class="pp-init-card__desc">@initiative.Description</p>
-                <div class="pp-init-card__foot">
-                    <span class="pp-meta__item">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" />
-                            <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                        </svg>
-                        @DateRange(initiative)
-                    </span>
-                    <span class="pp-init-card__counts">
-                        <span>@initiative.ObjectiveCount @(initiative.ObjectiveCount == 1 ? "objective" : "objectives")</span>
-                        <span class="pp-dot-sep">·</span>
-                        <span>@initiative.KpiCount KPIs</span>
-                    </span>
-                </div>
-            </article>
-        }
-    </div>
+    var visible = Filtered();
+    var criticalId = MostCriticalId(visible);
+
+    @if (visible.Count == 0)
+    {
+        <div class="pp-empty">
+            <p class="pp-empty__title">No initiatives match your filters</p>
+            <p class="pp-empty__note">Try a different search term or status filter.</p>
+            <button type="button" class="pp-btn pp-btn--ghost" @onclick="ClearFilters">Clear filters</button>
+        </div>
+    }
+    else
+    {
+        <div class="pp-list-grid">
+            @foreach (var initiative in visible)
+            {
+                <InitiativeCard Initiative="initiative"
+                                Critical="initiative.Id == criticalId"
+                                OnOpen="Open" />
+            }
+        </div>
+    }
 }
 
 <CreateInitiativeDialog Visible="showCreate" OnClose="() => showCreate = false" />
 
 @code {
-    private IReadOnlyList<InitiativeVm> initiatives = Array.Empty<InitiativeVm>();
+    private IReadOnlyList<InitiativeVm> _all = Array.Empty<InitiativeVm>();
+    private readonly HashSet<KpiStatus> _activeFilters = new();
+    private string _search = string.Empty;
     private bool showCreate;
 
-    protected override void OnInitialized() => initiatives = Data.GetInitiatives();
+    // Legend chips double as status filters. Only the three "live" statuses are offered;
+    // completed/not-started initiatives simply fall outside an active status filter.
+    private static readonly (KpiStatus Status, string Modifier, string Label)[] FilterOptions =
+    {
+        (KpiStatus.OnTrack, "track", "On track"),
+        (KpiStatus.AtRisk, "warn", "At risk"),
+        (KpiStatus.OffTrack, "off", "Off track"),
+    };
+
+    protected override void OnInitialized() => _all = Data.GetInitiatives();
 
     private void Open(Guid id) => Nav.NavigateTo($"/initiatives/{id}");
 
-    private void OnKey(KeyboardEventArgs e, Guid id)
+    private void ToggleFilter(KpiStatus status)
     {
-        if (e.Key is "Enter" or " ")
+        if (!_activeFilters.Remove(status))
         {
-            Open(id);
+            _activeFilters.Add(status);
         }
     }
 
-    private static string DateRange(InitiativeVm i) =>
-        i.EndDate is { } end
-            ? $"{i.StartDate:MMM yyyy} – {end:MMM yyyy}"
-            : $"{i.StartDate:MMM yyyy} – ongoing";
+    private void ClearFilters()
+    {
+        _activeFilters.Clear();
+        _search = string.Empty;
+    }
+
+    // Status filter and free-text search combine with AND.
+    private IReadOnlyList<InitiativeVm> Filtered()
+    {
+        IEnumerable<InitiativeVm> query = _all;
+
+        if (_activeFilters.Count > 0)
+        {
+            query = query.Where(i => _activeFilters.Contains(i.AggregateStatus));
+        }
+
+        if (!string.IsNullOrWhiteSpace(_search))
+        {
+            var term = _search.Trim();
+            query = query.Where(i =>
+                i.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || i.Description.Contains(term, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return query.ToList();
+    }
+
+    // The single worst initiative among those currently on screen, or null if none is
+    // at-risk-or-worse (so an all-healthy board gets no dark card). Ranking:
+    // off-track beats at-risk, ties broken by off-track KPI count, then soonest end date.
+    private static Guid? MostCriticalId(IReadOnlyList<InitiativeVm> visible) =>
+        visible
+            .Where(i => i.AggregateStatus is KpiStatus.OffTrack or KpiStatus.AtRisk)
+            .OrderByDescending(i => i.AggregateStatus == KpiStatus.OffTrack)
+            .ThenByDescending(i => i.AllKpis.Count(k => k.Status == KpiStatus.OffTrack))
+            .ThenBy(i => i.EndDate ?? DateTime.MaxValue)
+            .Select(i => (Guid?)i.Id)
+            .FirstOrDefault();
 }

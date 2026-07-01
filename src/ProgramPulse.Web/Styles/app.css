@@ -754,6 +754,31 @@ body {
   border: 1px solid var(--pp-line);
 }
 
+/* Legend chips that double as multi-select status filters. */
+.pp-legend--filter { gap: .5rem; }
+.pp-legend__chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .3rem .7rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--pp-line); background: var(--pp-card);
+  color: var(--pp-muted); font-size: .82rem; line-height: 1;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.pp-legend__chip .pp-status-icon { width: .85rem; height: .85rem; flex: none; }
+.pp-legend__chip:hover { border-color: var(--pp-faint); color: var(--pp-text); }
+.pp-legend__chip:focus-visible { outline: 2px solid var(--pp-accent); outline-offset: 2px; }
+.pp-legend__chip--track.is-active {
+  color: var(--pp-track); border-color: color-mix(in srgb, var(--pp-track) 40%, transparent);
+  background: color-mix(in srgb, var(--pp-track) 12%, transparent);
+}
+.pp-legend__chip--warn.is-active {
+  color: var(--pp-gold-strong); border-color: color-mix(in srgb, var(--pp-warn) 45%, transparent);
+  background: color-mix(in srgb, var(--pp-warn) 16%, transparent);
+}
+.pp-legend__chip--off.is-active {
+  color: var(--pp-off); border-color: color-mix(in srgb, var(--pp-off) 40%, transparent);
+  background: color-mix(in srgb, var(--pp-off) 12%, transparent);
+}
+
 /* --- Upcoming reviews --- */
 .pp-reviews { list-style: none; margin: 0; padding: 0; }
 .pp-reviews__row { display: flex; gap: 1rem; padding: .9rem 0; border-bottom: 1px solid var(--pp-line); }
@@ -922,6 +947,7 @@ body {
 
 /* Clickable cards */
 .pp-init-card, .pp-obj-card { cursor: pointer; gap: .85rem; }
+.pp-init-card { min-height: 16.25rem; }
 .pp-init-card:focus-visible, .pp-obj-card:focus-visible {
   outline: 2px solid var(--pp-accent); outline-offset: 2px;
 }
@@ -930,14 +956,47 @@ body {
 .pp-init-card__desc {
   color: var(--pp-muted); line-height: 1.55; margin: 0; font-size: .92rem;
   display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  word-break: normal; overflow-wrap: break-word;
 }
+/* Pins the KPI bar + footer to the bottom so cards line up regardless of
+   description length or KPI count. */
+.pp-init-card__meta { margin-top: auto; display: flex; flex-direction: column; gap: .75rem; }
 .pp-init-card__foot {
   display: flex; align-items: center; justify-content: space-between; gap: .75rem;
-  margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--pp-line);
+  padding-top: 1rem; border-top: 1px solid var(--pp-line);
   font-size: .82rem; color: var(--pp-muted);
 }
 .pp-init-card__counts { display: inline-flex; align-items: center; gap: .4rem; }
 .pp-dot-sep { color: var(--pp-faint); }
+
+/* KPI status-mix bar: one segment per KPI, coloured by that KPI's status. */
+.pp-kpi-bar { display: flex; gap: 3px; height: 5px; border-radius: 3px; overflow: hidden; }
+.pp-kpi-bar__seg { flex: 1; }
+.pp-kpi-bar__seg--track { background: var(--pp-track); }
+.pp-kpi-bar__seg--warn  { background: var(--pp-warn); }
+.pp-kpi-bar__seg--off   { background: var(--pp-off); }
+.pp-kpi-bar__seg--done  { background: var(--pp-accent); }
+.pp-kpi-bar__seg--idle  { background: var(--pp-line); }
+
+/* Dark treatment for the single most-critical initiative on screen (one per view). */
+.pp-init-card--critical {
+  background: var(--pp-ink); border-color: transparent; color: var(--pp-ink-text);
+}
+.pp-init-card--critical .pp-init-card__name { color: var(--pp-ink-text); }
+.pp-init-card--critical .pp-init-card__desc,
+.pp-init-card--critical .pp-init-card__foot,
+.pp-init-card--critical .pp-init-card__counts { color: var(--pp-ink-muted); }
+.pp-init-card--critical .pp-dot-sep { color: var(--pp-ink-muted); }
+.pp-init-card--critical .pp-init-card__foot { border-top-color: rgba(255, 255, 255, .12); }
+.pp-init-card--critical .pp-meta__item svg { color: var(--pp-ink-muted); }
+.pp-init-card--critical .pp-kpi-bar__seg--idle { background: rgba(255, 255, 255, .18); }
+/* Solid, high-contrast pill on the dark surface — the dark card already signals
+   severity, and the glyph keeps status non-colour-dependent. */
+.pp-init-card--critical .pp-badge {
+  color: var(--pp-ink-text); background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .2);
+}
+.pp-init-card--critical:hover { border-color: var(--pp-gold); }
 
 .pp-obj-card__foot {
   display: flex; align-items: center; justify-content: space-between; gap: .75rem;
@@ -954,11 +1013,12 @@ body {
 
 /* Status badge */
 .pp-badge {
-  display: inline-flex; align-items: center; flex: none;
+  display: inline-flex; align-items: center; gap: .3rem; flex: none;
   font-family: var(--font-mono); font-size: .72rem; letter-spacing: .03em;
   padding: .25rem .65rem; border-radius: 999px; white-space: nowrap;
   border: 1px solid transparent;
 }
+.pp-badge .pp-status-icon { width: .85rem; height: .85rem; flex: none; }
 .pp-badge--track { color: var(--pp-track); background: color-mix(in srgb, var(--pp-track) 12%, transparent); border-color: color-mix(in srgb, var(--pp-track) 35%, transparent); }
 .pp-badge--warn  { color: var(--pp-gold-strong); background: color-mix(in srgb, var(--pp-warn) 16%, transparent); border-color: color-mix(in srgb, var(--pp-warn) 45%, transparent); }
 .pp-badge--off   { color: var(--pp-off); background: color-mix(in srgb, var(--pp-off) 12%, transparent); border-color: color-mix(in srgb, var(--pp-off) 35%, transparent); }
