@@ -620,7 +620,7 @@ body {
 .pp-notif__file-sub { font-size: .78rem; color: var(--pp-faint); }
 
 /* Full-page notifications list (reuses the item format, drops popover sizing) */
-.pp-notif__page { --pp-notif-accent: #E07B39; max-width: 46rem; padding: .5rem 1.5rem; }
+.pp-notif__page { --pp-notif-accent: #E07B39; padding: .5rem 1.5rem; }
 .pp-notif__list--page { max-height: none; overflow: visible; }
 .pp-notif__list--page .pp-notif__item { padding: 1.25rem 0; }
 
