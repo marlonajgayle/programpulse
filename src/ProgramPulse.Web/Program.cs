@@ -11,6 +11,7 @@ var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 builder.Services.AddScoped<AuthApiClient>();
 builder.Services.AddScoped<UsersApiClient>();
+builder.Services.AddScoped<FaqsApiClient>();
 
 // Mock data source for the Initiatives UI (swap for an API-backed source later).
 builder.Services.AddSingleton<SampleData>();
