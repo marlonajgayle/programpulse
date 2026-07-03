@@ -1,5 +1,5 @@
 @using System.ComponentModel.DataAnnotations
-@inject SampleData Data
+@inject ObjectivesApiClient ObjectivesApi
 
 @if (Visible)
 {
@@ -36,15 +36,23 @@
                 </div>
 
                 <div class="pp-form__field pp-form__field--full">
-                    <label class="pp-form__label" for="pp-obj-desc">Description</label>
+                    <label class="pp-form__label" for="pp-obj-desc">Description <span class="pp-req">*</span></label>
                     <InputTextArea id="pp-obj-desc" @bind-Value="model.Description" class="pp-input pp-input--area"
                                    placeholder="Describe what this objective aims to achieve" />
+                    <ValidationMessage For="() => model.Description" class="pp-field__error" />
                 </div>
+
+                @if (_error is not null)
+                {
+                    <p class="pp-auth__error">@_error</p>
+                }
 
                 <!-- ===== Footer ===== -->
                 <div class="pp-modal__foot">
-                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close">Cancel</button>
-                    <button type="submit" class="pp-btn pp-btn--primary">Save Objective</button>
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close" disabled="@_saving">Cancel</button>
+                    <button type="submit" class="pp-btn pp-btn--primary" disabled="@_saving">
+                        @(_saving ? "Saving…" : "Save Objective")
+                    </button>
                 </div>
             </EditForm>
         </div>
@@ -58,16 +66,32 @@
     [Parameter] public EventCallback OnSaved { get; set; }
 
     private ObjectiveModel model = new();
+    private bool _saving;
+    private string? _error;
 
     private async Task HandleSave()
     {
-        Data.AddObjective(InitiativeId, model.Name, model.Description ?? string.Empty);
+        _saving = true;
+        _error = null;
+
+        var request = new CreateObjectiveRequest(model.Name, model.Description ?? string.Empty);
+        var result = await ObjectivesApi.CreateObjectiveAsync(InitiativeId, request, CancellationToken.None);
+        _saving = false;
+
+        if (!result.Success)
+        {
+            _error = result.GeneralError ?? "Couldn't add the objective. Please try again.";
+            return;
+        }
+
         await OnSaved.InvokeAsync();
         await Close();
     }
 
     private async Task Close()
     {
+        _error = null;
+        _saving = false;
         model = new();
         await OnClose.InvokeAsync();
     }
@@ -77,6 +101,7 @@
         [Required(ErrorMessage = "Objective name is required.")]
         public string Name { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "A description is required.")]
         public string? Description { get; set; }
     }
 }

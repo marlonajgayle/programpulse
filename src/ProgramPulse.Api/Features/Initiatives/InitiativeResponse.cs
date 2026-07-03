@@ -10,4 +10,6 @@ public sealed record InitiativeResponse(
     DateTime StartDate,
     DateTime? EndDate,
     DateTime CreatedDate,
-    DateTime? LastModifiedDate);
+    DateTime? LastModifiedDate,
+    int ObjectiveCount,
+    int KpiCount);

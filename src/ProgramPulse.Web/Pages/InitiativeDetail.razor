@@ -1,20 +1,29 @@
 @page "/initiatives/{Id:guid}"
 @layout DashboardLayout
-@inject SampleData Data
+@inject InitiativesApiClient InitiativesApi
 @inject NavigationManager Nav
 
 <PageTitle>@(initiative?.Name ?? "Initiative") — ProgramPulse</PageTitle>
 
-@if (initiative is null)
+@if (_loading)
 {
     <nav class="pp-crumbs" aria-label="Breadcrumb">
         <a href="/initiatives">Initiatives</a>
         <span class="pp-crumbs__sep">/</span>
-        <span class="pp-crumbs__current">Not found</span>
+        <span class="pp-crumbs__current">Loading…</span>
+    </nav>
+    <p class="pp-page__subtitle">Loading initiative…</p>
+}
+else if (initiative is null)
+{
+    <nav class="pp-crumbs" aria-label="Breadcrumb">
+        <a href="/initiatives">Initiatives</a>
+        <span class="pp-crumbs__sep">/</span>
+        <span class="pp-crumbs__current">Unavailable</span>
     </nav>
     <div class="pp-empty">
-        <p class="pp-empty__title">Initiative not found</p>
-        <p class="pp-empty__note">It may have been removed. Head back to the <a class="pp-auth__link" href="/initiatives">initiatives list</a>.</p>
+        <p class="pp-empty__title">Couldn't load this initiative</p>
+        <p class="pp-empty__note">It may have been removed, or the server is unreachable. Head back to the <a class="pp-auth__link" href="/initiatives">initiatives list</a>.</p>
     </div>
 }
 else
@@ -156,10 +165,36 @@ else
     private InitiativeVm? initiative;
     private bool showCreateObjective;
     private bool showEditInitiative;
+    private bool _loading = true;
 
-    protected override void OnParametersSet() => initiative = Data.GetInitiative(Id);
+    protected override Task OnParametersSetAsync() => LoadAsync();
 
-    private void Reload() => initiative = Data.GetInitiative(Id);
+    private Task Reload() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+
+        var detail = await InitiativesApi.GetInitiativeDetailAsync(Id, CancellationToken.None);
+        initiative = detail is null ? null : ToVm(detail);
+
+        _loading = false;
+    }
+
+    // Map the API's nested detail response onto the render view models. KPIs carry no
+    // measurements here (the page shows none) — status/health roll up from KpiVm.Status.
+    private static InitiativeVm ToVm(InitiativeDetailResponse d) =>
+        new(d.Id, d.Name, d.Description, d.StartDate, d.EndDate, d.CreatedDate, d.LastModifiedDate,
+            d.Objectives
+                .Select(o => new ObjectiveVm(
+                    o.Id, o.Name, o.Description, o.InitiativeId, o.CreatedDate, o.LastModifiedDate,
+                    o.Kpis
+                        .Select(k => new KpiVm(
+                            k.Id, k.Name, k.Unit, k.Direction, k.BaselineValue, k.TargetValue,
+                            k.CurrentValue, k.DueDate, k.Status, k.ObjectiveId,
+                            k.CreatedDate, k.LastModifiedDate, Array.Empty<MeasurementVm>()))
+                        .ToList()))
+                .ToList());
 
     // --- Programme health buckets (worst-of statuses roll each KPI into one of three) ---
     private int TotalKpis => initiative?.KpiCount ?? 0;

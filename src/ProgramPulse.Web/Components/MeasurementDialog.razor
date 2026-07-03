@@ -1,5 +1,5 @@
 @using System.ComponentModel.DataAnnotations
-@inject SampleData Data
+@inject MeasurementsApiClient MeasurementsApi
 
 @if (Visible)
 {
@@ -41,10 +41,17 @@
                                    placeholder="Optional context for this reading" />
                 </div>
 
+                @if (_error is not null)
+                {
+                    <p class="pp-auth__error">@_error</p>
+                }
+
                 <!-- ===== Footer ===== -->
                 <div class="pp-modal__foot">
-                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close">Cancel</button>
-                    <button type="submit" class="pp-btn pp-btn--primary">@(IsEdit ? "Save changes" : "Add measurement")</button>
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close" disabled="@_saving">Cancel</button>
+                    <button type="submit" class="pp-btn pp-btn--primary" disabled="@_saving">
+                        @(_saving ? "Saving…" : IsEdit ? "Save changes" : "Add measurement")
+                    </button>
                 </div>
             </EditForm>
         </div>
@@ -63,6 +70,8 @@
     private bool IsEdit => Measurement is not null;
 
     private MeasurementModel model = new();
+    private bool _saving;
+    private string? _error;
 
     protected override void OnParametersSet()
     {
@@ -81,14 +90,21 @@
             return;
         }
 
-        if (Measurement is { } measurement)
+        _saving = true;
+        _error = null;
+
+        var result = Measurement is { } measurement
+            ? await MeasurementsApi.UpdateMeasurementAsync(
+                measurement.Id, new UpdateMeasurementRequest(model.Value!.Value, model.Notes), CancellationToken.None)
+            : await MeasurementsApi.CreateMeasurementAsync(
+                Kpi.Id, new CreateMeasurementRequest(model.Value!.Value, model.Notes), CancellationToken.None);
+
+        _saving = false;
+
+        if (!result.Success)
         {
-            Data.UpdateMeasurement(
-                InitiativeId, ObjectiveId, Kpi.Id, measurement.Id, model.Value!.Value, model.Notes);
-        }
-        else
-        {
-            Data.AddMeasurement(InitiativeId, ObjectiveId, Kpi.Id, model.Value!.Value, model.Notes);
+            _error = result.GeneralError ?? "Couldn't save the measurement. Please try again.";
+            return;
         }
 
         await OnSaved.InvokeAsync();
@@ -97,6 +113,8 @@
 
     private async Task Close()
     {
+        _error = null;
+        _saving = false;
         model = new();
         await OnClose.InvokeAsync();
     }

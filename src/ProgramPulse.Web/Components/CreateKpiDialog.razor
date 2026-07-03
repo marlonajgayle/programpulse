@@ -1,5 +1,5 @@
 @using System.ComponentModel.DataAnnotations
-@inject SampleData Data
+@inject KpisApiClient KpisApi
 
 @if (Visible)
 {
@@ -80,10 +80,17 @@
                     </div>
                 </div>
 
+                @if (_error is not null)
+                {
+                    <p class="pp-auth__error">@_error</p>
+                }
+
                 <!-- ===== Footer ===== -->
                 <div class="pp-modal__foot">
-                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close">Cancel</button>
-                    <button type="submit" class="pp-btn pp-btn--primary">Save KPI</button>
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close" disabled="@_saving">Cancel</button>
+                    <button type="submit" class="pp-btn pp-btn--primary" disabled="@_saving">
+                        @(_saving ? "Saving…" : "Save KPI")
+                    </button>
                 </div>
             </EditForm>
         </div>
@@ -98,13 +105,26 @@
     [Parameter] public EventCallback OnSaved { get; set; }
 
     private KpiModel model = new();
+    private bool _saving;
+    private string? _error;
 
     private async Task HandleSave()
     {
-        Data.AddKpi(
-            InitiativeId, ObjectiveId, model.Name, model.Unit, model.Direction,
+        _saving = true;
+        _error = null;
+
+        var request = new CreateKpiRequest(
+            model.Name, model.Unit, model.Direction,
             model.Baseline!.Value, model.Target!.Value, model.Current ?? model.Baseline!.Value,
             model.DueDate!.Value);
+        var result = await KpisApi.CreateKpiAsync(ObjectiveId, request, CancellationToken.None);
+        _saving = false;
+
+        if (!result.Success)
+        {
+            _error = result.GeneralError ?? "Couldn't add the KPI. Please try again.";
+            return;
+        }
 
         await OnSaved.InvokeAsync();
         await Close();
@@ -112,6 +132,8 @@
 
     private async Task Close()
     {
+        _error = null;
+        _saving = false;
         model = new();
         await OnClose.InvokeAsync();
     }

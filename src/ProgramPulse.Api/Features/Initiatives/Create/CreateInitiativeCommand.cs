@@ -47,7 +47,9 @@ public sealed class CreateInitiativeCommandHandler(
             initiative.StartDate,
             initiative.EndDate,
             initiative.CreatedDate,
-            initiative.LastModifiedDate);
+            initiative.LastModifiedDate,
+            ObjectiveCount: 0,
+            KpiCount: 0);
 
         return Result<InitiativeResponse>.Created(response, $"/api/v1/initiatives/{initiative.Id}");
     }

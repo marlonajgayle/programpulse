@@ -1,19 +1,30 @@
 @page "/initiatives/{Id:guid}/objectives/{ObjectiveId:guid}"
 @layout DashboardLayout
-@inject SampleData Data
+@inject InitiativesApiClient InitiativesApi
+@inject KpisApiClient KpisApi
+@inject MeasurementsApiClient MeasurementsApi
 
 <PageTitle>@(objective?.Name ?? "Objective") — ProgramPulse</PageTitle>
 
-@if (initiative is null || objective is null)
+@if (_loading)
 {
     <nav class="pp-crumbs" aria-label="Breadcrumb">
         <a href="/initiatives">Initiatives</a>
         <span class="pp-crumbs__sep">/</span>
-        <span class="pp-crumbs__current">Not found</span>
+        <span class="pp-crumbs__current">Loading…</span>
+    </nav>
+    <p class="pp-page__subtitle">Loading objective…</p>
+}
+else if (initiative is null || objective is null)
+{
+    <nav class="pp-crumbs" aria-label="Breadcrumb">
+        <a href="/initiatives">Initiatives</a>
+        <span class="pp-crumbs__sep">/</span>
+        <span class="pp-crumbs__current">Unavailable</span>
     </nav>
     <div class="pp-empty">
-        <p class="pp-empty__title">Objective not found</p>
-        <p class="pp-empty__note">It may have been removed. Head back to the <a class="pp-auth__link" href="/initiatives">initiatives list</a>.</p>
+        <p class="pp-empty__title">Couldn't load this objective</p>
+        <p class="pp-empty__note">It may have been removed, or the server is unreachable. Head back to the <a class="pp-auth__link" href="/initiatives">initiatives list</a>.</p>
     </div>
 }
 else
@@ -220,17 +231,56 @@ else
     private KpiVm? editingKpi;
     private KpiVm? measurementKpi;
     private MeasurementVm? editingMeasurement;
+    private bool _loading = true;
 
-    protected override void OnParametersSet()
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private Task Reload() => LoadAsync();
+
+    // Objective metadata (name/description/breadcrumb) has no dedicated endpoint, so it comes
+    // from the parent initiative's detail tree; the KPI cards come from the KPI list endpoint.
+    private async Task LoadAsync()
     {
-        initiative = Data.GetInitiative(Id);
-        objective = Data.GetObjective(Id, ObjectiveId);
+        _loading = true;
+
+        var detail = await InitiativesApi.GetInitiativeDetailAsync(Id, CancellationToken.None);
+        var objectiveDetail = detail?.Objectives.FirstOrDefault(o => o.Id == ObjectiveId);
+
+        if (detail is null || objectiveDetail is null)
+        {
+            initiative = null;
+            objective = null;
+            _loading = false;
+            return;
+        }
+
+        var kpis = await KpisApi.GetKpisAsync(ObjectiveId, CancellationToken.None) ?? [];
+
+        // Fetch each KPI's measurements in parallel so the history list, sparkline and recency render.
+        var kpiVms = await Task.WhenAll(kpis.Select(ToKpiVmAsync));
+
+        initiative = new InitiativeVm(
+            detail.Id, detail.Name, detail.Description, detail.StartDate, detail.EndDate,
+            detail.CreatedDate, detail.LastModifiedDate, Array.Empty<ObjectiveVm>());
+
+        objective = new ObjectiveVm(
+            objectiveDetail.Id, objectiveDetail.Name, objectiveDetail.Description,
+            objectiveDetail.InitiativeId, objectiveDetail.CreatedDate, objectiveDetail.LastModifiedDate,
+            kpiVms.ToList());
+
+        _loading = false;
     }
 
-    private void Reload()
+    private async Task<KpiVm> ToKpiVmAsync(KpiResponse k)
     {
-        initiative = Data.GetInitiative(Id);
-        objective = Data.GetObjective(Id, ObjectiveId);
+        var measurements = await MeasurementsApi.GetMeasurementsAsync(k.Id, CancellationToken.None) ?? [];
+        var measurementVms = measurements
+            .Select(m => new MeasurementVm(m.Id, m.Value, m.Notes, m.KpiId, m.CreatedDate))
+            .ToList();
+
+        return new KpiVm(
+            k.Id, k.Name, k.Unit, k.Direction, k.BaselineValue, k.TargetValue, k.CurrentValue,
+            k.DueDate, k.Status, k.ObjectiveId, k.CreatedDate, k.LastModifiedDate, measurementVms);
     }
 
     private void OpenMeasurement(KpiVm kpi, MeasurementVm? measurement)

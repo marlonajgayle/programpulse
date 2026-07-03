@@ -37,7 +37,9 @@ public sealed class GetInitiativesQueryHandler(
                 i.StartDate,
                 i.EndDate,
                 i.CreatedDate,
-                i.LastModifiedDate))
+                i.LastModifiedDate,
+                i.Objectives.Count,
+                i.Objectives.SelectMany(o => o.Kpis).Count()))
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<InitiativeResponse>>.Success(initiatives);

@@ -12,13 +12,15 @@ public sealed record InitiativeVm(
     DateTime? EndDate,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
-    IReadOnlyList<ObjectiveVm> Objectives)
+    IReadOnlyList<ObjectiveVm> Objectives,
+    int? ObjectiveCountOverride = null,
+    int? KpiCountOverride = null)
 {
     public IEnumerable<KpiVm> AllKpis => Objectives.SelectMany(o => o.Kpis);
 
-    public int ObjectiveCount => Objectives.Count;
+    public int ObjectiveCount => ObjectiveCountOverride ?? Objectives.Count;
 
-    public int KpiCount => AllKpis.Count();
+    public int KpiCount => KpiCountOverride ?? AllKpis.Count();
 
     /// <summary>Worst-of roll-up of the contained KPI statuses.</summary>
     public KpiStatus AggregateStatus => StatusRollup.Of(AllKpis);

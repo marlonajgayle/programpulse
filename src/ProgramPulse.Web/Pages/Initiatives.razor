@@ -1,6 +1,6 @@
 @page "/initiatives"
 @layout DashboardLayout
-@inject SampleData Data
+@inject InitiativesApiClient InitiativesApi
 @inject NavigationManager Nav
 
 <PageTitle>Initiatives — ProgramPulse</PageTitle>
@@ -43,7 +43,18 @@
     </div>
 </div>
 
-@if (_all.Count == 0)
+@if (_loading)
+{
+    <p class="pp-page__subtitle">Loading initiatives…</p>
+}
+else if (_loadFailed)
+{
+    <div class="pp-empty">
+        <p class="pp-empty__title">Couldn't load initiatives</p>
+        <p class="pp-empty__note">The server is unreachable right now. Please try again later.</p>
+    </div>
+}
+else if (_all.Count == 0)
 {
     <div class="pp-empty">
         <p class="pp-empty__title">No initiatives yet</p>
@@ -76,13 +87,15 @@ else
     }
 }
 
-<CreateInitiativeDialog Visible="showCreate" OnClose="() => showCreate = false" />
+<CreateInitiativeDialog Visible="showCreate" OnClose="() => showCreate = false" OnCreated="ReloadAsync" />
 
 @code {
     private IReadOnlyList<InitiativeVm> _all = Array.Empty<InitiativeVm>();
     private readonly HashSet<KpiStatus> _activeFilters = new();
     private string _search = string.Empty;
     private bool showCreate;
+    private bool _loading = true;
+    private bool _loadFailed;
 
     // Legend chips double as status filters. Only the three "live" statuses are offered;
     // completed/not-started initiatives simply fall outside an active status filter.
@@ -93,7 +106,30 @@ else
         (KpiStatus.OffTrack, "off", "Off track"),
     };
 
-    protected override void OnInitialized() => _all = Data.GetInitiatives();
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    // Re-fetch after a create so the new initiative shows without a manual refresh.
+    private Task ReloadAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        var result = await InitiativesApi.GetInitiativesAsync(CancellationToken.None);
+        _loadFailed = result is null;
+
+        // The list endpoint returns objective/KPI counts but not the sub-tree itself, so
+        // the counts populate the card while the KPI status bar stays empty (it needs
+        // per-KPI statuses) until the sub-tree is wired.
+        _all = result?
+            .Select(i => new InitiativeVm(
+                i.Id, i.Name, i.Description, i.StartDate, i.EndDate,
+                i.CreatedDate, i.LastModifiedDate, Array.Empty<ObjectiveVm>(),
+                ObjectiveCountOverride: i.ObjectiveCount,
+                KpiCountOverride: i.KpiCount))
+            .ToList()
+            ?? (IReadOnlyList<InitiativeVm>)Array.Empty<InitiativeVm>();
+
+        _loading = false;
+    }
 
     private void Open(Guid id) => Nav.NavigateTo($"/initiatives/{id}");
 

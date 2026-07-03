@@ -1,4 +1,5 @@
 @using System.ComponentModel.DataAnnotations
+@inject InitiativesApiClient InitiativesApi
 
 @if (Visible)
 {
@@ -37,39 +38,23 @@
                     </div>
 
                     <div class="pp-form__field">
-                        <label class="pp-form__label" for="pp-init-category">Initiative category <span class="pp-req">*</span></label>
-                        <div class="pp-select">
-                            <InputSelect id="pp-init-category" @bind-Value="model.Category" class="pp-input">
-                                <option value="">Choose category</option>
-                                @foreach (var category in Categories)
-                                {
-                                    <option value="@category">@category</option>
-                                }
-                            </InputSelect>
-                            <svg class="pp-select__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        </div>
-                        <ValidationMessage For="() => model.Category" class="pp-field__error" />
-                    </div>
-
-                    <div class="pp-form__field">
                         <label class="pp-form__label" for="pp-init-start">Start Date <span class="pp-req">*</span></label>
                         <InputDate id="pp-init-start" @bind-Value="model.StartDate" class="pp-input" />
                         <ValidationMessage For="() => model.StartDate" class="pp-field__error" />
                     </div>
 
                     <div class="pp-form__field">
-                        <label class="pp-form__label" for="pp-init-end">End Date <span class="pp-req">*</span></label>
+                        <label class="pp-form__label" for="pp-init-end">End Date</label>
                         <InputDate id="pp-init-end" @bind-Value="model.EndDate" class="pp-input" />
                         <ValidationMessage For="() => model.EndDate" class="pp-field__error" />
                     </div>
                 </div>
 
                 <div class="pp-form__field pp-form__field--full">
-                    <label class="pp-form__label" for="pp-init-desc">Description</label>
+                    <label class="pp-form__label" for="pp-init-desc">Description <span class="pp-req">*</span></label>
                     <InputTextArea id="pp-init-desc" @bind-Value="model.Description" class="pp-input pp-input--area"
                                    placeholder="Enter the goals and scope for your initiative here" />
+                    <ValidationMessage For="() => model.Description" class="pp-field__error" />
                 </div>
 
                 <div class="pp-form__field pp-form__field--full">
@@ -87,16 +72,17 @@
                     </div>
                 </div>
 
-                @if (saved)
+                @if (_error is not null)
                 {
-                    <p class="pp-auth__ok">Initiative saved (demo) — backend not wired up yet.</p>
+                    <p class="pp-auth__error">@_error</p>
                 }
 
                 <!-- ===== Footer ===== -->
                 <div class="pp-modal__foot">
-                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close">Cancel</button>
-                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="HandleSaveDraft">Save as Draft</button>
-                    <button type="submit" class="pp-btn pp-btn--primary">Save Initiative</button>
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close" disabled="@_saving">Cancel</button>
+                    <button type="submit" class="pp-btn pp-btn--primary" disabled="@_saving">
+                        @(_saving ? "Saving…" : "Save Initiative")
+                    </button>
                 </div>
             </EditForm>
         </div>
@@ -106,29 +92,40 @@
 @code {
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
-
-    private static readonly string[] Categories =
-        ["Product", "Engineering", "Marketing", "Operations", "Sales", "Research"];
+    [Parameter] public EventCallback OnCreated { get; set; }
 
     private InitiativeModel model = new();
-    private bool saved;
+    private bool _saving;
+    private string? _error;
 
-    private void HandleSave()
+    private async Task HandleSave()
     {
-        // TODO: POST model to /api/v1/initiatives once the WASM client is wired to the API
-        // (needs API base URL config + CORS). For now this is a UI-only stub.
-        saved = true;
-    }
+        _saving = true;
+        _error = null;
 
-    private void HandleSaveDraft()
-    {
-        // TODO: persist as a draft initiative via the API. UI-only stub for now.
-        saved = true;
+        var request = new CreateInitiativeRequest(
+            model.Name,
+            model.Description ?? string.Empty,
+            model.StartDate!.Value,
+            model.EndDate);
+
+        var result = await InitiativesApi.CreateInitiativeAsync(request, CancellationToken.None);
+        _saving = false;
+
+        if (!result.Success)
+        {
+            _error = result.GeneralError ?? "Couldn't create the initiative. Please try again.";
+            return;
+        }
+
+        await OnCreated.InvokeAsync();
+        await Close();
     }
 
     private async Task Close()
     {
-        saved = false;
+        _error = null;
+        _saving = false;
         model = new();
         await OnClose.InvokeAsync();
     }
@@ -138,15 +135,12 @@
         [Required(ErrorMessage = "Initiative name is required.")]
         public string Name { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Please choose a category.")]
-        public string Category { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Start date is required.")]
         public DateTime? StartDate { get; set; }
 
-        [Required(ErrorMessage = "End date is required.")]
         public DateTime? EndDate { get; set; }
 
+        [Required(ErrorMessage = "A description is required.")]
         public string? Description { get; set; }
     }
 }
