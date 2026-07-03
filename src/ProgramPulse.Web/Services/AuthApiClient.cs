@@ -57,6 +57,19 @@ public sealed class AuthApiClient(HttpClient httpClient)
         return await SendAsync(message, cancellationToken);
     }
 
+    public async Task<AuthResult> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/auth/change-password")
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        // Authenticated endpoint — include credentials so the browser sends the auth cookie.
+        message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        return await SendAsync(message, cancellationToken);
+    }
+
     public async Task<AuthResult> LogoutAsync(CancellationToken cancellationToken)
     {
         using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/auth/logout");
@@ -166,6 +179,11 @@ public sealed record ForgotPasswordRequest(string Email);
 public sealed record ResetPasswordRequest(
     string Email,
     string Token,
+    string NewPassword,
+    string ConfirmPassword);
+
+public sealed record ChangePasswordRequest(
+    string CurrentPassword,
     string NewPassword,
     string ConfirmPassword);
 

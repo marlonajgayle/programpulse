@@ -1,5 +1,7 @@
 @page "/settings"
 @layout DashboardLayout
+@using System.ComponentModel.DataAnnotations
+@inject AuthApiClient AuthApi
 
 <PageTitle>Settings — ProgramPulse</PageTitle>
 
@@ -100,6 +102,62 @@
     // ----- Security -----
     private bool securityTwoFactor = true;
     private bool loginAlerts = true;
+
+    // ----- Security: change password -----
+    private readonly ChangePasswordModel passwordModel = new();
+    private bool passwordBusy;
+    private string? passwordError;
+    private bool passwordChanged;
+
+    private async Task HandleChangePassword()
+    {
+        if (passwordBusy)
+            return;
+
+        passwordError = null;
+        passwordChanged = false;
+        passwordBusy = true;
+
+        try
+        {
+            var result = await AuthApi.ChangePasswordAsync(
+                new ChangePasswordRequest(passwordModel.CurrentPassword, passwordModel.NewPassword, passwordModel.ConfirmPassword),
+                CancellationToken.None);
+
+            if (result.Success)
+            {
+                passwordChanged = true;
+                passwordModel.Reset();
+                return;
+            }
+
+            // A wrong current password or weak new password comes back as ProblemDetails.
+            passwordError = result.GeneralError ?? "Unable to change your password. Please try again.";
+        }
+        finally
+        {
+            passwordBusy = false;
+        }
+    }
+
+    private sealed class ChangePasswordModel
+    {
+        [Required(ErrorMessage = "Current password is required.")]
+        public string CurrentPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required.")]
+        [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please confirm your password.")]
+        [Compare(nameof(NewPassword), ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        public void Reset()
+        {
+            CurrentPassword = NewPassword = ConfirmPassword = string.Empty;
+        }
+    }
 
     private RenderFragment GeneralPanel() =>@<text>
         <div class="pp-settings__section">
@@ -234,23 +292,44 @@
         <div class="pp-settings__section">
             <h2 class="pp-settings__section-title">Password</h2>
             <hr class="pp-settings__divider" />
-            <div class="pp-form-grid">
-                <div class="pp-form__field pp-form__field--full">
-                    <label class="pp-form__label" for="pp-current">Current password</label>
-                    <input id="pp-current" type="password" class="pp-input" placeholder="••••••••" />
+            <EditForm Model="passwordModel" OnValidSubmit="HandleChangePassword">
+                <DataAnnotationsValidator />
+                <div class="pp-form-grid">
+                    <div class="pp-form__field pp-form__field--full">
+                        <label class="pp-form__label" for="pp-current">Current password</label>
+                        <InputText id="pp-current" type="password" class="pp-input" placeholder="••••••••"
+                                   @bind-Value="passwordModel.CurrentPassword" autocomplete="current-password" />
+                        <ValidationMessage For="() => passwordModel.CurrentPassword" class="pp-field__error" />
+                    </div>
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-new">New password</label>
+                        <InputText id="pp-new" type="password" class="pp-input" placeholder="••••••••"
+                                   @bind-Value="passwordModel.NewPassword" autocomplete="new-password" />
+                        <ValidationMessage For="() => passwordModel.NewPassword" class="pp-field__error" />
+                    </div>
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-confirm">Confirm new password</label>
+                        <InputText id="pp-confirm" type="password" class="pp-input" placeholder="••••••••"
+                                   @bind-Value="passwordModel.ConfirmPassword" autocomplete="new-password" />
+                        <ValidationMessage For="() => passwordModel.ConfirmPassword" class="pp-field__error" />
+                    </div>
                 </div>
-                <div class="pp-form__field">
-                    <label class="pp-form__label" for="pp-new">New password</label>
-                    <input id="pp-new" type="password" class="pp-input" placeholder="••••••••" />
+
+                @if (!string.IsNullOrEmpty(passwordError))
+                {
+                    <p class="pp-field__error" role="alert">@passwordError</p>
+                }
+                @if (passwordChanged)
+                {
+                    <p class="pp-settings__success" role="status">Your password has been updated.</p>
+                }
+
+                <div class="pp-settings__actions">
+                    <button type="submit" class="pp-btn pp-btn--primary" disabled="@passwordBusy">
+                        @(passwordBusy ? "Updating…" : "Update password")
+                    </button>
                 </div>
-                <div class="pp-form__field">
-                    <label class="pp-form__label" for="pp-confirm">Confirm new password</label>
-                    <input id="pp-confirm" type="password" class="pp-input" placeholder="••••••••" />
-                </div>
-            </div>
-            <div class="pp-settings__actions">
-                <button type="button" class="pp-btn pp-btn--primary">Update password</button>
-            </div>
+            </EditForm>
         </div>
 
         <div class="pp-settings__section">
