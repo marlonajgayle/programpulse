@@ -10,7 +10,8 @@ namespace ProgramPulse.Web.Services;
 /// returns <c>null</c> from reads when the session is missing/expired or the server is unreachable,
 /// and (for writes) translates RFC-7807 <c>ProblemDetails</c> failures into an
 /// <see cref="AuthResult"/> the dialog can render directly. KPIs are owned by an objective, so
-/// both endpoints are nested under <c>objectives/{objectiveId}</c>.
+/// the list/create endpoints are nested under <c>objectives/{objectiveId}</c>, while update
+/// targets a KPI directly via the flat <c>kpis/{id}</c> route.
 /// </summary>
 public sealed class KpisApiClient(HttpClient httpClient)
 {
@@ -76,6 +77,34 @@ public sealed class KpisApiClient(HttpClient httpClient)
         return await ParseProblemAsync(response, cancellationToken);
     }
 
+    public async Task<AuthResult> UpdateKpiAsync(
+        Guid kpiId, UpdateKpiRequest request, CancellationToken cancellationToken)
+    {
+        using var message = new HttpRequestMessage(
+            HttpMethod.Put, $"api/v1/kpis/{kpiId}")
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        // The endpoint requires an authenticated user; include the auth cookie.
+        message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.SendAsync(message, cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return AuthResult.Failure("Unable to reach the server. Please try again.");
+        }
+
+        if (response.IsSuccessStatusCode)
+            return AuthResult.Ok();
+
+        return await ParseProblemAsync(response, cancellationToken);
+    }
+
     private static async Task<AuthResult> ParseProblemAsync(
         HttpResponseMessage response, CancellationToken cancellationToken)
     {
@@ -106,6 +135,15 @@ public sealed record CreateKpiRequest(
     decimal BaselineValue,
     decimal TargetValue,
     decimal CurrentValue,
+    DateTime DueDate);
+
+/// <summary>Body sent to <c>PUT api/v1/kpis/{id}</c>. The KPI id travels in the route, so it is
+/// not part of the body. Baseline/current/status are measurement-driven and not editable here.</summary>
+public sealed record UpdateKpiRequest(
+    string Name,
+    string Unit,
+    KpiDirection Direction,
+    decimal TargetValue,
     DateTime DueDate);
 
 /// <summary>A KPI as returned by <c>GET api/v1/objectives/{objectiveId}/kpis</c>. Enum fields

@@ -251,37 +251,6 @@ public sealed class SampleData
         return updated;
     }
 
-    // TODO: PUT /api/v1/kpis/{id} once the WASM client is wired to the API.
-    // Mirrors the API's UpdateKpi: baseline, current value, status and measurements
-    // are not editable here (current is measurement-driven, baseline is immutable).
-    public KpiVm UpdateKpi(
-        Guid initiativeId, Guid objectiveId, Guid kpiId, string name, string unit,
-        KpiDirection direction, decimal target, DateTime due)
-    {
-        var objective = GetObjective(initiativeId, objectiveId)
-            ?? throw new InvalidOperationException("Objective not found.");
-
-        var kpis = (List<KpiVm>)objective.Kpis;
-        var index = kpis.FindIndex(k => k.Id == kpiId);
-        if (index < 0)
-        {
-            throw new InvalidOperationException("KPI not found.");
-        }
-
-        var updated = kpis[index] with
-        {
-            Name = name,
-            Unit = unit,
-            Direction = direction,
-            TargetValue = target,
-            DueDate = due,
-            LastModifiedDate = DateTime.Today,
-        };
-
-        kpis[index] = updated;
-        return updated;
-    }
-
     // TODO: POST /api/v1/kpis/{id}/measurements once the WASM client is wired to the API.
     public MeasurementVm AddMeasurement(
         Guid initiativeId, Guid objectiveId, Guid kpiId, decimal value, string? notes)
