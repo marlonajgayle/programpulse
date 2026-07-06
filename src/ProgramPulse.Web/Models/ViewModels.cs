@@ -24,6 +24,16 @@ public sealed record InitiativeVm(
 
     /// <summary>Worst-of roll-up of the contained KPI statuses.</summary>
     public KpiStatus AggregateStatus => StatusRollup.Of(AllKpis);
+
+    /// <summary>Average progress across the contained KPIs, 0–100 (0 when there are none).</summary>
+    public int ProgressPercent
+    {
+        get
+        {
+            var kpis = AllKpis.ToList();
+            return kpis.Count == 0 ? 0 : (int)Math.Round(kpis.Average(k => k.ProgressPercent));
+        }
+    }
 }
 
 public sealed record ObjectiveVm(

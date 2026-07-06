@@ -1,7 +1,6 @@
 @* Single initiative tile for the Initiatives grid.
    - AggregateStatus drives the pill (colour + shape icon).
-   - The KPI status-mix bar is built from the real per-KPI statuses carried on the
-     view model (Initiative.AllKpis) — no aggregate approximation.
+   - The deadline (EndDate) and an averaged KPI progress bar summarise the initiative.
    - Critical = the single worst initiative currently on screen; the page decides
      which one and gives it the dark treatment (at most one per view). *@
 
@@ -9,44 +8,29 @@
          role="button" tabindex="0"
          @onclick="() => OnOpen.InvokeAsync(Initiative.Id)"
          @onkeydown="OnKey">
-    <div class="pp-init-card__top">
-        <h3 class="pp-init-card__name">@Initiative.Name</h3>
-        <span class="pp-badge pp-badge--@StatusRollup.Modifier(Initiative.AggregateStatus)">
-            <StatusIcon Status="Initiative.AggregateStatus" />
-            @StatusRollup.Label(Initiative.AggregateStatus)
-        </span>
-    </div>
+    <span class="pp-badge pp-badge--@StatusRollup.Modifier(Initiative.AggregateStatus) pp-init-card__badge">
+        <StatusIcon Status="Initiative.AggregateStatus" />
+        @StatusRollup.Label(Initiative.AggregateStatus)
+    </span>
 
-    <p class="pp-init-card__desc">@Initiative.Description</p>
+    <h3 class="pp-init-card__name">@Initiative.Name</h3>
 
     <div class="pp-init-card__meta">
-        <div class="pp-kpi-bar" role="img" aria-label="@BarLabel">
-            @if (_kpis.Count == 0)
-            {
-                <span class="pp-kpi-bar__seg pp-kpi-bar__seg--idle"></span>
-            }
-            else
-            {
-                @foreach (var kpi in _ordered)
-                {
-                    <span class="pp-kpi-bar__seg pp-kpi-bar__seg--@StatusRollup.Modifier(kpi.Status)"></span>
-                }
-            }
+        <div class="pp-init-card__field">
+            <span class="pp-init-card__label">Deadline</span>
+            <span class="pp-init-card__deadline">@DeadlineText</span>
         </div>
 
-        <div class="pp-init-card__foot">
-            <span class="pp-meta__item">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" />
-                    <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                </svg>
-                @DateRange
-            </span>
-            <span class="pp-init-card__counts">
-                <span>@Initiative.ObjectiveCount @(Initiative.ObjectiveCount == 1 ? "objective" : "objectives")</span>
-                <span class="pp-dot-sep">·</span>
-                <span>@Initiative.KpiCount @(Initiative.KpiCount == 1 ? "KPI" : "KPIs")</span>
-            </span>
+        <div class="pp-init-card__field">
+            <div class="pp-init-card__progress-head">
+                <span class="pp-init-card__label">Progress</span>
+                <span class="pp-init-card__pct">@Initiative.ProgressPercent%</span>
+            </div>
+            <div class="pp-progress" role="img" aria-label="@ProgressLabel">
+                <div class="pp-progress__track">
+                    <div class="pp-progress__fill" style="width: @(Initiative.ProgressPercent)%"></div>
+                </div>
+            </div>
         </div>
     </div>
 </article>
@@ -59,43 +43,10 @@
 
     [Parameter] public EventCallback<Guid> OnOpen { get; set; }
 
-    // Worst-first so the bar reads danger → healthy left-to-right.
-    private static readonly KpiStatus[] StatusOrder =
-    {
-        KpiStatus.OffTrack, KpiStatus.AtRisk, KpiStatus.OnTrack,
-        KpiStatus.Completed, KpiStatus.NotStarted,
-    };
+    private string DeadlineText =>
+        Initiative.EndDate is { } end ? $"{end:MMM d, yyyy}" : "Ongoing";
 
-    private IReadOnlyList<KpiVm> _kpis = Array.Empty<KpiVm>();
-    private IReadOnlyList<KpiVm> _ordered = Array.Empty<KpiVm>();
-
-    protected override void OnParametersSet()
-    {
-        _kpis = Initiative.AllKpis.ToList();
-        _ordered = _kpis.OrderBy(k => Array.IndexOf(StatusOrder, k.Status)).ToList();
-    }
-
-    private string DateRange =>
-        Initiative.EndDate is { } end
-            ? $"{Initiative.StartDate:MMM yyyy} – {end:MMM yyyy}"
-            : $"{Initiative.StartDate:MMM yyyy} – ongoing";
-
-    private string BarLabel
-    {
-        get
-        {
-            if (_kpis.Count == 0)
-            {
-                return "No KPIs yet";
-            }
-
-            var parts = _kpis
-                .GroupBy(k => k.Status)
-                .OrderBy(g => Array.IndexOf(StatusOrder, g.Key))
-                .Select(g => $"{g.Count()} {StatusRollup.Label(g.Key).ToLowerInvariant()}");
-            return $"KPI status: {string.Join(", ", parts)}";
-        }
-    }
+    private string ProgressLabel => $"Progress {Initiative.ProgressPercent}%";
 
     private Task OnKey(KeyboardEventArgs e) =>
         e.Key is "Enter" or " " ? OnOpen.InvokeAsync(Initiative.Id) : Task.CompletedTask;
