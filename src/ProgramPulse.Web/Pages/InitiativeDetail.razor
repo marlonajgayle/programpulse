@@ -96,7 +96,28 @@ else
                         <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </div>
-                <p class="pp-health__sub">@initiative.ObjectiveCount objectives · @initiative.KpiCount KPIs</p>
+                <p class="pp-health__sub">@Plural(initiative.ObjectiveCount, "objective") · @Plural(initiative.KpiCount, "KPI") tracked</p>
+
+                <div class="pp-health__hero">
+                    <span class="pp-health__pct">@OnTrackPct%</span>
+                    <span class="pp-health__trend pp-health__trend--@HealthModifier">
+                        @if (HealthModifier == "off")
+                        {
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5 19 19M19 19h-7M19 19v-7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        }
+                        else if (HealthModifier == "warn")
+                        {
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M19 5h-7M19 5v7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        }
+                        @HealthTrendLabel
+                    </span>
+                </div>
+                <p class="pp-health__note">@((MarkupString)HealthNote)</p>
+
                 <div class="pp-health__bar">
                     @if (OnTrackPct > 0)
                     {
@@ -131,22 +152,62 @@ else
             </article>
 
             <article class="pp-card pp-timeline">
-                <h3 class="pp-timeline__title">Timeline</h3>
-                <div class="pp-timeline__row">
-                    <span class="pp-timeline__label">Start</span>
-                    <span class="pp-timeline__value">@initiative.StartDate.ToString("d MMM yyyy")</span>
+                <div class="pp-timeline__head">
+                    <h3 class="pp-timeline__title">Timeline</h3>
+                    @if (DaysLeftLabel is { } daysLeft)
+                    {
+                        <span class="pp-timeline__badge @(IsOverdue ? "pp-timeline__badge--over" : "")">@daysLeft</span>
+                    }
                 </div>
-                <div class="pp-timeline__row">
-                    <span class="pp-timeline__label">End</span>
-                    <span class="pp-timeline__value">@(initiative.EndDate is { } end ? end.ToString("d MMM yyyy") : "Ongoing")</span>
-                </div>
-                <div class="pp-timeline__row">
-                    <span class="pp-timeline__label">Created</span>
-                    <span class="pp-timeline__value">@initiative.CreatedDate.ToString("d MMM yyyy")</span>
-                </div>
-                <div class="pp-timeline__row">
-                    <span class="pp-timeline__label">Updated</span>
-                    <span class="pp-timeline__value">@(initiative.LastModifiedDate is { } modified ? modified.ToString("d MMM yyyy") : "—")</span>
+                <p class="pp-timeline__range">@RangeLabel</p>
+
+                @if (HasEnd)
+                {
+                    <div class="pp-timeline__hero">
+                        <span class="pp-timeline__pct">@ElapsedPct%</span>
+                        <span class="pp-timeline__elapsed">elapsed</span>
+                    </div>
+                    <p class="pp-timeline__note">@((MarkupString)PhaseNote)</p>
+
+                    <div class="pp-timeline__progress" role="progressbar" aria-valuenow="@ElapsedPct" aria-valuemin="0" aria-valuemax="100">
+                        <span class="pp-timeline__progress-fill" style="width:@(ElapsedPct)%"></span>
+                        <span class="pp-timeline__progress-dot" style="left:@(ElapsedPct)%"></span>
+                    </div>
+                }
+                else
+                {
+                    <p class="pp-timeline__note">No end date set — this programme is <strong>ongoing</strong>.</p>
+                }
+
+                <div class="pp-timeline__rows">
+                    <div class="pp-timeline__row">
+                        <span class="pp-timeline__label">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 3 2 3H5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                            Start
+                        </span>
+                        <span class="pp-timeline__value">@initiative.StartDate.ToString("d MMM yyyy")</span>
+                    </div>
+                    <div class="pp-timeline__row">
+                        <span class="pp-timeline__label">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 3 2 3H5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="m9 7 1.5 1.5L13 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                            End
+                        </span>
+                        <span class="pp-timeline__value">@(initiative.EndDate is { } end ? end.ToString("d MMM yyyy") : "Ongoing")</span>
+                    </div>
+                    <div class="pp-timeline__row">
+                        <span class="pp-timeline__label">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                            Created
+                        </span>
+                        <span class="pp-timeline__value">@initiative.CreatedDate.ToString("d MMM yyyy")</span>
+                    </div>
+                    <div class="pp-timeline__row">
+                        <span class="pp-timeline__label">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8M20 4v4h-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16M4 20v-4h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                            Updated
+                        </span>
+                        <span class="pp-timeline__value">@(initiative.LastModifiedDate is { } modified ? modified.ToString("d MMM yyyy") : "Never")</span>
+                    </div>
                 </div>
             </article>
         </aside>
@@ -213,6 +274,96 @@ else
     private int OnTrackPct => Pct(OnTrackCount);
 
     private int Pct(int count) => TotalKpis == 0 ? 0 : (int)Math.Round(count * 100.0 / TotalKpis);
+
+    // --- Programme health headline (big % + trend chip + supporting sentence) ---
+    // Trend chip reflects the worst-of aggregate status; the big number is the on-track share.
+    private string HealthModifier => TotalKpis switch
+    {
+        0 => "idle",
+        _ when OffTrackCount > 0 => "off",
+        _ when AtRiskCount > 0 => "warn",
+        _ => "track",
+    };
+
+    private string HealthTrendLabel => HealthModifier switch
+    {
+        "off" => "off track",
+        "warn" => "at risk",
+        "idle" => "no data",
+        _ => "on track",
+    };
+
+    private string HealthNote => HealthModifier switch
+    {
+        "idle" => "No KPIs tracked yet — add indicators to start measuring progress.",
+        "off" => $"{Plural(OffTrackCount, "KPI")} <strong class=\"is-off\">off track</strong> and need attention.",
+        "warn" => $"{Plural(AtRiskCount, "KPI")} <strong class=\"is-warn\">at risk</strong> of missing target.",
+        _ => "Every tracked KPI is currently <strong class=\"is-track\">on track</strong> toward target.",
+    };
+
+    // --- Timeline headline (days-left badge, elapsed %, phase sentence, progress dot) ---
+    private bool HasEnd => initiative?.EndDate is not null;
+
+    private bool IsOverdue => initiative?.EndDate is { } end && end.Date < DateTime.Today;
+
+    private int? DaysRemaining =>
+        initiative?.EndDate is { } end ? (int)(end.Date - DateTime.Today).TotalDays : null;
+
+    private string? DaysLeftLabel => DaysRemaining switch
+    {
+        null => null,
+        0 => "Ends today",
+        > 0 and var d => $"{d} days left",
+        var d => $"{-d} days over",
+    };
+
+    private string RangeLabel
+    {
+        get
+        {
+            if (initiative is null)
+            {
+                return string.Empty;
+            }
+
+            var start = initiative.StartDate.ToString("d MMM yyyy");
+            var end = initiative.EndDate is { } e ? e.ToString("d MMM yyyy") : "Ongoing";
+            return $"{start} → {end}";
+        }
+    }
+
+    private int ElapsedPct
+    {
+        get
+        {
+            if (initiative?.EndDate is not { } end)
+            {
+                return 0;
+            }
+
+            var total = (end.Date - initiative.StartDate.Date).TotalDays;
+            if (total <= 0)
+            {
+                return DateTime.Today >= end.Date ? 100 : 0;
+            }
+
+            var elapsed = (DateTime.Today - initiative.StartDate.Date).TotalDays;
+            return (int)Math.Round(Math.Clamp(elapsed / total, 0d, 1d) * 100);
+        }
+    }
+
+    private string PhaseNote => ElapsedPct switch
+    {
+        _ when IsOverdue => "Programme is <strong>past its end date</strong> — time to wrap up or extend.",
+        <= 0 => "Programme <strong>hasn't started</strong> yet — plenty of runway ahead.",
+        < 25 => "Programme is in its <strong>early phase</strong> — plenty of runway remaining.",
+        < 60 => "Programme is <strong>well underway</strong> — steady progress expected.",
+        < 90 => "Programme is in its <strong>final stretch</strong> — keep the momentum up.",
+        _ => "Programme is <strong>nearly complete</strong> — final days remaining.",
+    };
+
+    // "1 objective" / "2 objectives" — pluralise the noun against the count.
+    private static string Plural(int count, string noun) => $"{count} {noun}{(count == 1 ? "" : "s")}";
 
     private void OpenObjective(Guid objectiveId) =>
         Nav.NavigateTo($"/initiatives/{Id}/objectives/{objectiveId}");
