@@ -1,10 +1,10 @@
 using FluentValidation;
 
-namespace ProgramPulse.Api.Features.Initiatives.Update;
+namespace ProgramPulse.Api.Features.Programmes.Update;
 
-public sealed class UpdateInitiativeCommandValidator : AbstractValidator<UpdateInitiativeCommand>
+public sealed class UpdateProgrammeCommandValidator : AbstractValidator<UpdateProgrammeCommand>
 {
-    public UpdateInitiativeCommandValidator()
+    public UpdateProgrammeCommandValidator()
     {
         // Id is supplied from the route, not the request body.
         RuleFor(x => x.Name)
@@ -16,8 +16,8 @@ public sealed class UpdateInitiativeCommandValidator : AbstractValidator<UpdateI
             .MaximumLength(1000).WithMessage("The description must not exceed 1000 characters.");
 
         RuleFor(x => x.EndDate)
-            .GreaterThanOrEqualTo(x => x.StartDate)
-            .When(x => x.EndDate.HasValue)
+            .GreaterThanOrEqualTo(x => x.StartDate!.Value)
+            .When(x => x.EndDate.HasValue && x.StartDate.HasValue)
             .WithMessage("The end date cannot be earlier than the start date.");
     }
 }

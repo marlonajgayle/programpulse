@@ -14,7 +14,7 @@ else
     <header class="pp-dash__header">
         <div>
             <h1 class="pp-dash__heading">Portfolio overview</h1>
-            <p class="pp-page__subtitle">@_summary.TeamName · @_summary.ActiveInitiativeCount active initiatives</p>
+            <p class="pp-page__subtitle">@_summary.TeamName · @_summary.ActiveProgrammeCount active programmes</p>
         </div>
         <span class="pp-dash__updated">Updated @_summary.MinutesAgo min ago</span>
     </header>
@@ -30,7 +30,7 @@ else
         <MetricCard Label="On track"
                     Value="@_summary.Status.OnTrack.ToString()"
                     Denominator="@_summary.Status.Total.ToString()"
-                    Subline="@($"{_summary.OnTrackPercent}% of initiatives")"
+                    Subline="@($"{_summary.OnTrackPercent}% of programmes")"
                     StatusModifier="track" />
 
         <MetricCard Label="At risk"

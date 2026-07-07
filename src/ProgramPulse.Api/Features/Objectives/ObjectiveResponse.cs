@@ -7,6 +7,6 @@ public sealed record ObjectiveResponse(
     Guid Id,
     string Name,
     string Description,
-    Guid InitiativeId,
+    Guid ProgrammeId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate);

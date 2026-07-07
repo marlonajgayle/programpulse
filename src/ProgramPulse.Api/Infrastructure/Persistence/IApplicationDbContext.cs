@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ProgramPulse.Api.Domain.Entities.Faqs;
 using ProgramPulse.Api.Domain.Entities.Tenants;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Domain.Entities.Users;
 using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
 
@@ -25,7 +25,7 @@ public interface IApplicationDbContext
 
     DbSet<Tenant> Tenants { get; }
 
-    DbSet<Initiative> Initiatives { get; }
+    DbSet<Programme> Programmes { get; }
 
     DbSet<Objective> Objectives { get; }
 

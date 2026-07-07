@@ -1,6 +1,6 @@
 using ProgramPulse.Api.SharedKernel;
 
-namespace ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+namespace ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
 public sealed class Objective : AuditableEntity<Guid>
 {
@@ -11,13 +11,13 @@ public sealed class Objective : AuditableEntity<Guid>
 
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
-    public Guid InitiativeId { get; private set; }
-    public Initiative Initiative { get; private set; } = null!;
+    public Guid ProgrammeId { get; private set; }
+    public Programme Programme { get; private set; } = null!;
 
     public IReadOnlyCollection<Kpi> Kpis => _kpis.AsReadOnly();
 
-    // Internal so objectives are only created through the Initiative aggregate root.
-    internal static Objective Create(string name, string description, Guid initiativeId)
+    // Internal so objectives are only created through the Programme aggregate root.
+    internal static Objective Create(string name, string description, Guid programmeId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
@@ -27,7 +27,7 @@ public sealed class Objective : AuditableEntity<Guid>
             Id = Guid.CreateVersion7(),
             Name = name,
             Description = description,
-            InitiativeId = initiativeId
+            ProgrammeId = programmeId
         };
     }
 

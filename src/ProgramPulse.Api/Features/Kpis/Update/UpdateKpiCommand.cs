@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.SharedKernel.Primitives;
@@ -16,7 +16,7 @@ public sealed record UpdateKpiCommand(
 
 /// <summary>
 /// Updates a KPI the caller's tenant owns (verified via the parent Objective's
-/// Initiative tenant). Progress values (baseline/current/status) are not changed here;
+/// Programme tenant). Progress values (baseline/current/status) are not changed here;
 /// they are managed through measurements. Returns a not-found error when the KPI does
 /// not exist, belongs to another tenant, or has been soft-deleted.
 /// </summary>
@@ -37,7 +37,7 @@ public sealed class UpdateKpiCommandHandler(
 
         var kpi = await _dbContext.Kpis
             .FirstOrDefaultAsync(
-                k => k.Id == command.Id && k.Objective.Initiative.TenantId == tenant.Value,
+                k => k.Id == command.Id && k.Objective.Programme.TenantId == tenant.Value,
                 cancellationToken);
 
         if (kpi is null)

@@ -14,7 +14,7 @@
                 </span>
                 <div class="pp-modal__heading">
                     <h2 id="pp-obj-title" class="pp-modal__title">Add Objective</h2>
-                    <p class="pp-modal__subtitle">Add a measurable objective to this initiative.</p>
+                    <p class="pp-modal__subtitle">Add a measurable objective to this programme.</p>
                 </div>
                 <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Close dialog" @onclick="Close">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -60,7 +60,7 @@
 }
 
 @code {
-    [Parameter] public Guid InitiativeId { get; set; }
+    [Parameter] public Guid ProgrammeId { get; set; }
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
@@ -75,7 +75,7 @@
         _error = null;
 
         var request = new CreateObjectiveRequest(model.Name, model.Description ?? string.Empty);
-        var result = await ObjectivesApi.CreateObjectiveAsync(InitiativeId, request, CancellationToken.None);
+        var result = await ObjectivesApi.CreateObjectiveAsync(ProgrammeId, request, CancellationToken.None);
         _saving = false;
 
         if (!result.Success)

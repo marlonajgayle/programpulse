@@ -1,27 +1,28 @@
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
-namespace ProgramPulse.Api.Features.Initiatives.GetById;
+namespace ProgramPulse.Api.Features.Programmes.GetById;
 
 /// <summary>
-/// API representation of a single Initiative with its full objectives → KPIs sub-tree,
-/// returned by <c>GET api/v1/initiatives/{id}</c>. Measurements are not included.
+/// API representation of a single Programme with its full objectives → KPIs sub-tree,
+/// returned by <c>GET api/v1/programmes/{id}</c>. Measurements are not included.
 /// </summary>
-public sealed record InitiativeDetailResponse(
+public sealed record ProgrammeDetailResponse(
     Guid Id,
     string Name,
     string Description,
-    DateTime StartDate,
+    DateTime? StartDate,
     DateTime? EndDate,
+    ProgrammeStatus Status,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
     IReadOnlyList<ObjectiveDetailResponse> Objectives);
 
-/// <summary>An Objective nested within an <see cref="InitiativeDetailResponse"/>, with its KPIs.</summary>
+/// <summary>An Objective nested within an <see cref="ProgrammeDetailResponse"/>, with its KPIs.</summary>
 public sealed record ObjectiveDetailResponse(
     Guid Id,
     string Name,
     string Description,
-    Guid InitiativeId,
+    Guid ProgrammeId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
     IReadOnlyList<KpiDetailResponse> Kpis);

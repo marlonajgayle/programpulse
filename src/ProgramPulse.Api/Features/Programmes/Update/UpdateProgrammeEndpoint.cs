@@ -4,29 +4,29 @@ using ProgramPulse.Api.SharedKernel.Primitives;
 using ProgramPulse.Api.SharedKernel.Validation;
 using ProgramPulse.Api.SharedKernel.Versioning;
 
-namespace ProgramPulse.Api.Features.Initiatives.Update;
+namespace ProgramPulse.Api.Features.Programmes.Update;
 
 /// <summary>
-/// Updates an existing Initiative. The id comes from the route; the remaining fields
+/// Updates an existing Programme. The id comes from the route; the remaining fields
 /// come from the request body.
 /// </summary>
-public sealed class UpdateInitiativeEndpoint : IEndpoint
+public sealed class UpdateProgrammeEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("initiatives/{id:guid}", async (
+        app.MapPut("programmes/{id:guid}", async (
             Guid id,
-            UpdateInitiativeCommand command,
-            UpdateInitiativeCommandHandler handler,
+            UpdateProgrammeCommand command,
+            UpdateProgrammeCommandHandler handler,
             CancellationToken cancellationToken) =>
         {
             var result = await handler.HandleAsync(command with { Id = id }, cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)
-        .WithValidation<UpdateInitiativeCommand>()
+        .WithValidation<UpdateProgrammeCommand>()
         .RequireAuthorization(AuthorizationPolicies.Authenticated)
-        .WithName("UpdateInitiative")
-        .WithTags("Initiatives");
+        .WithName("UpdateProgramme")
+        .WithTags("Programmes");
     }
 }

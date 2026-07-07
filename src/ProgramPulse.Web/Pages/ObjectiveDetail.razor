@@ -1,6 +1,6 @@
-@page "/initiatives/{Id:guid}/objectives/{ObjectiveId:guid}"
+@page "/programmes/{Id:guid}/objectives/{ObjectiveId:guid}"
 @layout DashboardLayout
-@inject InitiativesApiClient InitiativesApi
+@inject ProgrammesApiClient ProgrammesApi
 @inject KpisApiClient KpisApi
 @inject MeasurementsApiClient MeasurementsApi
 
@@ -9,30 +9,30 @@
 @if (_loading)
 {
     <nav class="pp-crumbs" aria-label="Breadcrumb">
-        <a href="/initiatives">Initiatives</a>
+        <a href="/programmes">Programmes</a>
         <span class="pp-crumbs__sep">/</span>
         <span class="pp-crumbs__current">Loading…</span>
     </nav>
     <p class="pp-page__subtitle">Loading objective…</p>
 }
-else if (initiative is null || objective is null)
+else if (programme is null || objective is null)
 {
     <nav class="pp-crumbs" aria-label="Breadcrumb">
-        <a href="/initiatives">Initiatives</a>
+        <a href="/programmes">Programmes</a>
         <span class="pp-crumbs__sep">/</span>
         <span class="pp-crumbs__current">Unavailable</span>
     </nav>
     <div class="pp-empty">
         <p class="pp-empty__title">Couldn't load this objective</p>
-        <p class="pp-empty__note">It may have been removed, or the server is unreachable. Head back to the <a class="pp-auth__link" href="/initiatives">initiatives list</a>.</p>
+        <p class="pp-empty__note">It may have been removed, or the server is unreachable. Head back to the <a class="pp-auth__link" href="/programmes">programmes list</a>.</p>
     </div>
 }
 else
 {
     <nav class="pp-crumbs" aria-label="Breadcrumb">
-        <a href="/initiatives">Initiatives</a>
+        <a href="/programmes">Programmes</a>
         <span class="pp-crumbs__sep">/</span>
-        <a href="/initiatives/@initiative.Id">@initiative.Name</a>
+        <a href="/programmes/@programme.Id">@programme.Name</a>
         <span class="pp-crumbs__sep">/</span>
         <span class="pp-crumbs__current">@objective.Name</span>
     </nav>
@@ -206,16 +206,16 @@ else
         </div>
     }
 
-    <CreateKpiDialog InitiativeId="Id" ObjectiveId="ObjectiveId" Visible="showCreateKpi"
+    <CreateKpiDialog ProgrammeId="Id" ObjectiveId="ObjectiveId" Visible="showCreateKpi"
                      OnClose="() => showCreateKpi = false" OnSaved="Reload" />
 
     <EditObjectiveDialog Objective="objective" Visible="showEditObjective"
                          OnClose="() => showEditObjective = false" OnSaved="Reload" />
 
-    <EditKpiDialog InitiativeId="Id" Kpi="editingKpi" Visible="editingKpi is not null"
+    <EditKpiDialog ProgrammeId="Id" Kpi="editingKpi" Visible="editingKpi is not null"
                    OnClose="() => editingKpi = null" OnSaved="Reload" />
 
-    <MeasurementDialog InitiativeId="Id" ObjectiveId="ObjectiveId" Kpi="measurementKpi"
+    <MeasurementDialog ProgrammeId="Id" ObjectiveId="ObjectiveId" Kpi="measurementKpi"
                        Measurement="editingMeasurement" Visible="measurementKpi is not null"
                        OnClose="CloseMeasurement" OnSaved="Reload" />
 }
@@ -224,7 +224,7 @@ else
     [Parameter] public Guid Id { get; set; }
     [Parameter] public Guid ObjectiveId { get; set; }
 
-    private InitiativeVm? initiative;
+    private ProgrammeVm? programme;
     private ObjectiveVm? objective;
     private bool showCreateKpi;
     private bool showEditObjective;
@@ -238,17 +238,17 @@ else
     private Task Reload() => LoadAsync();
 
     // Objective metadata (name/description/breadcrumb) has no dedicated endpoint, so it comes
-    // from the parent initiative's detail tree; the KPI cards come from the KPI list endpoint.
+    // from the parent programme's detail tree; the KPI cards come from the KPI list endpoint.
     private async Task LoadAsync()
     {
         _loading = true;
 
-        var detail = await InitiativesApi.GetInitiativeDetailAsync(Id, CancellationToken.None);
+        var detail = await ProgrammesApi.GetProgrammeDetailAsync(Id, CancellationToken.None);
         var objectiveDetail = detail?.Objectives.FirstOrDefault(o => o.Id == ObjectiveId);
 
         if (detail is null || objectiveDetail is null)
         {
-            initiative = null;
+            programme = null;
             objective = null;
             _loading = false;
             return;
@@ -259,13 +259,13 @@ else
         // Fetch each KPI's measurements in parallel so the history list, sparkline and recency render.
         var kpiVms = await Task.WhenAll(kpis.Select(ToKpiVmAsync));
 
-        initiative = new InitiativeVm(
+        programme = new ProgrammeVm(
             detail.Id, detail.Name, detail.Description, detail.StartDate, detail.EndDate,
             detail.CreatedDate, detail.LastModifiedDate, Array.Empty<ObjectiveVm>());
 
         objective = new ObjectiveVm(
             objectiveDetail.Id, objectiveDetail.Name, objectiveDetail.Description,
-            objectiveDetail.InitiativeId, objectiveDetail.CreatedDate, objectiveDetail.LastModifiedDate,
+            objectiveDetail.ProgrammeId, objectiveDetail.CreatedDate, objectiveDetail.LastModifiedDate,
             kpiVms.ToList());
 
         _loading = false;

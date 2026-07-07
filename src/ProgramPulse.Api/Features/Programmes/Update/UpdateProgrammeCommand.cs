@@ -1,24 +1,24 @@
 using Microsoft.EntityFrameworkCore;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.SharedKernel.Primitives;
 
-namespace ProgramPulse.Api.Features.Initiatives.Update;
+namespace ProgramPulse.Api.Features.Programmes.Update;
 
-public sealed record UpdateInitiativeCommand(
+public sealed record UpdateProgrammeCommand(
     Guid Id,
     string Name,
     string Description,
-    DateTime StartDate,
+    DateTime? StartDate,
     DateTime? EndDate);
 
 /// <summary>
-/// Updates an existing Initiative within the caller's tenant. Returns a not-found
-/// error when the Initiative does not exist, belongs to another tenant, or has been
+/// Updates an existing Programme within the caller's tenant. Returns a not-found
+/// error when the Programme does not exist, belongs to another tenant, or has been
 /// soft-deleted (excluded by the global query filter).
 /// </summary>
-public sealed class UpdateInitiativeCommandHandler(
+public sealed class UpdateProgrammeCommandHandler(
     ICurrentTenant currentTenant,
     IApplicationDbContext dbContext)
 {
@@ -26,22 +26,22 @@ public sealed class UpdateInitiativeCommandHandler(
     private readonly IApplicationDbContext _dbContext = dbContext;
 
     public async Task<Result> HandleAsync(
-        UpdateInitiativeCommand command,
+        UpdateProgrammeCommand command,
         CancellationToken cancellationToken)
     {
         var tenant = await _currentTenant.GetTenantIdAsync(cancellationToken);
         if (tenant.IsFailure)
             return Result.Failure(tenant.Error);
 
-        var initiative = await _dbContext.Initiatives
+        var programme = await _dbContext.Programmes
             .FirstOrDefaultAsync(
                 i => i.Id == command.Id && i.TenantId == tenant.Value,
                 cancellationToken);
 
-        if (initiative is null)
-            return Result.Failure(InitiativeErrors.InitiativeNotFound(command.Id));
+        if (programme is null)
+            return Result.Failure(ProgrammeErrors.ProgrammeNotFound(command.Id));
 
-        initiative.Update(command.Name, command.Description, command.StartDate, command.EndDate);
+        programme.Update(command.Name, command.Description, command.StartDate, command.EndDate);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

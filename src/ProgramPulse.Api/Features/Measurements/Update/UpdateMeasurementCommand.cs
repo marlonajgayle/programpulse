@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.SharedKernel.Primitives;
@@ -10,7 +10,7 @@ public sealed record UpdateMeasurementCommand(Guid Id, decimal Value, string? No
 
 /// <summary>
 /// Updates a Measurement the caller's tenant owns (verified via the KPI → Objective →
-/// Initiative tenant chain). Returns a not-found error when the Measurement does not
+/// Programme tenant chain). Returns a not-found error when the Measurement does not
 /// exist, belongs to another tenant, or has been soft-deleted.
 /// </summary>
 public sealed class UpdateMeasurementCommandHandler(
@@ -31,7 +31,7 @@ public sealed class UpdateMeasurementCommandHandler(
         var measurement = await _dbContext.Measurements
             .FirstOrDefaultAsync(
                 m => m.Id == command.Id
-                    && m.Kpi.Objective.Initiative.TenantId == tenant.Value,
+                    && m.Kpi.Objective.Programme.TenantId == tenant.Value,
                 cancellationToken);
 
         if (measurement is null)

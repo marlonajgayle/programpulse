@@ -1,7 +1,7 @@
 namespace ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
-public enum KpiDirection
+public enum ProgrammeStatus
 {
-    Increase,
-    Decrease
+    Active,
+    Archived
 }

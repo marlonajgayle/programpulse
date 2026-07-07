@@ -5,10 +5,10 @@ using ProgramPulse.Api.SharedKernel.Primitives;
 
 namespace ProgramPulse.Api.Features.Objectives.List;
 
-public sealed record GetObjectivesQuery(Guid InitiativeId);
+public sealed record GetObjectivesQuery(Guid ProgrammeId);
 
 /// <summary>
-/// Returns all Objectives under an Initiative the caller's tenant owns, ordered by
+/// Returns all Objectives under an Programme the caller's tenant owns, ordered by
 /// creation date. Soft-deleted rows are excluded by the global query filter.
 /// </summary>
 public sealed class GetObjectivesQueryHandler(
@@ -28,14 +28,14 @@ public sealed class GetObjectivesQueryHandler(
 
         var objectives = await _dbContext.Objectives
             .AsNoTracking()
-            .Where(o => o.InitiativeId == query.InitiativeId
-                && o.Initiative.TenantId == tenant.Value)
+            .Where(o => o.ProgrammeId == query.ProgrammeId
+                && o.Programme.TenantId == tenant.Value)
             .OrderBy(o => o.CreatedDate)
             .Select(o => new ObjectiveResponse(
                 o.Id,
                 o.Name,
                 o.Description,
-                o.InitiativeId,
+                o.ProgrammeId,
                 o.CreatedDate,
                 o.LastModifiedDate))
             .ToListAsync(cancellationToken);

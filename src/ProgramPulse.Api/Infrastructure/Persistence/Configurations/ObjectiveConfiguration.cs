@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
 namespace ProgramPulse.Api.Infrastructure.Persistence.Configurations;
 
@@ -11,7 +11,7 @@ namespace ProgramPulse.Api.Infrastructure.Persistence.Configurations;
 /// The soft-delete query filter is applied globally for all
 /// <c>ISoftDeletable</c> entities, so it is intentionally not configured here.
 /// Owns the one-to-many relationship to <c>Kpi</c>. The relationship back to
-/// <c>Initiative</c> is configured in <see cref="InitiativeConfiguration"/>.
+/// <c>Programme</c> is configured in <see cref="ProgrammeConfiguration"/>.
 /// </summary>
 public sealed class ObjectiveConfiguration : IEntityTypeConfiguration<Objective>
 {

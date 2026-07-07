@@ -8,17 +8,17 @@ namespace ProgramPulse.Web.Services;
 /// Typed client for the API's authenticated Objectives write endpoints. Wraps
 /// <see cref="HttpClient"/> and translates RFC-7807 <c>ProblemDetails</c> failures into an
 /// <see cref="AuthResult"/> the dialogs can render directly. Objectives are read as part of
-/// the initiative detail (see <see cref="InitiativesApiClient.GetInitiativeDetailAsync"/>).
+/// the programme detail (see <see cref="ProgrammesApiClient.GetProgrammeDetailAsync"/>).
 /// </summary>
 public sealed class ObjectivesApiClient(HttpClient httpClient)
 {
     private readonly HttpClient _httpClient = httpClient;
 
     public async Task<AuthResult> CreateObjectiveAsync(
-        Guid initiativeId, CreateObjectiveRequest request, CancellationToken cancellationToken)
+        Guid programmeId, CreateObjectiveRequest request, CancellationToken cancellationToken)
     {
         using var message = new HttpRequestMessage(
-            HttpMethod.Post, $"api/v1/initiatives/{initiativeId}/objectives")
+            HttpMethod.Post, $"api/v1/programmes/{programmeId}/objectives")
         {
             Content = JsonContent.Create(request)
         };
@@ -91,7 +91,7 @@ public sealed class ObjectivesApiClient(HttpClient httpClient)
     }
 }
 
-/// <summary>Body posted to <c>POST api/v1/initiatives/{initiativeId}/objectives</c>.</summary>
+/// <summary>Body posted to <c>POST api/v1/programmes/{programmeId}/objectives</c>.</summary>
 public sealed record CreateObjectiveRequest(string Name, string Description);
 
 /// <summary>Body sent to <c>PUT api/v1/objectives/{id}</c>.</summary>

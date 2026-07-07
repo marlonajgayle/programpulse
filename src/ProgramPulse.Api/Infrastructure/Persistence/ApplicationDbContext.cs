@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ProgramPulse.Api.Domain.Entities.Faqs;
 using ProgramPulse.Api.Domain.Entities.Tenants;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Domain.Entities.Users;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Messaging.Outbox;
@@ -43,7 +43,7 @@ public sealed class ApplicationDbContext
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
 
-    public DbSet<Initiative> Initiatives => Set<Initiative>();
+    public DbSet<Programme> Programmes => Set<Programme>();
 
     public DbSet<Objective> Objectives => Set<Objective>();
 

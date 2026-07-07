@@ -907,7 +907,7 @@ body {
   .pp-modal, .pp-modal__dialog { animation: none; }
 }
 
-/* ===== Initiatives / Objectives / KPIs views ===== */
+/* ===== Programmes / Objectives / KPIs views ===== */
 
 /* Page header + toolbar */
 .pp-page__head {
@@ -951,8 +951,8 @@ body {
 .pp-init-card:focus-visible, .pp-obj-card:focus-visible {
   outline: 2px solid var(--pp-accent); outline-offset: 2px;
 }
-/* Retained for the objective cards on the initiative-detail page, which reuse
-   these initiative-card element classes. */
+/* Retained for the objective cards on the programme-detail page, which reuse
+   these programme-card element classes. */
 .pp-init-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
 .pp-init-card__desc {
   color: var(--pp-muted); line-height: 1.55; margin: 0; font-size: .92rem;
@@ -965,7 +965,7 @@ body {
 
 /* Status pill sits on its own row above the title (see reference layout). */
 .pp-init-card__badge { align-self: flex-start; text-transform: uppercase; }
-/* Larger title only on the initiative grid card (objective cards reuse __name). */
+/* Larger title only on the programme grid card (objective cards reuse __name). */
 .pp-init-card > .pp-init-card__name {
   font-weight: 600; font-size: 1.6rem; line-height: 1.15;
   display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -983,7 +983,7 @@ body {
 .pp-init-card__progress-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
 .pp-init-card__pct { font-family: var(--font-mono); font-size: .85rem; color: var(--pp-accent-strong); }
 
-/* Dark treatment for the single most-critical initiative on screen (one per view). */
+/* Dark treatment for the single most-critical programme on screen (one per view). */
 .pp-init-card--critical {
   background: var(--pp-ink); border-color: transparent; color: var(--pp-ink-text);
 }

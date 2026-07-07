@@ -3,20 +3,20 @@ using ProgramPulse.Web.Models;
 namespace ProgramPulse.Web.Services;
 
 /// <summary>
-/// In-memory mock dataset for the Initiatives UI. Uses stable GUIDs so drill-down
+/// In-memory mock dataset for the Programmes UI. Uses stable GUIDs so drill-down
 /// links resolve across pages. UI-only stub — replace with an API-backed source
-/// (same method shape) once the WASM client is wired to /api/v1/initiatives.
+/// (same method shape) once the WASM client is wired to /api/v1/programmes.
 /// </summary>
 public sealed class SampleData
 {
-    private readonly List<InitiativeVm> _initiatives;
+    private readonly List<ProgrammeVm> _programmes;
 
     public SampleData()
     {
-        _initiatives = Build();
+        _programmes = Build();
     }
 
-    public IReadOnlyList<InitiativeVm> GetInitiatives() => _initiatives;
+    public IReadOnlyList<ProgrammeVm> GetProgrammes() => _programmes;
 
     // ----- Notifications (in-memory only) -----
     private readonly List<NotificationVm> _notifications = BuildNotifications();
@@ -71,12 +71,12 @@ public sealed class SampleData
             ]),
     ];
 
-    public InitiativeVm? GetInitiative(Guid id) =>
-        _initiatives.FirstOrDefault(i => i.Id == id);
+    public ProgrammeVm? GetProgramme(Guid id) =>
+        _programmes.FirstOrDefault(i => i.Id == id);
 
     // ----- Dashboard summary -----
     // Mirrors the API's DashboardSummaryResponse. Status counts, health, overdue and flagged
-    // are computed from the mock initiatives; the 8-week trend, today's reviews and velocity
+    // are computed from the mock programmes; the 8-week trend, today's reviews and velocity
     // deltas are hand-authored because the domain has no status history or Review entity yet.
     // TODO: replace with a single GET /api/v1/dashboard call once the WASM client hits the API.
     public DashboardSummaryVm GetDashboardSummary()
@@ -84,12 +84,12 @@ public sealed class SampleData
         const int overdueThresholdDays = KpiThresholds.OverdueMeasurementDays;
         var today = DateTime.Today;
 
-        var allKpis = _initiatives.SelectMany(i => i.AllKpis).ToList();
+        var allKpis = _programmes.SelectMany(i => i.AllKpis).ToList();
 
-        var onTrack = _initiatives.Count(i => i.AggregateStatus is KpiStatus.OnTrack
+        var onTrack = _programmes.Count(i => i.AggregateStatus is KpiStatus.OnTrack
             or KpiStatus.Completed or KpiStatus.NotStarted);
-        var atRisk = _initiatives.Count(i => i.AggregateStatus == KpiStatus.AtRisk);
-        var offTrack = _initiatives.Count(i => i.AggregateStatus == KpiStatus.OffTrack);
+        var atRisk = _programmes.Count(i => i.AggregateStatus == KpiStatus.AtRisk);
+        var offTrack = _programmes.Count(i => i.AggregateStatus == KpiStatus.OffTrack);
 
         var onTrackKpis = allKpis.Count(k => k.Status == KpiStatus.OnTrack);
         var health = allKpis.Count == 0 ? 0 : (int)Math.Round((double)onTrackKpis / allKpis.Count * 100);
@@ -98,14 +98,14 @@ public sealed class SampleData
             k.Measurements.Count == 0
             || k.Measurements.Max(m => m.CreatedDate) < today.AddDays(-overdueThresholdDays));
 
-        var flagged = _initiatives
+        var flagged = _programmes
             .Where(i => i.AggregateStatus is KpiStatus.AtRisk or KpiStatus.OffTrack)
             .OrderByDescending(i => i.AggregateStatus == KpiStatus.OffTrack)
             .Select(i =>
             {
                 var worst = i.AllKpis.FirstOrDefault(k => k.Status == i.AggregateStatus)
                             ?? i.AllKpis.First();
-                return new FlaggedInitiativeVm(
+                return new FlaggedProgrammeVm(
                     i.Id,
                     i.Name,
                     i.AggregateStatus == KpiStatus.OffTrack ? "off" : "warn",
@@ -136,7 +136,7 @@ public sealed class SampleData
         {
             new("09:30", "Platform Reliability review", "Strategy office · availability off track", "off"),
             new("11:00", "Retention onboarding sync", "Growth team · 2 KPIs stale >14d", "warn"),
-            new("14:30", "Expansion Revenue kickoff", "New initiative · not started", "warn"),
+            new("14:30", "Expansion Revenue kickoff", "New programme · not started", "warn"),
             new("16:00", "Weekly steering call", "Programme leads · portfolio review", "track"),
         };
 
@@ -152,11 +152,11 @@ public sealed class SampleData
 
         return new DashboardSummaryVm(
             TeamName: "Strategy office",
-            ActiveInitiativeCount: _initiatives.Count,
+            ActiveProgrammeCount: _programmes.Count,
             GeneratedAtUtc: DateTime.UtcNow.AddMinutes(-4),
             HealthScore: health,
             HealthDeltaPercent: 6.2,
-            Status: new StatusCountsVm(onTrack, atRisk, offTrack, _initiatives.Count),
+            Status: new StatusCountsVm(onTrack, atRisk, offTrack, _programmes.Count),
             AtRiskDeltaSinceLastWeek: 2,
             OverdueKpiCount: overdue,
             TotalKpiCount: allKpis.Count,
@@ -166,33 +166,33 @@ public sealed class SampleData
             Velocity: velocity);
     }
 
-    public ObjectiveVm? GetObjective(Guid initiativeId, Guid objectiveId) =>
-        GetInitiative(initiativeId)?.Objectives.FirstOrDefault(o => o.Id == objectiveId);
+    public ObjectiveVm? GetObjective(Guid programmeId, Guid objectiveId) =>
+        GetProgramme(programmeId)?.Objectives.FirstOrDefault(o => o.Id == objectiveId);
 
-    public KpiVm? GetKpi(Guid initiativeId, Guid objectiveId, Guid kpiId) =>
-        GetObjective(initiativeId, objectiveId)?.Kpis.FirstOrDefault(k => k.Id == kpiId);
+    public KpiVm? GetKpi(Guid programmeId, Guid objectiveId, Guid kpiId) =>
+        GetObjective(programmeId, objectiveId)?.Kpis.FirstOrDefault(k => k.Id == kpiId);
 
     // ----- Mutations (in-memory only) -----
-    // TODO: POST to /api/v1/initiatives/{id}/objectives once the WASM client is wired to the API.
-    public ObjectiveVm AddObjective(Guid initiativeId, string name, string description)
+    // TODO: POST to /api/v1/programmes/{id}/objectives once the WASM client is wired to the API.
+    public ObjectiveVm AddObjective(Guid programmeId, string name, string description)
     {
-        var initiative = GetInitiative(initiativeId)
-            ?? throw new InvalidOperationException("Initiative not found.");
+        var programme = GetProgramme(programmeId)
+            ?? throw new InvalidOperationException("Programme not found.");
 
         var objective = new ObjectiveVm(
-            Guid.CreateVersion7(), name, description, initiativeId,
+            Guid.CreateVersion7(), name, description, programmeId,
             DateTime.Today, null, new List<KpiVm>());
 
-        ((List<ObjectiveVm>)initiative.Objectives).Add(objective);
+        ((List<ObjectiveVm>)programme.Objectives).Add(objective);
         return objective;
     }
 
     // TODO: POST to /api/v1/objectives/{id}/kpis once the WASM client is wired to the API.
     public KpiVm AddKpi(
-        Guid initiativeId, Guid objectiveId, string name, string unit,
+        Guid programmeId, Guid objectiveId, string name, string unit,
         KpiDirection direction, decimal baseline, decimal target, decimal current, DateTime due)
     {
-        var objective = GetObjective(initiativeId, objectiveId)
+        var objective = GetObjective(programmeId, objectiveId)
             ?? throw new InvalidOperationException("Objective not found.");
 
         var kpi = new KpiVm(
@@ -203,17 +203,17 @@ public sealed class SampleData
         return kpi;
     }
 
-    // TODO: PUT /api/v1/initiatives/{id} once the WASM client is wired to the API.
-    public InitiativeVm UpdateInitiative(
+    // TODO: PUT /api/v1/programmes/{id} once the WASM client is wired to the API.
+    public ProgrammeVm UpdateProgramme(
         Guid id, string name, string description, DateTime startDate, DateTime? endDate)
     {
-        var index = _initiatives.FindIndex(i => i.Id == id);
+        var index = _programmes.FindIndex(i => i.Id == id);
         if (index < 0)
         {
-            throw new InvalidOperationException("Initiative not found.");
+            throw new InvalidOperationException("Programme not found.");
         }
 
-        var updated = _initiatives[index] with
+        var updated = _programmes[index] with
         {
             Name = name,
             Description = description,
@@ -222,18 +222,18 @@ public sealed class SampleData
             LastModifiedDate = DateTime.Today,
         };
 
-        _initiatives[index] = updated;
+        _programmes[index] = updated;
         return updated;
     }
 
     // TODO: PUT /api/v1/objectives/{id} once the WASM client is wired to the API.
     public ObjectiveVm UpdateObjective(
-        Guid initiativeId, Guid objectiveId, string name, string description)
+        Guid programmeId, Guid objectiveId, string name, string description)
     {
-        var initiative = GetInitiative(initiativeId)
-            ?? throw new InvalidOperationException("Initiative not found.");
+        var programme = GetProgramme(programmeId)
+            ?? throw new InvalidOperationException("Programme not found.");
 
-        var objectives = (List<ObjectiveVm>)initiative.Objectives;
+        var objectives = (List<ObjectiveVm>)programme.Objectives;
         var index = objectives.FindIndex(o => o.Id == objectiveId);
         if (index < 0)
         {
@@ -253,9 +253,9 @@ public sealed class SampleData
 
     // TODO: POST /api/v1/kpis/{id}/measurements once the WASM client is wired to the API.
     public MeasurementVm AddMeasurement(
-        Guid initiativeId, Guid objectiveId, Guid kpiId, decimal value, string? notes)
+        Guid programmeId, Guid objectiveId, Guid kpiId, decimal value, string? notes)
     {
-        var kpi = GetKpi(initiativeId, objectiveId, kpiId)
+        var kpi = GetKpi(programmeId, objectiveId, kpiId)
             ?? throw new InvalidOperationException("KPI not found.");
 
         var measurement = new MeasurementVm(
@@ -267,10 +267,10 @@ public sealed class SampleData
 
     // TODO: PUT /api/v1/measurements/{id} once the WASM client is wired to the API.
     public MeasurementVm UpdateMeasurement(
-        Guid initiativeId, Guid objectiveId, Guid kpiId, Guid measurementId,
+        Guid programmeId, Guid objectiveId, Guid kpiId, Guid measurementId,
         decimal value, string? notes)
     {
-        var kpi = GetKpi(initiativeId, objectiveId, kpiId)
+        var kpi = GetKpi(programmeId, objectiveId, kpiId)
             ?? throw new InvalidOperationException("KPI not found.");
 
         var measurements = (List<MeasurementVm>)kpi.Measurements;
@@ -311,16 +311,16 @@ public sealed class SampleData
         return new Guid(bytes);
     }
 
-    private static List<InitiativeVm> Build()
+    private static List<ProgrammeVm> Build()
     {
         var today = DateTime.Today;
 
-        // --- Initiative 1: Customer Retention 2026 ---
-        var i1 = Id("initiative-retention");
+        // --- Programme 1: Customer Retention 2026 ---
+        var i1 = Id("programme-retention");
         var i1o1 = Id("obj-reduce-churn");
         var i1o2 = Id("obj-improve-onboarding");
 
-        var initiative1 = new InitiativeVm(
+        var programme1 = new ProgrammeVm(
             i1,
             "Customer Retention 2026",
             "Reduce churn and deepen engagement across the existing customer base through proactive success programmes and a redesigned onboarding journey.",
@@ -364,12 +364,12 @@ public sealed class SampleData
                     }),
             });
 
-        // --- Initiative 2: Platform Reliability ---
-        var i2 = Id("initiative-reliability");
+        // --- Programme 2: Platform Reliability ---
+        var i2 = Id("programme-reliability");
         var i2o1 = Id("obj-uptime");
         var i2o2 = Id("obj-incident-response");
 
-        var initiative2 = new InitiativeVm(
+        var programme2 = new ProgrammeVm(
             i2,
             "Platform Reliability",
             "Harden the platform to meet enterprise SLA commitments — raise availability, cut incident frequency, and tighten mean time to recovery.",
@@ -410,11 +410,11 @@ public sealed class SampleData
                     }),
             });
 
-        // --- Initiative 3: Expansion Revenue (kick-off, nothing started) ---
-        var i3 = Id("initiative-expansion");
+        // --- Programme 3: Expansion Revenue (kick-off, nothing started) ---
+        var i3 = Id("programme-expansion");
         var i3o1 = Id("obj-upsell");
 
-        var initiative3 = new InitiativeVm(
+        var programme3 = new ProgrammeVm(
             i3,
             "Expansion Revenue",
             "Grow net revenue retention by building a repeatable upsell and cross-sell motion for the install base.",
@@ -439,7 +439,7 @@ public sealed class SampleData
                     }),
             });
 
-        return new List<InitiativeVm> { initiative1, initiative2, initiative3 };
+        return new List<ProgrammeVm> { programme1, programme2, programme3 };
     }
 
     private static KpiVm Kpi(

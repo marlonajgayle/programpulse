@@ -3,26 +3,26 @@ using ProgramPulse.Api.SharedKernel;
 using ProgramPulse.Api.SharedKernel.Primitives;
 using ProgramPulse.Api.SharedKernel.Versioning;
 
-namespace ProgramPulse.Api.Features.Initiatives.GetById;
+namespace ProgramPulse.Api.Features.Programmes.GetById;
 
 /// <summary>
-/// Returns a single Initiative within the caller's tenant, with its objectives and KPIs.
+/// Returns a single Programme within the caller's tenant, with its objectives and KPIs.
 /// </summary>
-public sealed class GetInitiativeByIdEndpoint : IEndpoint
+public sealed class GetProgrammeByIdEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("initiatives/{id:guid}", async (
+        app.MapGet("programmes/{id:guid}", async (
             Guid id,
-            GetInitiativeByIdQueryHandler handler,
+            GetProgrammeByIdQueryHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var result = await handler.HandleAsync(new GetInitiativeByIdQuery(id), cancellationToken);
+            var result = await handler.HandleAsync(new GetProgrammeByIdQuery(id), cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)
         .RequireAuthorization(AuthorizationPolicies.Authenticated)
-        .WithName("GetInitiativeById")
-        .WithTags("Initiatives");
+        .WithName("GetProgrammeById")
+        .WithTags("Programmes");
     }
 }

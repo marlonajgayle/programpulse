@@ -1,20 +1,20 @@
-@page "/initiatives"
+@page "/programmes"
 @layout DashboardLayout
-@inject InitiativesApiClient InitiativesApi
+@inject ProgrammesApiClient ProgrammesApi
 @inject NavigationManager Nav
 
-<PageTitle>Initiatives — ProgramPulse</PageTitle>
+<PageTitle>Programmes — ProgramPulse</PageTitle>
 
 <div class="pp-page__head">
     <div>
-        <h1 class="pp-dash__heading">Initiatives</h1>
-        <p class="pp-page__subtitle">@_all.Count active @(_all.Count == 1 ? "initiative" : "initiatives") across your programme.</p>
+        <h1 class="pp-dash__heading">Programmes</h1>
+        <p class="pp-page__subtitle">@_all.Count active @(_all.Count == 1 ? "programme" : "programmes") across your programme.</p>
     </div>
     <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreate = true">
         <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
             <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
         </svg>
-        New initiative
+        New programme
     </button>
 </div>
 
@@ -24,8 +24,8 @@
             <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7" />
             <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
         </svg>
-        <input class="pp-input pp-input--icon" type="search" placeholder="Filter initiatives"
-               aria-label="Filter initiatives" value="@_search"
+        <input class="pp-input pp-input--icon" type="search" placeholder="Filter programmes"
+               aria-label="Filter programmes" value="@_search"
                @oninput="e => _search = e.Value?.ToString() ?? string.Empty" />
     </div>
     <div class="pp-legend pp-legend--filter" role="group" aria-label="Filter by status">
@@ -45,20 +45,20 @@
 
 @if (_loading)
 {
-    <p class="pp-page__subtitle">Loading initiatives…</p>
+    <p class="pp-page__subtitle">Loading programmes…</p>
 }
 else if (_loadFailed)
 {
     <div class="pp-empty">
-        <p class="pp-empty__title">Couldn't load initiatives</p>
+        <p class="pp-empty__title">Couldn't load programmes</p>
         <p class="pp-empty__note">The server is unreachable right now. Please try again later.</p>
     </div>
 }
 else if (_all.Count == 0)
 {
     <div class="pp-empty">
-        <p class="pp-empty__title">No initiatives yet</p>
-        <p class="pp-empty__note">Create your first initiative to start tracking objectives and KPIs.</p>
+        <p class="pp-empty__title">No programmes yet</p>
+        <p class="pp-empty__note">Create your first programme to start tracking objectives and KPIs.</p>
     </div>
 }
 else
@@ -69,7 +69,7 @@ else
     @if (visible.Count == 0)
     {
         <div class="pp-empty">
-            <p class="pp-empty__title">No initiatives match your filters</p>
+            <p class="pp-empty__title">No programmes match your filters</p>
             <p class="pp-empty__note">Try a different search term or status filter.</p>
             <button type="button" class="pp-btn pp-btn--ghost" @onclick="ClearFilters">Clear filters</button>
         </div>
@@ -77,20 +77,20 @@ else
     else
     {
         <div class="pp-list-grid">
-            @foreach (var initiative in visible)
+            @foreach (var programme in visible)
             {
-                <InitiativeCard Initiative="initiative"
-                                Critical="initiative.Id == criticalId"
+                <ProgrammeCard Programme="programme"
+                                Critical="programme.Id == criticalId"
                                 OnOpen="Open" />
             }
         </div>
     }
 }
 
-<CreateInitiativeDialog Visible="showCreate" OnClose="() => showCreate = false" OnCreated="ReloadAsync" />
+<CreateProgrammeDialog Visible="showCreate" OnClose="() => showCreate = false" OnCreated="ReloadAsync" />
 
 @code {
-    private IReadOnlyList<InitiativeVm> _all = Array.Empty<InitiativeVm>();
+    private IReadOnlyList<ProgrammeVm> _all = Array.Empty<ProgrammeVm>();
     private readonly HashSet<KpiStatus> _activeFilters = new();
     private string _search = string.Empty;
     private bool showCreate;
@@ -98,7 +98,7 @@ else
     private bool _loadFailed;
 
     // Legend chips double as status filters. Only the three "live" statuses are offered;
-    // completed/not-started initiatives simply fall outside an active status filter.
+    // completed/not-started programmes simply fall outside an active status filter.
     private static readonly (KpiStatus Status, string Modifier, string Label)[] FilterOptions =
     {
         (KpiStatus.OnTrack, "track", "On track"),
@@ -108,30 +108,30 @@ else
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
-    // Re-fetch after a create so the new initiative shows without a manual refresh.
+    // Re-fetch after a create so the new programme shows without a manual refresh.
     private Task ReloadAsync() => LoadAsync();
 
     private async Task LoadAsync()
     {
-        var result = await InitiativesApi.GetInitiativesAsync(CancellationToken.None);
+        var result = await ProgrammesApi.GetProgrammesAsync(CancellationToken.None);
         _loadFailed = result is null;
 
         // The list endpoint returns objective/KPI counts but not the sub-tree itself, so
         // the counts populate the card while the KPI status bar stays empty (it needs
         // per-KPI statuses) until the sub-tree is wired.
         _all = result?
-            .Select(i => new InitiativeVm(
+            .Select(i => new ProgrammeVm(
                 i.Id, i.Name, i.Description, i.StartDate, i.EndDate,
                 i.CreatedDate, i.LastModifiedDate, Array.Empty<ObjectiveVm>(),
                 ObjectiveCountOverride: i.ObjectiveCount,
                 KpiCountOverride: i.KpiCount))
             .ToList()
-            ?? (IReadOnlyList<InitiativeVm>)Array.Empty<InitiativeVm>();
+            ?? (IReadOnlyList<ProgrammeVm>)Array.Empty<ProgrammeVm>();
 
         _loading = false;
     }
 
-    private void Open(Guid id) => Nav.NavigateTo($"/initiatives/{id}");
+    private void Open(Guid id) => Nav.NavigateTo($"/programmes/{id}");
 
     private void ToggleFilter(KpiStatus status)
     {
@@ -148,9 +148,9 @@ else
     }
 
     // Status filter and free-text search combine with AND.
-    private IReadOnlyList<InitiativeVm> Filtered()
+    private IReadOnlyList<ProgrammeVm> Filtered()
     {
-        IEnumerable<InitiativeVm> query = _all;
+        IEnumerable<ProgrammeVm> query = _all;
 
         if (_activeFilters.Count > 0)
         {
@@ -168,10 +168,10 @@ else
         return query.ToList();
     }
 
-    // The single worst initiative among those currently on screen, or null if none is
+    // The single worst programme among those currently on screen, or null if none is
     // at-risk-or-worse (so an all-healthy board gets no dark card). Ranking:
     // off-track beats at-risk, ties broken by off-track KPI count, then soonest end date.
-    private static Guid? MostCriticalId(IReadOnlyList<InitiativeVm> visible) =>
+    private static Guid? MostCriticalId(IReadOnlyList<ProgrammeVm> visible) =>
         visible
             .Where(i => i.AggregateStatus is KpiStatus.OffTrack or KpiStatus.AtRisk)
             .OrderByDescending(i => i.AggregateStatus == KpiStatus.OffTrack)

@@ -7,20 +7,20 @@ using ProgramPulse.Api.SharedKernel.Versioning;
 namespace ProgramPulse.Api.Features.Objectives.Create;
 
 /// <summary>
-/// Creates a new Objective under the given Initiative.
+/// Creates a new Objective under the given Programme.
 /// </summary>
 public sealed class CreateObjectiveEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("initiatives/{initiativeId:guid}/objectives", async (
-            Guid initiativeId,
+        app.MapPost("programmes/{programmeId:guid}/objectives", async (
+            Guid programmeId,
             CreateObjectiveCommand command,
             CreateObjectiveCommandHandler handler,
             CancellationToken cancellationToken) =>
         {
             var result = await handler.HandleAsync(
-                command with { InitiativeId = initiativeId }, cancellationToken);
+                command with { ProgrammeId = programmeId }, cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)

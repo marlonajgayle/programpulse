@@ -3,26 +3,26 @@ using ProgramPulse.Api.SharedKernel;
 using ProgramPulse.Api.SharedKernel.Primitives;
 using ProgramPulse.Api.SharedKernel.Versioning;
 
-namespace ProgramPulse.Api.Features.Initiatives.Delete;
+namespace ProgramPulse.Api.Features.Programmes.Delete;
 
 /// <summary>
-/// Soft-deletes an Initiative within the caller's tenant.
+/// Soft-deletes an Programme within the caller's tenant.
 /// </summary>
-public sealed class DeleteInitiativeEndpoint : IEndpoint
+public sealed class DeleteProgrammeEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("initiatives/{id:guid}", async (
+        app.MapDelete("programmes/{id:guid}", async (
             Guid id,
-            DeleteInitiativeCommandHandler handler,
+            DeleteProgrammeCommandHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var result = await handler.HandleAsync(new DeleteInitiativeCommand(id), cancellationToken);
+            var result = await handler.HandleAsync(new DeleteProgrammeCommand(id), cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)
         .RequireAuthorization(AuthorizationPolicies.Authenticated)
-        .WithName("DeleteInitiative")
-        .WithTags("Initiatives");
+        .WithName("DeleteProgramme")
+        .WithTags("Programmes");
     }
 }

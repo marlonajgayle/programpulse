@@ -6,7 +6,7 @@ namespace ProgramPulse.Api.Features.Dashboard;
 /// </summary>
 public sealed record DashboardSummaryResponse(
     string TeamName,
-    int ActiveInitiativeCount,
+    int ActiveProgrammeCount,
     DateTime GeneratedAtUtc,
     int HealthScore,
     double HealthDeltaPercent,
@@ -14,19 +14,19 @@ public sealed record DashboardSummaryResponse(
     int AtRiskDeltaSinceLastWeek,
     int OverdueKpiCount,
     int TotalKpiCount,
-    IReadOnlyList<FlaggedInitiative> Flagged,
+    IReadOnlyList<FlaggedProgramme> Flagged,
     IReadOnlyList<TrendPoint> Trend,
     IReadOnlyList<UpcomingReview> Reviews,
     VelocityStats Velocity);
 
-/// <summary>Initiative counts by rolled-up status. Total is all initiatives.</summary>
+/// <summary>Programme counts by rolled-up status. Total is all programmes.</summary>
 public sealed record StatusCounts(int OnTrack, int AtRisk, int OffTrack, int Total);
 
 /// <summary>
-/// An initiative needing attention, with the single worst KPI surfaced as the
+/// An programme needing attention, with the single worst KPI surfaced as the
 /// failing metric. <paramref name="StatusModifier"/> is the CSS suffix (warn|off).
 /// </summary>
-public sealed record FlaggedInitiative(
+public sealed record FlaggedProgramme(
     Guid Id,
     string Name,
     string StatusModifier,
@@ -37,7 +37,7 @@ public sealed record FlaggedInitiative(
     decimal TargetValue,
     int PercentToTarget);
 
-/// <summary>One weekly snapshot of initiative status counts for the trend chart.</summary>
+/// <summary>One weekly snapshot of programme status counts for the trend chart.</summary>
 public sealed record TrendPoint(DateOnly WeekStart, int OnTrack, int AtRisk, int OffTrack);
 
 /// <summary>A scheduled review with a context line stating why it matters.</summary>

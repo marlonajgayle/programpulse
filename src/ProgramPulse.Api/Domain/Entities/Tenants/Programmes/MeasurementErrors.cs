@@ -1,6 +1,6 @@
 using ProgramPulse.Api.SharedKernel.Primitives;
 
-namespace ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+namespace ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
 public static class MeasurementErrors
 {

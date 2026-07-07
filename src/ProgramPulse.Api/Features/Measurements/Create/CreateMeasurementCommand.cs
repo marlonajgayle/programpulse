@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.SharedKernel.Primitives;
@@ -34,7 +34,7 @@ public sealed class CreateMeasurementCommandHandler(
 
         var kpi = await _dbContext.Kpis
             .FirstOrDefaultAsync(
-                k => k.Id == command.KpiId && k.Objective.Initiative.TenantId == tenant.Value,
+                k => k.Id == command.KpiId && k.Objective.Programme.TenantId == tenant.Value,
                 cancellationToken);
 
         if (kpi is null)

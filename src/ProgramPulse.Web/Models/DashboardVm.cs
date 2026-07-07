@@ -6,7 +6,7 @@ namespace ProgramPulse.Web.Models;
 
 public sealed record DashboardSummaryVm(
     string TeamName,
-    int ActiveInitiativeCount,
+    int ActiveProgrammeCount,
     DateTime GeneratedAtUtc,
     int HealthScore,
     double HealthDeltaPercent,
@@ -14,7 +14,7 @@ public sealed record DashboardSummaryVm(
     int AtRiskDeltaSinceLastWeek,
     int OverdueKpiCount,
     int TotalKpiCount,
-    IReadOnlyList<FlaggedInitiativeVm> Flagged,
+    IReadOnlyList<FlaggedProgrammeVm> Flagged,
     IReadOnlyList<TrendPointVm> Trend,
     IReadOnlyList<UpcomingReviewVm> Reviews,
     VelocityStatsVm Velocity)
@@ -26,7 +26,7 @@ public sealed record DashboardSummaryVm(
 
 public sealed record StatusCountsVm(int OnTrack, int AtRisk, int OffTrack, int Total);
 
-public sealed record FlaggedInitiativeVm(
+public sealed record FlaggedProgrammeVm(
     Guid Id,
     string Name,
     string StatusModifier,   // "warn" | "off"

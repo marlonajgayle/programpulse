@@ -1,6 +1,6 @@
 using ProgramPulse.Api.SharedKernel;
 
-namespace ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+namespace ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
 public sealed class Measurement : AuditableEntity<Guid>
 {

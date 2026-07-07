@@ -1,10 +1,10 @@
 using ProgramPulse.Api.SharedKernel.Primitives;
 
-namespace ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+namespace ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
-public static class InitiativeErrors
+public static class ProgrammeErrors
 {
-    public static Error InitiativeNotFound(Guid initiativeId) => Error.NotFound(
-        code: "Initiative.NotFound",
-        message: $"Initiative with ID '{initiativeId}' was not found.");
+    public static Error ProgrammeNotFound(Guid programmeId) => Error.NotFound(
+        code: "Programme.NotFound",
+        message: $"Programme with ID '{programmeId}' was not found.");
 }

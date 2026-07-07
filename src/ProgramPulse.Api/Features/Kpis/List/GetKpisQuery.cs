@@ -29,7 +29,7 @@ public sealed class GetKpisQueryHandler(
         var kpis = await _dbContext.Kpis
             .AsNoTracking()
             .Where(k => k.ObjectiveId == query.ObjectiveId
-                && k.Objective.Initiative.TenantId == tenant.Value)
+                && k.Objective.Programme.TenantId == tenant.Value)
             .OrderBy(k => k.CreatedDate)
             .Select(k => new KpiResponse(
                 k.Id,

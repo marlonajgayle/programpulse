@@ -1,19 +1,19 @@
-@* Single initiative tile for the Initiatives grid.
+@* Single programme tile for the Programmes grid.
    - AggregateStatus drives the pill (colour + shape icon).
-   - The deadline (EndDate) and an averaged KPI progress bar summarise the initiative.
-   - Critical = the single worst initiative currently on screen; the page decides
+   - The deadline (EndDate) and an averaged KPI progress bar summarise the programme.
+   - Critical = the single worst programme currently on screen; the page decides
      which one and gives it the dark treatment (at most one per view). *@
 
 <article class="pp-card pp-init-card @(Critical ? "pp-init-card--critical" : null)"
          role="button" tabindex="0"
-         @onclick="() => OnOpen.InvokeAsync(Initiative.Id)"
+         @onclick="() => OnOpen.InvokeAsync(Programme.Id)"
          @onkeydown="OnKey">
-    <span class="pp-badge pp-badge--@StatusRollup.Modifier(Initiative.AggregateStatus) pp-init-card__badge">
-        <StatusIcon Status="Initiative.AggregateStatus" />
-        @StatusRollup.Label(Initiative.AggregateStatus)
+    <span class="pp-badge pp-badge--@StatusRollup.Modifier(Programme.AggregateStatus) pp-init-card__badge">
+        <StatusIcon Status="Programme.AggregateStatus" />
+        @StatusRollup.Label(Programme.AggregateStatus)
     </span>
 
-    <h3 class="pp-init-card__name">@Initiative.Name</h3>
+    <h3 class="pp-init-card__name">@Programme.Name</h3>
 
     <div class="pp-init-card__meta">
         <div class="pp-init-card__field">
@@ -22,13 +22,18 @@
         </div>
 
         <div class="pp-init-card__field">
+            <span class="pp-init-card__label">Status</span>
+            <span class="pp-badge pp-badge--@LifecycleModifier">@Programme.LifecycleStatusLabel</span>
+        </div>
+
+        <div class="pp-init-card__field">
             <div class="pp-init-card__progress-head">
                 <span class="pp-init-card__label">Progress</span>
-                <span class="pp-init-card__pct">@Initiative.ProgressPercent%</span>
+                <span class="pp-init-card__pct">@Programme.ProgressPercent%</span>
             </div>
             <div class="pp-progress" role="img" aria-label="@ProgressLabel">
                 <div class="pp-progress__track">
-                    <div class="pp-progress__fill" style="width: @(Initiative.ProgressPercent)%"></div>
+                    <div class="pp-progress__fill" style="width: @(Programme.ProgressPercent)%"></div>
                 </div>
             </div>
         </div>
@@ -36,7 +41,7 @@
 </article>
 
 @code {
-    [Parameter, EditorRequired] public InitiativeVm Initiative { get; set; } = default!;
+    [Parameter, EditorRequired] public ProgrammeVm Programme { get; set; } = default!;
 
     /// <summary>Give this card the dark "most critical" treatment. At most one per view.</summary>
     [Parameter] public bool Critical { get; set; }
@@ -44,10 +49,13 @@
     [Parameter] public EventCallback<Guid> OnOpen { get; set; }
 
     private string DeadlineText =>
-        Initiative.EndDate is { } end ? $"{end:MMM d, yyyy}" : "Ongoing";
+        Programme.EndDate is { } end ? $"{end:MMM d, yyyy}" : "Ongoing";
 
-    private string ProgressLabel => $"Progress {Initiative.ProgressPercent}%";
+    private string LifecycleModifier =>
+        Programme.LifecycleStatus == ProgrammeStatus.Active ? "track" : "idle";
+
+    private string ProgressLabel => $"Progress {Programme.ProgressPercent}%";
 
     private Task OnKey(KeyboardEventArgs e) =>
-        e.Key is "Enter" or " " ? OnOpen.InvokeAsync(Initiative.Id) : Task.CompletedTask;
+        e.Key is "Enter" or " " ? OnOpen.InvokeAsync(Programme.Id) : Task.CompletedTask;
 }

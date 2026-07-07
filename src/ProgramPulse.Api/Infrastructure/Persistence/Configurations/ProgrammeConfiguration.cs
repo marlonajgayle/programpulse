@@ -1,22 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
 namespace ProgramPulse.Api.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-/// FluentAPI mapping for <see cref="Initiative"/>. Picked up automatically by
+/// FluentAPI mapping for <see cref="Programme"/>. Picked up automatically by
 /// <c>ApplyConfigurationsFromAssembly</c> in <see cref="ApplicationDbContext"/>.
 /// The soft-delete query filter is applied globally for all
 /// <c>ISoftDeletable</c> entities, so it is intentionally not configured here.
 /// Owns the one-to-many relationship to <c>Objective</c>.
 /// </summary>
-public sealed class InitiativeConfiguration : IEntityTypeConfiguration<Initiative>
+public sealed class ProgrammeConfiguration : IEntityTypeConfiguration<Programme>
 {
-    public void Configure(EntityTypeBuilder<Initiative> builder)
+    public void Configure(EntityTypeBuilder<Programme> builder)
     {
-        builder.ToTable("Initiatives");
+        builder.ToTable("Programmes");
 
         builder.HasKey(i => i.Id)
             .IsClustered(false);
@@ -33,10 +33,13 @@ public sealed class InitiativeConfiguration : IEntityTypeConfiguration<Initiativ
             .HasMaxLength(1000);
 
         builder.Property(i => i.StartDate)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(i => i.EndDate)
             .IsRequired(false);
+
+        // Status is derived from EndDate at read time — never persisted.
+        builder.Ignore(i => i.Status);
 
         builder.Property(i => i.CreatedBy)
             .IsRequired()
@@ -64,13 +67,20 @@ public sealed class InitiativeConfiguration : IEntityTypeConfiguration<Initiativ
             .HasForeignKey(i => i.TenantId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Optional self-reference to a parent programme. Restrict on delete to
+        // avoid a multiple-cascade-path cycle on SQL Server.
+        builder.HasOne(i => i.ParentProgramme)
+            .WithMany()
+            .HasForeignKey(i => i.ParentProgrammeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(i => i.Objectives)
-            .WithOne(o => o.Initiative)
-            .HasForeignKey(o => o.InitiativeId)
+            .WithOne(o => o.Programme)
+            .HasForeignKey(o => o.ProgrammeId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Metadata
-            .FindNavigation(nameof(Initiative.Objectives))!
+            .FindNavigation(nameof(Programme.Objectives))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

@@ -1,5 +1,5 @@
 @using System.ComponentModel.DataAnnotations
-@inject InitiativesApiClient InitiativesApi
+@inject ProgrammesApiClient ProgrammesApi
 
 @if (Visible)
 {
@@ -14,8 +14,8 @@
                     </svg>
                 </span>
                 <div class="pp-modal__heading">
-                    <h2 id="pp-create-title" class="pp-modal__title">Create New Initiative</h2>
-                    <p class="pp-modal__subtitle">Create an initiative to structure your team's workflow.</p>
+                    <h2 id="pp-create-title" class="pp-modal__title">Create New Programme</h2>
+                    <p class="pp-modal__subtitle">Create an programme to structure your team's workflow.</p>
                 </div>
                 <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Close dialog" @onclick="Close">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -32,13 +32,13 @@
 
                 <div class="pp-form-grid">
                     <div class="pp-form__field">
-                        <label class="pp-form__label" for="pp-init-name">Initiative name <span class="pp-req">*</span></label>
+                        <label class="pp-form__label" for="pp-init-name">Programme name <span class="pp-req">*</span></label>
                         <InputText id="pp-init-name" @bind-Value="model.Name" class="pp-input" placeholder="Type here" />
                         <ValidationMessage For="() => model.Name" class="pp-field__error" />
                     </div>
 
                     <div class="pp-form__field">
-                        <label class="pp-form__label" for="pp-init-start">Start Date <span class="pp-req">*</span></label>
+                        <label class="pp-form__label" for="pp-init-start">Start Date</label>
                         <InputDate id="pp-init-start" @bind-Value="model.StartDate" class="pp-input" />
                         <ValidationMessage For="() => model.StartDate" class="pp-field__error" />
                     </div>
@@ -53,13 +53,13 @@
                 <div class="pp-form__field pp-form__field--full">
                     <label class="pp-form__label" for="pp-init-desc">Description <span class="pp-req">*</span></label>
                     <InputTextArea id="pp-init-desc" @bind-Value="model.Description" class="pp-input pp-input--area"
-                                   placeholder="Enter the goals and scope for your initiative here" />
+                                   placeholder="Enter the goals and scope for your programme here" />
                     <ValidationMessage For="() => model.Description" class="pp-field__error" />
                 </div>
 
                 <div class="pp-form__field pp-form__field--full">
                     <label class="pp-form__label">Upload Documents</label>
-                    <p class="pp-form__hint">Drop your initiative documents here to continue.</p>
+                    <p class="pp-form__hint">Drop your programme documents here to continue.</p>
                     <!-- Visual-only dropzone (no file handling yet) -->
                     <div class="pp-dropzone" aria-hidden="true">
                         <svg class="pp-dropzone__icon" viewBox="0 0 24 24" fill="none">
@@ -81,7 +81,7 @@
                 <div class="pp-modal__foot">
                     <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close" disabled="@_saving">Cancel</button>
                     <button type="submit" class="pp-btn pp-btn--primary" disabled="@_saving">
-                        @(_saving ? "Saving…" : "Save Initiative")
+                        @(_saving ? "Saving…" : "Save Programme")
                     </button>
                 </div>
             </EditForm>
@@ -94,7 +94,7 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnCreated { get; set; }
 
-    private InitiativeModel model = new();
+    private ProgrammeModel model = new();
     private bool _saving;
     private string? _error;
 
@@ -103,18 +103,18 @@
         _saving = true;
         _error = null;
 
-        var request = new CreateInitiativeRequest(
+        var request = new CreateProgrammeRequest(
             model.Name,
             model.Description ?? string.Empty,
-            model.StartDate!.Value,
+            model.StartDate,
             model.EndDate);
 
-        var result = await InitiativesApi.CreateInitiativeAsync(request, CancellationToken.None);
+        var result = await ProgrammesApi.CreateProgrammeAsync(request, CancellationToken.None);
         _saving = false;
 
         if (!result.Success)
         {
-            _error = result.GeneralError ?? "Couldn't create the initiative. Please try again.";
+            _error = result.GeneralError ?? "Couldn't create the programme. Please try again.";
             return;
         }
 
@@ -130,12 +130,11 @@
         await OnClose.InvokeAsync();
     }
 
-    private sealed class InitiativeModel
+    private sealed class ProgrammeModel
     {
-        [Required(ErrorMessage = "Initiative name is required.")]
+        [Required(ErrorMessage = "Programme name is required.")]
         public string Name { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Start date is required.")]
         public DateTime? StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }

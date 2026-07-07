@@ -1,4 +1,4 @@
-namespace ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+namespace ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
 public enum KpiStatus
 {

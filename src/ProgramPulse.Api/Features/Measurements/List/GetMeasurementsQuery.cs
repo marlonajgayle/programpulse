@@ -29,7 +29,7 @@ public sealed class GetMeasurementsQueryHandler(
         var measurements = await _dbContext.Measurements
             .AsNoTracking()
             .Where(m => m.KpiId == query.KpiId
-                && m.Kpi.Objective.Initiative.TenantId == tenant.Value)
+                && m.Kpi.Objective.Programme.TenantId == tenant.Value)
             .OrderBy(m => m.CreatedDate)
             .Select(m => new MeasurementResponse(
                 m.Id,

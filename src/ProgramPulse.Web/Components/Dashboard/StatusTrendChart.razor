@@ -1,4 +1,4 @@
-@* Multi-line trend of on-track / at-risk / off-track initiative counts over the last 8 weeks.
+@* Multi-line trend of on-track / at-risk / off-track programme counts over the last 8 weeks.
    Inline SVG (project convention — no chart library). Answers which direction the portfolio
    is moving, replacing the old per-day status-mix bars. *@
 
@@ -9,7 +9,7 @@
     </div>
 
     <svg class="pp-trend__chart" viewBox="0 0 @W @H" preserveAspectRatio="none" role="img"
-         aria-label="On-track, at-risk and off-track initiative counts over the last 8 weeks">
+         aria-label="On-track, at-risk and off-track programme counts over the last 8 weeks">
         @for (var g = 1; g <= _max; g++)
         {
             var y = Y(g);

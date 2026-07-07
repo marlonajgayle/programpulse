@@ -1,49 +1,66 @@
 using ProgramPulse.Api.SharedKernel;
 
-namespace ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+namespace ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
-public sealed class Initiative : AuditableEntity<Guid>
+public sealed class Programme : AuditableEntity<Guid>
 {
     private readonly List<Objective> _objectives = [];
 
     // EF Core materialization
-    private Initiative() { }
+    private Programme() { }
 
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
-    public DateTime StartDate { get; private set; }
+    public DateTime? StartDate { get; private set; }
     public DateTime? EndDate { get; private set; }
     public Guid TenantId { get; private set; }
     public Tenant Tenant { get; private set; } = null!;
 
+    // Optional link to a parent programme so programmes can nest.
+    public Guid? ParentProgrammeId { get; private set; }
+    public Programme? ParentProgramme { get; private set; }
+
+    /// <summary>
+    /// Lifecycle status derived from <see cref="EndDate"/>: a programme is
+    /// <see cref="ProgrammeStatus.Active"/> while it has no end date or its end
+    /// date is still in the future, and <see cref="ProgrammeStatus.Archived"/>
+    /// once the end date has passed. Not persisted.
+    /// </summary>
+    public ProgrammeStatus Status =>
+        EndDate is null || DateTime.UtcNow < EndDate
+            ? ProgrammeStatus.Active
+            : ProgrammeStatus.Archived;
+
     public IReadOnlyCollection<Objective> Objectives => _objectives.AsReadOnly();
 
-    public static Initiative Create(
+    public static Programme Create(
         string name,
         string description,
-        DateTime startDate,
+        DateTime? startDate,
         DateTime? endDate,
-        Guid tenantId)
+        Guid tenantId,
+        Guid? parentProgrammeId = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
         ValidateDateRange(startDate, endDate);
 
-        return new Initiative
+        return new Programme
         {
             Id = Guid.CreateVersion7(),
             Name = name,
             Description = description,
             StartDate = startDate,
             EndDate = endDate,
-            TenantId = tenantId
+            TenantId = tenantId,
+            ParentProgrammeId = parentProgrammeId
         };
     }
 
     public void Update(
         string name,
         string description,
-        DateTime startDate,
+        DateTime? startDate,
         DateTime? endDate)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -63,9 +80,9 @@ public sealed class Initiative : AuditableEntity<Guid>
         return objective;
     }
 
-    private static void ValidateDateRange(DateTime startDate, DateTime? endDate)
+    private static void ValidateDateRange(DateTime? startDate, DateTime? endDate)
     {
-        if (endDate is not null && endDate < startDate)
+        if (startDate is not null && endDate is not null && endDate < startDate)
         {
             throw new ArgumentException("End date cannot be earlier than start date.", nameof(endDate));
         }

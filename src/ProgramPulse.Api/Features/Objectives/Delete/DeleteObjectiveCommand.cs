@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.SharedKernel.Primitives;
@@ -10,7 +10,7 @@ public sealed record DeleteObjectiveCommand(Guid Id);
 
 /// <summary>
 /// Soft-deletes an Objective the caller's tenant owns (verified via the parent
-/// Initiative's tenant).
+/// Programme's tenant).
 /// </summary>
 public sealed class DeleteObjectiveCommandHandler(
     ICurrentTenant currentTenant,
@@ -29,7 +29,7 @@ public sealed class DeleteObjectiveCommandHandler(
 
         var objective = await _dbContext.Objectives
             .FirstOrDefaultAsync(
-                o => o.Id == command.Id && o.Initiative.TenantId == tenant.Value,
+                o => o.Id == command.Id && o.Programme.TenantId == tenant.Value,
                 cancellationToken);
 
         if (objective is null)

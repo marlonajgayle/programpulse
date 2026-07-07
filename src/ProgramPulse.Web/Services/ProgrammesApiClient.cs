@@ -6,22 +6,22 @@ using ProgramPulse.Web.Models;
 namespace ProgramPulse.Web.Services;
 
 /// <summary>
-/// Typed client for the API's authenticated Initiatives endpoints. Wraps <see cref="HttpClient"/>,
+/// Typed client for the API's authenticated Programmes endpoints. Wraps <see cref="HttpClient"/>,
 /// returns <c>null</c> from reads when the session is missing/expired or the server is unreachable,
 /// and (for writes) translates RFC-7807 <c>ProblemDetails</c> failures into an
 /// <see cref="AuthResult"/> the dialog can render directly.
 /// </summary>
-public sealed class InitiativesApiClient(HttpClient httpClient)
+public sealed class ProgrammesApiClient(HttpClient httpClient)
 {
     private readonly HttpClient _httpClient = httpClient;
 
     /// <summary>
-    /// Lists the tenant's initiatives, or <c>null</c> when the session is missing/expired (401)
+    /// Lists the tenant's programmes, or <c>null</c> when the session is missing/expired (401)
     /// or the server is unreachable.
     /// </summary>
-    public async Task<IReadOnlyList<InitiativeResponse>?> GetInitiativesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ProgrammeResponse>?> GetProgrammesAsync(CancellationToken cancellationToken)
     {
-        using var message = new HttpRequestMessage(HttpMethod.Get, "api/v1/initiatives");
+        using var message = new HttpRequestMessage(HttpMethod.Get, "api/v1/programmes");
 
         // Include credentials so the browser sends the auth cookie the endpoint authenticates with.
         message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
@@ -33,7 +33,7 @@ public sealed class InitiativesApiClient(HttpClient httpClient)
             if (!response.IsSuccessStatusCode)
                 return null;
 
-            return await response.Content.ReadFromJsonAsync<IReadOnlyList<InitiativeResponse>>(cancellationToken);
+            return await response.Content.ReadFromJsonAsync<IReadOnlyList<ProgrammeResponse>>(cancellationToken);
         }
         catch (HttpRequestException)
         {
@@ -46,13 +46,13 @@ public sealed class InitiativesApiClient(HttpClient httpClient)
     }
 
     /// <summary>
-    /// Fetches a single initiative with its objectives and KPIs, or <c>null</c> when it
+    /// Fetches a single programme with its objectives and KPIs, or <c>null</c> when it
     /// isn't found (404), the session is missing/expired (401), or the server is unreachable.
     /// </summary>
-    public async Task<InitiativeDetailResponse?> GetInitiativeDetailAsync(
+    public async Task<ProgrammeDetailResponse?> GetProgrammeDetailAsync(
         Guid id, CancellationToken cancellationToken)
     {
-        using var message = new HttpRequestMessage(HttpMethod.Get, $"api/v1/initiatives/{id}");
+        using var message = new HttpRequestMessage(HttpMethod.Get, $"api/v1/programmes/{id}");
 
         // Include credentials so the browser sends the auth cookie the endpoint authenticates with.
         message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
@@ -64,7 +64,7 @@ public sealed class InitiativesApiClient(HttpClient httpClient)
             if (!response.IsSuccessStatusCode)
                 return null;
 
-            return await response.Content.ReadFromJsonAsync<InitiativeDetailResponse>(cancellationToken);
+            return await response.Content.ReadFromJsonAsync<ProgrammeDetailResponse>(cancellationToken);
         }
         catch (HttpRequestException)
         {
@@ -76,10 +76,10 @@ public sealed class InitiativesApiClient(HttpClient httpClient)
         }
     }
 
-    public async Task<AuthResult> CreateInitiativeAsync(
-        CreateInitiativeRequest request, CancellationToken cancellationToken)
+    public async Task<AuthResult> CreateProgrammeAsync(
+        CreateProgrammeRequest request, CancellationToken cancellationToken)
     {
-        using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/initiatives")
+        using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/programmes")
         {
             Content = JsonContent.Create(request)
         };
@@ -103,10 +103,10 @@ public sealed class InitiativesApiClient(HttpClient httpClient)
         return await ParseProblemAsync(response, cancellationToken);
     }
 
-    public async Task<AuthResult> UpdateInitiativeAsync(
-        Guid id, UpdateInitiativeRequest request, CancellationToken cancellationToken)
+    public async Task<AuthResult> UpdateProgrammeAsync(
+        Guid id, UpdateProgrammeRequest request, CancellationToken cancellationToken)
     {
-        using var message = new HttpRequestMessage(HttpMethod.Put, $"api/v1/initiatives/{id}")
+        using var message = new HttpRequestMessage(HttpMethod.Put, $"api/v1/programmes/{id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -151,50 +151,52 @@ public sealed class InitiativesApiClient(HttpClient httpClient)
     }
 }
 
-/// <summary>An initiative as returned by <c>GET api/v1/initiatives</c>.</summary>
-public sealed record InitiativeResponse(
+/// <summary>A programme as returned by <c>GET api/v1/programmes</c>.</summary>
+public sealed record ProgrammeResponse(
     Guid Id,
     string Name,
     string Description,
-    DateTime StartDate,
+    DateTime? StartDate,
     DateTime? EndDate,
+    ProgrammeStatus Status,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
     int ObjectiveCount,
     int KpiCount);
 
-/// <summary>Body posted to <c>POST api/v1/initiatives</c>.</summary>
-public sealed record CreateInitiativeRequest(
+/// <summary>Body posted to <c>POST api/v1/programmes</c>.</summary>
+public sealed record CreateProgrammeRequest(
     string Name,
     string Description,
-    DateTime StartDate,
+    DateTime? StartDate,
     DateTime? EndDate);
 
-/// <summary>Body sent to <c>PUT api/v1/initiatives/{id}</c>.</summary>
-public sealed record UpdateInitiativeRequest(
+/// <summary>Body sent to <c>PUT api/v1/programmes/{id}</c>.</summary>
+public sealed record UpdateProgrammeRequest(
     string Name,
     string Description,
-    DateTime StartDate,
+    DateTime? StartDate,
     DateTime? EndDate);
 
-/// <summary>A single initiative with its objectives → KPIs sub-tree, from
-/// <c>GET api/v1/initiatives/{id}</c>. Mirrors the API's nested response contract.</summary>
-public sealed record InitiativeDetailResponse(
+/// <summary>A single programme with its objectives → KPIs sub-tree, from
+/// <c>GET api/v1/programmes/{id}</c>. Mirrors the API's nested response contract.</summary>
+public sealed record ProgrammeDetailResponse(
     Guid Id,
     string Name,
     string Description,
-    DateTime StartDate,
+    DateTime? StartDate,
     DateTime? EndDate,
+    ProgrammeStatus Status,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
     IReadOnlyList<ObjectiveDetailResponse> Objectives);
 
-/// <summary>An objective nested within an <see cref="InitiativeDetailResponse"/>, with its KPIs.</summary>
+/// <summary>An objective nested within an <see cref="ProgrammeDetailResponse"/>, with its KPIs.</summary>
 public sealed record ObjectiveDetailResponse(
     Guid Id,
     string Name,
     string Description,
-    Guid InitiativeId,
+    Guid ProgrammeId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
     IReadOnlyList<KpiDetailResponse> Kpis);

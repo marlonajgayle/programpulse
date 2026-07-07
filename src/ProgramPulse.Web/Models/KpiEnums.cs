@@ -18,6 +18,14 @@ public enum KpiStatus
     Completed,
 }
 
+/// <summary>Programme lifecycle status, derived from the end date server-side.
+/// Ordinals must match ProgramPulse.Api's ProgrammeStatus.</summary>
+public enum ProgrammeStatus
+{
+    Active,
+    Archived,
+}
+
 /// <summary>How close a KPI is to its due date — drives the due-date badge colour.</summary>
 public enum KpiDueUrgency
 {

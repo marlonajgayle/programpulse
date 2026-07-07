@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.SharedKernel.Primitives;
@@ -10,7 +10,7 @@ public sealed record DeleteKpiCommand(Guid Id);
 
 /// <summary>
 /// Soft-deletes a KPI the caller's tenant owns (verified via the parent Objective's
-/// Initiative tenant).
+/// Programme tenant).
 /// </summary>
 public sealed class DeleteKpiCommandHandler(
     ICurrentTenant currentTenant,
@@ -29,7 +29,7 @@ public sealed class DeleteKpiCommandHandler(
 
         var kpi = await _dbContext.Kpis
             .FirstOrDefaultAsync(
-                k => k.Id == command.Id && k.Objective.Initiative.TenantId == tenant.Value,
+                k => k.Id == command.Id && k.Objective.Programme.TenantId == tenant.Value,
                 cancellationToken);
 
         if (kpi is null)

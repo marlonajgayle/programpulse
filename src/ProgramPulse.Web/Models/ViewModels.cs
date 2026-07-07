@@ -1,14 +1,14 @@
 namespace ProgramPulse.Web.Models;
 
-// View models mirroring the API response DTOs (InitiativeResponse, ObjectiveResponse,
+// View models mirroring the API response DTOs (ProgrammeResponse, ObjectiveResponse,
 // KpiResponse, MeasurementResponse) but carrying their child collections so a page can
 // render the whole sub-tree from mock data. Swap SampleData for an API-backed source later.
 
-public sealed record InitiativeVm(
+public sealed record ProgrammeVm(
     Guid Id,
     string Name,
     string Description,
-    DateTime StartDate,
+    DateTime? StartDate,
     DateTime? EndDate,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
@@ -25,6 +25,16 @@ public sealed record InitiativeVm(
     /// <summary>Worst-of roll-up of the contained KPI statuses.</summary>
     public KpiStatus AggregateStatus => StatusRollup.Of(AllKpis);
 
+    /// <summary>Lifecycle status derived from <see cref="EndDate"/>, mirroring the API:
+    /// Active while there is no end date or it is still in the future, else Archived.
+    /// Distinct from <see cref="AggregateStatus"/> (the KPI roll-up).</summary>
+    public ProgrammeStatus LifecycleStatus =>
+        EndDate is null || DateTime.UtcNow < EndDate
+            ? ProgrammeStatus.Active
+            : ProgrammeStatus.Archived;
+
+    public string LifecycleStatusLabel => LifecycleStatus == ProgrammeStatus.Active ? "Active" : "Archived";
+
     /// <summary>Average progress across the contained KPIs, 0–100 (0 when there are none).</summary>
     public int ProgressPercent
     {
@@ -40,7 +50,7 @@ public sealed record ObjectiveVm(
     Guid Id,
     string Name,
     string Description,
-    Guid InitiativeId,
+    Guid ProgrammeId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
     IReadOnlyList<KpiVm> Kpis)

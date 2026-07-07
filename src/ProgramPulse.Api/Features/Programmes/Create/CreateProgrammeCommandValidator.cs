@@ -1,10 +1,10 @@
 using FluentValidation;
 
-namespace ProgramPulse.Api.Features.Initiatives.Create;
+namespace ProgramPulse.Api.Features.Programmes.Create;
 
-public sealed class CreateInitiativeCommandValidator : AbstractValidator<CreateInitiativeCommand>
+public sealed class CreateProgrammeCommandValidator : AbstractValidator<CreateProgrammeCommand>
 {
-    public CreateInitiativeCommandValidator()
+    public CreateProgrammeCommandValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("A name is required.")
@@ -15,8 +15,8 @@ public sealed class CreateInitiativeCommandValidator : AbstractValidator<CreateI
             .MaximumLength(1000).WithMessage("The description must not exceed 1000 characters.");
 
         RuleFor(x => x.EndDate)
-            .GreaterThanOrEqualTo(x => x.StartDate)
-            .When(x => x.EndDate.HasValue)
+            .GreaterThanOrEqualTo(x => x.StartDate!.Value)
+            .When(x => x.EndDate.HasValue && x.StartDate.HasValue)
             .WithMessage("The end date cannot be earlier than the start date.");
     }
 }

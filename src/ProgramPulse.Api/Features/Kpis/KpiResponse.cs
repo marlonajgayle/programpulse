@@ -1,4 +1,4 @@
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
 namespace ProgramPulse.Api.Features.Kpis;
 

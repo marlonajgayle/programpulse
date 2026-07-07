@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ProgramPulse.Api.Domain.Entities.Tenants.Initiatives;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.Infrastructure.Authentication;
 using ProgramPulse.Api.Infrastructure.Persistence;
 using ProgramPulse.Api.SharedKernel.Primitives;
@@ -38,7 +38,7 @@ public sealed class GetDashboardSummaryQueryHandler(
 
         // Materialize the tenant's sub-tree; the worst-of roll-up and overdue checks below
         // are simpler (and clearer) evaluated in memory than translated to SQL.
-        var initiatives = await _dbContext.Initiatives
+        var programmes = await _dbContext.Programmes
             .AsNoTracking()
             .Where(i => i.TenantId == tenant.Value)
             .Include(i => i.Objectives)
@@ -53,15 +53,15 @@ public sealed class GetDashboardSummaryQueryHandler(
             .FirstOrDefaultAsync(cancellationToken) ?? "Your team";
 
         var now = DateTime.UtcNow;
-        var allKpis = initiatives.SelectMany(i => i.Objectives).SelectMany(o => o.Kpis).ToList();
+        var allKpis = programmes.SelectMany(i => i.Objectives).SelectMany(o => o.Kpis).ToList();
 
-        // --- Status roll-up per initiative (worst-of) ---
+        // --- Status roll-up per programme (worst-of) ---
         var onTrack = 0;
         var atRisk = 0;
         var offTrack = 0;
-        foreach (var initiative in initiatives)
+        foreach (var programme in programmes)
         {
-            var status = RollUp(initiative.Objectives.SelectMany(o => o.Kpis));
+            var status = RollUp(programme.Objectives.SelectMany(o => o.Kpis));
             switch (status)
             {
                 case KpiStatus.OffTrack: offTrack++; break;
@@ -79,16 +79,16 @@ public sealed class GetDashboardSummaryQueryHandler(
         // --- Overdue: no measurement in > 14 days (or none) ---
         var overdue = allKpis.Count(k => IsOverdue(k, now));
 
-        // --- Flagged initiatives, worst-first, with their worst KPI as failing metric ---
-        var flagged = initiatives
+        // --- Flagged programmes, worst-first, with their worst KPI as failing metric ---
+        var flagged = programmes
             .Select(i => new
             {
-                Initiative = i,
+                Programme = i,
                 Status = RollUp(i.Objectives.SelectMany(o => o.Kpis)),
             })
             .Where(x => x.Status is KpiStatus.AtRisk or KpiStatus.OffTrack)
             .OrderByDescending(x => x.Status == KpiStatus.OffTrack)
-            .Select(x => ToFlagged(x.Initiative, x.Status, teamName))
+            .Select(x => ToFlagged(x.Programme, x.Status, teamName))
             .ToList();
 
         // --- Velocity (computable parts only) ---
@@ -113,11 +113,11 @@ public sealed class GetDashboardSummaryQueryHandler(
 
         var response = new DashboardSummaryResponse(
             TeamName: teamName,
-            ActiveInitiativeCount: initiatives.Count,
+            ActiveProgrammeCount: programmes.Count,
             GeneratedAtUtc: now,
             HealthScore: healthScore,
             HealthDeltaPercent: 0,          // TODO: needs status-history for week-over-week delta
-            Status: new StatusCounts(onTrack, atRisk, offTrack, initiatives.Count),
+            Status: new StatusCounts(onTrack, atRisk, offTrack, programmes.Count),
             AtRiskDeltaSinceLastWeek: 0,    // TODO: needs status-history
             OverdueKpiCount: overdue,
             TotalKpiCount: allKpis.Count,
@@ -150,18 +150,18 @@ public sealed class GetDashboardSummaryQueryHandler(
         return (now - latest).TotalDays > OverdueThresholdDays;
     }
 
-    private static FlaggedInitiative ToFlagged(Initiative initiative, KpiStatus status, string teamName)
+    private static FlaggedProgramme ToFlagged(Programme programme, KpiStatus status, string teamName)
     {
-        var kpis = initiative.Objectives.SelectMany(o => o.Kpis).ToList();
-        // Worst KPI = one matching the initiative's rolled-up status, else the first.
+        var kpis = programme.Objectives.SelectMany(o => o.Kpis).ToList();
+        // Worst KPI = one matching the programme's rolled-up status, else the first.
         var worst = kpis.FirstOrDefault(k => k.Status == status) ?? kpis.FirstOrDefault();
 
-        return new FlaggedInitiative(
-            Id: initiative.Id,
-            Name: initiative.Name,
+        return new FlaggedProgramme(
+            Id: programme.Id,
+            Name: programme.Name,
             StatusModifier: status == KpiStatus.OffTrack ? "off" : "warn",
             Team: teamName,
-            Owner: initiative.CreatedBy,
+            Owner: programme.CreatedBy,
             FailingMetric: worst?.Name ?? "—",
             CurrentValue: worst?.CurrentValue ?? 0,
             TargetValue: worst?.TargetValue ?? 0,

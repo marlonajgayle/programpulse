@@ -12,12 +12,12 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
 builder.Services.AddScoped<AuthApiClient>();
 builder.Services.AddScoped<UsersApiClient>();
 builder.Services.AddScoped<FaqsApiClient>();
-builder.Services.AddScoped<InitiativesApiClient>();
+builder.Services.AddScoped<ProgrammesApiClient>();
 builder.Services.AddScoped<ObjectivesApiClient>();
 builder.Services.AddScoped<KpisApiClient>();
 builder.Services.AddScoped<MeasurementsApiClient>();
 
-// Mock data source for the Initiatives UI (swap for an API-backed source later).
+// Mock data source for the Programmes UI (swap for an API-backed source later).
 builder.Services.AddSingleton<SampleData>();
 
 await builder.Build().RunAsync();
