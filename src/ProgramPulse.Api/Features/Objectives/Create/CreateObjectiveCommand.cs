@@ -22,7 +22,8 @@ public sealed record CreateObjectiveKpi(
     decimal BaselineValue,
     decimal TargetValue,
     decimal CurrentValue,
-    DateTime DueDate);
+    DateTime DueDate,
+    MeasurementFrequency? Frequency);
 
 /// <summary>
 /// Creates a new Objective (with its single KPI) under a Programme the caller's tenant
@@ -63,7 +64,8 @@ public sealed class CreateObjectiveCommandHandler(
             command.Kpi.BaselineValue,
             command.Kpi.TargetValue,
             command.Kpi.CurrentValue,
-            command.Kpi.DueDate);
+            command.Kpi.DueDate,
+            command.Kpi.Frequency);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var response = new ObjectiveResponse(

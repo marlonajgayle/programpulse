@@ -26,7 +26,8 @@ public sealed class Objective : AuditableEntity<Guid>
         decimal baselineValue,
         decimal targetValue,
         decimal currentValue,
-        DateTime dueDate)
+        DateTime dueDate,
+        MeasurementFrequency? kpiFrequency)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
@@ -47,6 +48,7 @@ public sealed class Objective : AuditableEntity<Guid>
                 targetValue,
                 currentValue,
                 dueDate,
+                kpiFrequency,
                 id)
         };
     }

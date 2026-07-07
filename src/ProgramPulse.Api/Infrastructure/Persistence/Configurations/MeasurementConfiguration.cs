@@ -31,6 +31,9 @@ public sealed class MeasurementConfiguration : IEntityTypeConfiguration<Measurem
             .IsRequired(false)
             .HasMaxLength(1000);
 
+        builder.Property(m => m.MeasurementDate)
+            .IsRequired();
+
         builder.Property(m => m.CreatedBy)
             .IsRequired()
             .HasMaxLength(450);

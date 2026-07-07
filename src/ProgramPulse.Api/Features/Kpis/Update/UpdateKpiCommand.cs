@@ -12,7 +12,8 @@ public sealed record UpdateKpiCommand(
     string Unit,
     KpiDirection Direction,
     decimal TargetValue,
-    DateTime DueDate);
+    DateTime DueDate,
+    MeasurementFrequency? Frequency);
 
 /// <summary>
 /// Updates a KPI the caller's tenant owns (verified via the parent Objective's
@@ -43,7 +44,7 @@ public sealed class UpdateKpiCommandHandler(
         if (kpi is null)
             return Result.Failure(KpiErrors.KpiNotFound(command.Id));
 
-        kpi.Update(command.Name, command.Unit, command.Direction, command.TargetValue, command.DueDate);
+        kpi.Update(command.Name, command.Unit, command.Direction, command.TargetValue, command.DueDate, command.Frequency);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

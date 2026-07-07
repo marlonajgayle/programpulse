@@ -82,7 +82,8 @@ public sealed class Programme : AuditableEntity<Guid>
         decimal baselineValue,
         decimal targetValue,
         decimal currentValue,
-        DateTime dueDate)
+        DateTime dueDate,
+        MeasurementFrequency? kpiFrequency)
     {
         var objective = Objective.Create(
             name,
@@ -94,7 +95,8 @@ public sealed class Programme : AuditableEntity<Guid>
             baselineValue,
             targetValue,
             currentValue,
-            dueDate);
+            dueDate,
+            kpiFrequency);
         _objectives.Add(objective);
         return objective;
     }

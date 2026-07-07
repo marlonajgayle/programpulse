@@ -58,6 +58,11 @@ public sealed class KpiConfiguration : IEntityTypeConfiguration<Kpi>
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        builder.Property(k => k.MeasurementFrequency)
+            .IsRequired(false)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         builder.Property(k => k.CreatedBy)
             .IsRequired()
             .HasMaxLength(450);

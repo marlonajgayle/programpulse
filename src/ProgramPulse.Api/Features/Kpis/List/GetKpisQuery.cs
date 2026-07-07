@@ -43,6 +43,7 @@ public sealed class GetObjectiveKpiQueryHandler(
                 k.CurrentValue,
                 k.DueDate,
                 k.Status,
+                k.MeasurementFrequency,
                 k.ObjectiveId,
                 k.CreatedDate,
                 k.LastModifiedDate))

@@ -8,7 +8,7 @@ namespace ProgramPulse.Api.Features.Measurements.List;
 public sealed record GetMeasurementsQuery(Guid KpiId);
 
 /// <summary>
-/// Returns all Measurements for a KPI the caller's tenant owns, ordered by creation
+/// Returns all Measurements for a KPI the caller's tenant owns, ordered by measurement
 /// date. Soft-deleted rows are excluded by the global query filter.
 /// </summary>
 public sealed class GetMeasurementsQueryHandler(
@@ -30,11 +30,12 @@ public sealed class GetMeasurementsQueryHandler(
             .AsNoTracking()
             .Where(m => m.KpiId == query.KpiId
                 && m.Kpi.Objective.Programme.TenantId == tenant.Value)
-            .OrderBy(m => m.CreatedDate)
+            .OrderBy(m => m.MeasurementDate)
             .Select(m => new MeasurementResponse(
                 m.Id,
                 m.Value,
                 m.Notes,
+                m.MeasurementDate,
                 m.KpiId,
                 m.CreatedDate,
                 m.LastModifiedDate))

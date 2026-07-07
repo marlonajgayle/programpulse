@@ -6,7 +6,7 @@ using ProgramPulse.Api.SharedKernel.Primitives;
 
 namespace ProgramPulse.Api.Features.Measurements.Update;
 
-public sealed record UpdateMeasurementCommand(Guid Id, decimal Value, string? Notes);
+public sealed record UpdateMeasurementCommand(Guid Id, decimal Value, string? Notes, DateTime? MeasurementDate);
 
 /// <summary>
 /// Updates a Measurement the caller's tenant owns (verified via the KPI → Objective →
@@ -29,6 +29,7 @@ public sealed class UpdateMeasurementCommandHandler(
             return Result.Failure(tenant.Error);
 
         var measurement = await _dbContext.Measurements
+            .Include(m => m.Kpi)
             .FirstOrDefaultAsync(
                 m => m.Id == command.Id
                     && m.Kpi.Objective.Programme.TenantId == tenant.Value,
@@ -37,7 +38,27 @@ public sealed class UpdateMeasurementCommandHandler(
         if (measurement is null)
             return Result.Failure(MeasurementErrors.MeasurementNotFound(command.Id));
 
-        measurement.Update(command.Value, command.Notes);
+        var measurementDate = command.MeasurementDate ?? measurement.MeasurementDate;
+
+        // Re-check the KPI cadence against sibling measurements (excluding this one)
+        // in case the date moved into another reading's interval. No limit when null.
+        if (measurement.Kpi.MeasurementFrequency is { } frequency)
+        {
+            var lower = frequency.AddInterval(measurementDate, -1);
+            var upper = frequency.AddInterval(measurementDate, 1);
+
+            var clash = await _dbContext.Measurements.AnyAsync(
+                m => m.Id != measurement.Id
+                    && m.KpiId == measurement.KpiId
+                    && m.MeasurementDate > lower
+                    && m.MeasurementDate < upper,
+                cancellationToken);
+
+            if (clash)
+                return Result.Failure(MeasurementErrors.MeasurementTooSoon(frequency));
+        }
+
+        measurement.Update(command.Value, command.Notes, measurementDate);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

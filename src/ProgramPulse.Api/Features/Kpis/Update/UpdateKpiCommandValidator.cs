@@ -20,5 +20,9 @@ public sealed class UpdateKpiCommandValidator : AbstractValidator<UpdateKpiComma
 
         RuleFor(x => x.DueDate)
             .NotEmpty().WithMessage("A due date is required.");
+
+        RuleFor(x => x.Frequency)
+            .IsInEnum().WithMessage("The measurement frequency is invalid.")
+            .When(x => x.Frequency.HasValue);
     }
 }

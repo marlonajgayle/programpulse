@@ -9,7 +9,8 @@ namespace ProgramPulse.Api.Features.Measurements.Create;
 public sealed record CreateMeasurementCommand(
     Guid KpiId,
     decimal Value,
-    string? Notes);
+    string? Notes,
+    DateTime? MeasurementDate);
 
 /// <summary>
 /// Records a new Measurement against a KPI the caller's tenant owns. The Measurement is
@@ -40,13 +41,33 @@ public sealed class CreateMeasurementCommandHandler(
         if (kpi is null)
             return Result<MeasurementResponse>.Failure(KpiErrors.KpiNotFound(command.KpiId));
 
-        var measurement = kpi.AddMeasurement(command.Value, command.Notes);
+        var measurementDate = command.MeasurementDate ?? DateTime.UtcNow;
+
+        // Enforce the KPI's expected cadence: reject when another measurement already
+        // falls within one interval of this reading's date. No limit when frequency is null.
+        if (kpi.MeasurementFrequency is { } frequency)
+        {
+            var lower = frequency.AddInterval(measurementDate, -1);
+            var upper = frequency.AddInterval(measurementDate, 1);
+
+            var clash = await _dbContext.Measurements.AnyAsync(
+                m => m.KpiId == kpi.Id
+                    && m.MeasurementDate > lower
+                    && m.MeasurementDate < upper,
+                cancellationToken);
+
+            if (clash)
+                return Result<MeasurementResponse>.Failure(MeasurementErrors.MeasurementTooSoon(frequency));
+        }
+
+        var measurement = kpi.AddMeasurement(command.Value, command.Notes, measurementDate);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var response = new MeasurementResponse(
             measurement.Id,
             measurement.Value,
             measurement.Notes,
+            measurement.MeasurementDate,
             measurement.KpiId,
             measurement.CreatedDate,
             measurement.LastModifiedDate);

@@ -17,6 +17,11 @@ public sealed class Kpi : AuditableEntity<Guid>
     public decimal CurrentValue { get; private set; }
     public DateTime DueDate { get; private set; }
     public KpiStatus Status { get; private set; }
+
+    // Expected measurement cadence. When null there is no cadence limit and
+    // measurements may be recorded without restriction.
+    public MeasurementFrequency? MeasurementFrequency { get; private set; }
+
     public Guid ObjectiveId { get; private set; }
     public Objective Objective { get; private set; } = null!;
 
@@ -31,6 +36,7 @@ public sealed class Kpi : AuditableEntity<Guid>
         decimal targetValue,
         decimal currentValue,
         DateTime dueDate,
+        MeasurementFrequency? measurementFrequency,
         Guid objectiveId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -47,6 +53,7 @@ public sealed class Kpi : AuditableEntity<Guid>
             CurrentValue = currentValue,
             DueDate = dueDate,
             Status = KpiStatus.NotStarted,
+            MeasurementFrequency = measurementFrequency,
             ObjectiveId = objectiveId
         };
     }
@@ -56,7 +63,8 @@ public sealed class Kpi : AuditableEntity<Guid>
         string unit,
         KpiDirection direction,
         decimal targetValue,
-        DateTime dueDate)
+        DateTime dueDate,
+        MeasurementFrequency? measurementFrequency)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(unit);
@@ -66,6 +74,7 @@ public sealed class Kpi : AuditableEntity<Guid>
         Direction = direction;
         TargetValue = targetValue;
         DueDate = dueDate;
+        MeasurementFrequency = measurementFrequency;
     }
 
     public void RecordProgress(decimal currentValue, KpiStatus status)
@@ -74,9 +83,9 @@ public sealed class Kpi : AuditableEntity<Guid>
         Status = status;
     }
 
-    public Measurement AddMeasurement(decimal value, string? notes)
+    public Measurement AddMeasurement(decimal value, string? notes, DateTime measurementDate)
     {
-        var measurement = Measurement.Create(value, notes, Id);
+        var measurement = Measurement.Create(value, notes, measurementDate, Id);
         _measurements.Add(measurement);
         CurrentValue = value; // keep current reading in sync with latest measurement
         return measurement;

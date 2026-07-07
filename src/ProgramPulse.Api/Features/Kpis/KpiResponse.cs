@@ -15,6 +15,7 @@ public sealed record KpiResponse(
     decimal CurrentValue,
     DateTime DueDate,
     KpiStatus Status,
+    MeasurementFrequency? MeasurementFrequency,
     Guid ObjectiveId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate);

@@ -9,25 +9,32 @@ public sealed class Measurement : AuditableEntity<Guid>
 
     public decimal Value { get; private set; }
     public string? Notes { get; private set; }
+
+    // The date the reading is for. May be back-dated to record historical entries;
+    // it (not the audit CreatedDate) is what the KPI's cadence rule measures against.
+    public DateTime MeasurementDate { get; private set; }
+
     public Guid KpiId { get; private set; }
     public Kpi Kpi { get; private set; } = null!;
 
     // Internal so measurements are only created through the Kpi.
-    internal static Measurement Create(decimal value, string? notes, Guid kpiId)
+    internal static Measurement Create(decimal value, string? notes, DateTime measurementDate, Guid kpiId)
     {
         return new Measurement
         {
             Id = Guid.CreateVersion7(),
             Value = value,
             Notes = notes,
+            MeasurementDate = measurementDate,
             KpiId = kpiId
         };
     }
 
-    public void Update(decimal value, string? notes)
+    public void Update(decimal value, string? notes, DateTime measurementDate)
     {
         Value = value;
         Notes = notes;
+        MeasurementDate = measurementDate;
     }
 
     // MarkAsDeleted() is inherited (public) from BaseEntity<Guid>.
