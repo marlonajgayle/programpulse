@@ -13,10 +13,13 @@ public sealed class GetProgrammesEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("programmes", async (
+            int? page,
+            int? pageSize,
             GetProgrammesQueryHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var result = await handler.HandleAsync(new GetProgrammesQuery(), cancellationToken);
+            var query = new GetProgrammesQuery(page ?? 1, pageSize ?? 10);
+            var result = await handler.HandleAsync(query, cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)

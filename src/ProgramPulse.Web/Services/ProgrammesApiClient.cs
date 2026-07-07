@@ -16,12 +16,14 @@ public sealed class ProgrammesApiClient(HttpClient httpClient)
     private readonly HttpClient _httpClient = httpClient;
 
     /// <summary>
-    /// Lists the tenant's programmes, or <c>null</c> when the session is missing/expired (401)
-    /// or the server is unreachable.
+    /// Lists a page of the tenant's top-level programmes (each with its sub-programmes),
+    /// or <c>null</c> when the session is missing/expired (401) or the server is unreachable.
     /// </summary>
-    public async Task<IReadOnlyList<ProgrammeResponse>?> GetProgrammesAsync(CancellationToken cancellationToken)
+    public async Task<PagedResponse<ProgrammeResponse>?> GetProgrammesAsync(
+        int page, int pageSize, CancellationToken cancellationToken)
     {
-        using var message = new HttpRequestMessage(HttpMethod.Get, "api/v1/programmes");
+        using var message = new HttpRequestMessage(
+            HttpMethod.Get, $"api/v1/programmes?page={page}&pageSize={pageSize}");
 
         // Include credentials so the browser sends the auth cookie the endpoint authenticates with.
         message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
@@ -33,7 +35,7 @@ public sealed class ProgrammesApiClient(HttpClient httpClient)
             if (!response.IsSuccessStatusCode)
                 return null;
 
-            return await response.Content.ReadFromJsonAsync<IReadOnlyList<ProgrammeResponse>>(cancellationToken);
+            return await response.Content.ReadFromJsonAsync<PagedResponse<ProgrammeResponse>>(cancellationToken);
         }
         catch (HttpRequestException)
         {
@@ -151,7 +153,17 @@ public sealed class ProgrammesApiClient(HttpClient httpClient)
     }
 }
 
-/// <summary>A programme as returned by <c>GET api/v1/programmes</c>.</summary>
+/// <summary>A single page of results with paging metadata, mirroring the API's
+/// <c>PagedList&lt;T&gt;</c>.</summary>
+public sealed record PagedResponse<T>(
+    IReadOnlyList<T> Items,
+    int Page,
+    int PageSize,
+    int TotalCount,
+    int TotalPages);
+
+/// <summary>A programme as returned by <c>GET api/v1/programmes</c>. Top-level programmes
+/// carry their <see cref="SubProgrammes"/>; sub-programmes have <see cref="ParentProgrammeId"/> set.</summary>
 public sealed record ProgrammeResponse(
     Guid Id,
     string Name,
@@ -162,21 +174,25 @@ public sealed record ProgrammeResponse(
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
     int ObjectiveCount,
-    int KpiCount);
+    int KpiCount,
+    Guid? ParentProgrammeId = null,
+    IReadOnlyList<ProgrammeResponse>? SubProgrammes = null);
 
 /// <summary>Body posted to <c>POST api/v1/programmes</c>.</summary>
 public sealed record CreateProgrammeRequest(
     string Name,
     string Description,
     DateTime? StartDate,
-    DateTime? EndDate);
+    DateTime? EndDate,
+    Guid? ParentProgrammeId = null);
 
 /// <summary>Body sent to <c>PUT api/v1/programmes/{id}</c>.</summary>
 public sealed record UpdateProgrammeRequest(
     string Name,
     string Description,
     DateTime? StartDate,
-    DateTime? EndDate);
+    DateTime? EndDate,
+    Guid? ParentProgrammeId = null);
 
 /// <summary>A single programme with its objectives → KPIs sub-tree, from
 /// <c>GET api/v1/programmes/{id}</c>. Mirrors the API's nested response contract.</summary>

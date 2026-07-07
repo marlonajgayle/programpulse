@@ -73,6 +73,21 @@ public sealed class Programme : AuditableEntity<Guid>
         EndDate = endDate;
     }
 
+    /// <summary>
+    /// Sets or clears the parent programme. Pass <c>null</c> to promote this programme
+    /// back to top-level. Guards against a programme parenting itself; callers are
+    /// responsible for validating the parent exists, is in-tenant, and is top-level.
+    /// </summary>
+    public void SetParent(Guid? parentProgrammeId)
+    {
+        if (parentProgrammeId == Id)
+        {
+            throw new ArgumentException("A programme cannot be its own parent.", nameof(parentProgrammeId));
+        }
+
+        ParentProgrammeId = parentProgrammeId;
+    }
+
     public Objective AddObjective(
         string name,
         string description,

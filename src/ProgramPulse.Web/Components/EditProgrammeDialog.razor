@@ -48,6 +48,25 @@
                         <InputDate id="pp-edit-init-end" @bind-Value="model.EndDate" class="pp-input" />
                         <ValidationMessage For="() => model.EndDate" class="pp-field__error" />
                     </div>
+
+                    <div class="pp-form__field pp-form__field--full">
+                        <label class="pp-form__label" for="pp-edit-init-parent">Parent programme</label>
+                        @if (_hasSubProgrammes)
+                        {
+                            <p class="pp-form__hint">This programme has sub-programmes, so it stays top-level.</p>
+                        }
+                        else
+                        {
+                            <InputSelect id="pp-edit-init-parent" @bind-Value="model.ParentProgrammeId" class="pp-input">
+                                <option value="">None (top-level programme)</option>
+                                @foreach (var option in _parentOptions)
+                                {
+                                    <option value="@option.Id">@option.Name</option>
+                                }
+                            </InputSelect>
+                            <p class="pp-form__hint">Nest this under an existing programme, or leave as top-level.</p>
+                        }
+                    </div>
                 </div>
 
                 <div class="pp-form__field pp-form__field--full">
@@ -81,20 +100,43 @@
     [Parameter] public EventCallback OnSaved { get; set; }
 
     private ProgrammeModel model = new();
+    private IReadOnlyList<(Guid Id, string Name)> _parentOptions = Array.Empty<(Guid, string)>();
+    private bool _hasSubProgrammes;
+    private Guid? _loadedForId;
     private bool _saving;
     private string? _error;
 
-    protected override void OnParametersSet()
+    // Re-initialise the form (and fetch parent options) when a new programme is opened.
+    protected override async Task OnParametersSetAsync()
     {
-        if (Visible && Programme is { } programme)
+        if (Visible && Programme is { } programme && _loadedForId != programme.Id)
         {
+            _loadedForId = programme.Id;
             model = new ProgrammeModel
             {
                 Name = programme.Name,
                 Description = programme.Description,
                 StartDate = programme.StartDate,
                 EndDate = programme.EndDate,
+                ParentProgrammeId = programme.ParentProgrammeId,
             };
+
+            // A programme with its own sub-programmes can't become a child (max two levels),
+            // so the parent selector is hidden for it.
+            _hasSubProgrammes = programme.Children.Count > 0;
+
+            if (_hasSubProgrammes)
+            {
+                _parentOptions = Array.Empty<(Guid, string)>();
+            }
+            else
+            {
+                var page = await ProgrammesApi.GetProgrammesAsync(1, 200, CancellationToken.None);
+                _parentOptions = page?.Items
+                    .Where(p => p.Id != programme.Id)
+                    .Select(p => (p.Id, p.Name)).ToList()
+                    ?? (IReadOnlyList<(Guid, string)>)Array.Empty<(Guid, string)>();
+            }
         }
     }
 
@@ -109,7 +151,8 @@
         _error = null;
 
         var request = new UpdateProgrammeRequest(
-            model.Name, model.Description ?? string.Empty, model.StartDate, model.EndDate);
+            model.Name, model.Description ?? string.Empty, model.StartDate, model.EndDate,
+            model.ParentProgrammeId);
         var result = await ProgrammesApi.UpdateProgrammeAsync(Programme.Id, request, CancellationToken.None);
         _saving = false;
 
@@ -128,6 +171,7 @@
         _error = null;
         _saving = false;
         model = new();
+        _loadedForId = null;
         await OnClose.InvokeAsync();
     }
 
@@ -142,6 +186,8 @@
 
         [Required(ErrorMessage = "A description is required.")]
         public string? Description { get; set; }
+
+        public Guid? ParentProgrammeId { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

@@ -48,6 +48,18 @@
                         <InputDate id="pp-init-end" @bind-Value="model.EndDate" class="pp-input" />
                         <ValidationMessage For="() => model.EndDate" class="pp-field__error" />
                     </div>
+
+                    <div class="pp-form__field pp-form__field--full">
+                        <label class="pp-form__label" for="pp-init-parent">Parent programme</label>
+                        <InputSelect id="pp-init-parent" @bind-Value="model.ParentProgrammeId" class="pp-input">
+                            <option value="">None (top-level programme)</option>
+                            @foreach (var option in _parentOptions)
+                            {
+                                <option value="@option.Id">@option.Name</option>
+                            }
+                        </InputSelect>
+                        <p class="pp-form__hint">Nest this under an existing programme to make it a sub-programme.</p>
+                    </div>
                 </div>
 
                 <div class="pp-form__field pp-form__field--full">
@@ -95,8 +107,22 @@
     [Parameter] public EventCallback OnCreated { get; set; }
 
     private ProgrammeModel model = new();
+    private IReadOnlyList<(Guid Id, string Name)> _parentOptions = Array.Empty<(Guid, string)>();
+    private bool _optionsLoaded;
     private bool _saving;
     private string? _error;
+
+    // Load the top-level programmes that can serve as a parent the first time the dialog opens.
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Visible && !_optionsLoaded)
+        {
+            _optionsLoaded = true;
+            var page = await ProgrammesApi.GetProgrammesAsync(1, 200, CancellationToken.None);
+            _parentOptions = page?.Items.Select(p => (p.Id, p.Name)).ToList()
+                ?? (IReadOnlyList<(Guid, string)>)Array.Empty<(Guid, string)>();
+        }
+    }
 
     private async Task HandleSave()
     {
@@ -107,7 +133,8 @@
             model.Name,
             model.Description ?? string.Empty,
             model.StartDate,
-            model.EndDate);
+            model.EndDate,
+            model.ParentProgrammeId);
 
         var result = await ProgrammesApi.CreateProgrammeAsync(request, CancellationToken.None);
         _saving = false;
@@ -127,6 +154,8 @@
         _error = null;
         _saving = false;
         model = new();
+        // Re-fetch parent options next open so freshly created programmes appear.
+        _optionsLoaded = false;
         await OnClose.InvokeAsync();
     }
 
@@ -141,5 +170,7 @@
 
         [Required(ErrorMessage = "A description is required.")]
         public string? Description { get; set; }
+
+        public Guid? ParentProgrammeId { get; set; }
     }
 }

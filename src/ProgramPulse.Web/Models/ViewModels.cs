@@ -14,8 +14,13 @@ public sealed record ProgrammeVm(
     DateTime? LastModifiedDate,
     IReadOnlyList<ObjectiveVm> Objectives,
     int? ObjectiveCountOverride = null,
-    int? KpiCountOverride = null)
+    int? KpiCountOverride = null,
+    Guid? ParentProgrammeId = null,
+    IReadOnlyList<ProgrammeVm>? SubProgrammes = null)
 {
+    /// <summary>Nested sub-programmes (one level). Empty for a sub-programme itself.</summary>
+    public IReadOnlyList<ProgrammeVm> Children => SubProgrammes ?? Array.Empty<ProgrammeVm>();
+
     public IEnumerable<KpiVm> AllKpis => Objectives.Where(o => o.Kpi is not null).Select(o => o.Kpi!);
 
     public int ObjectiveCount => ObjectiveCountOverride ?? Objectives.Count;

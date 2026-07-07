@@ -8,7 +8,7 @@
 <div class="pp-page__head">
     <div>
         <h1 class="pp-dash__heading">Programmes</h1>
-        <p class="pp-page__subtitle">@_all.Count active @(_all.Count == 1 ? "programme" : "programmes") across your programme.</p>
+        <p class="pp-page__subtitle">@_totalCount top-level @(_totalCount == 1 ? "programme" : "programmes") across your workspace.</p>
     </div>
     <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreate = true">
         <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
@@ -24,23 +24,12 @@
             <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7" />
             <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
         </svg>
-        <input class="pp-input pp-input--icon" type="search" placeholder="Filter programmes"
-               aria-label="Filter programmes" value="@_search"
+        <input class="pp-input pp-input--icon" type="search" placeholder="Filter this page"
+               aria-label="Filter programmes on this page" value="@_search"
                @oninput="e => _search = e.Value?.ToString() ?? string.Empty" />
     </div>
-    <div class="pp-legend pp-legend--filter" role="group" aria-label="Filter by status">
-        @foreach (var opt in FilterOptions)
-        {
-            var active = _activeFilters.Contains(opt.Status);
-            <button type="button"
-                    class="pp-legend__chip pp-legend__chip--@opt.Modifier @(active ? "is-active" : null)"
-                    aria-pressed="@active"
-                    @onclick="() => ToggleFilter(opt.Status)">
-                <StatusIcon Status="opt.Status" />
-                @opt.Label
-            </button>
-        }
-    </div>
+    @* Search filters the current page only; with server-side pagination the other pages
+       aren't in memory. A full-dataset search would need a server-side search param. *@
 </div>
 
 @if (_loading)
@@ -54,7 +43,7 @@ else if (_loadFailed)
         <p class="pp-empty__note">The server is unreachable right now. Please try again later.</p>
     </div>
 }
-else if (_all.Count == 0)
+else if (_totalCount == 0)
 {
     <div class="pp-empty">
         <p class="pp-empty__title">No programmes yet</p>
@@ -64,119 +53,174 @@ else if (_all.Count == 0)
 else
 {
     var visible = Filtered();
-    var criticalId = MostCriticalId(visible);
 
     @if (visible.Count == 0)
     {
         <div class="pp-empty">
-            <p class="pp-empty__title">No programmes match your filters</p>
-            <p class="pp-empty__note">Try a different search term or status filter.</p>
-            <button type="button" class="pp-btn pp-btn--ghost" @onclick="ClearFilters">Clear filters</button>
+            <p class="pp-empty__title">No programmes match your filter</p>
+            <p class="pp-empty__note">Try a different search term, or clear the filter.</p>
+            <button type="button" class="pp-btn pp-btn--ghost" @onclick="() => _search = string.Empty">Clear filter</button>
         </div>
     }
     else
     {
-        <div class="pp-list-grid">
-            @foreach (var programme in visible)
+        <div class="pp-tree" role="tree" aria-label="Programmes">
+            @foreach (var parent in visible)
             {
-                <ProgrammeCard Programme="programme"
-                                Critical="programme.Id == criticalId"
-                                OnOpen="Open" />
+                var expanded = _expanded.Contains(parent.Id);
+                var hasChildren = parent.Children.Count > 0;
+
+                <div class="pp-tree__group" role="treeitem" aria-expanded="@(hasChildren ? expanded : (bool?)null)">
+                    <div class="pp-tree__row @(expanded ? "is-open" : null)">
+                        @if (hasChildren)
+                        {
+                            <button type="button" class="pp-tree__toggle" aria-expanded="@expanded"
+                                    aria-label="@(expanded ? "Collapse" : "Expand") @parent.Name"
+                                    @onclick="() => Toggle(parent.Id)" @onclick:stopPropagation="true">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="pp-tree__toggle pp-tree__toggle--leaf" aria-hidden="true"></span>
+                        }
+
+                        <ProgrammeTreeRow Programme="parent" IsChild="false" OnOpen="Open" OnEdit="OpenEdit" />
+                    </div>
+
+                    @if (expanded && hasChildren)
+                    {
+                        <div class="pp-tree__children" role="group">
+                            @foreach (var child in parent.Children)
+                            {
+                                <div class="pp-tree__row pp-tree__row--child" role="treeitem">
+                                    <span class="pp-tree__toggle pp-tree__toggle--leaf" aria-hidden="true"></span>
+                                    <ProgrammeTreeRow Programme="child" IsChild="true" OnOpen="Open" OnEdit="OpenEdit" />
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             }
         </div>
+
+        @if (_totalPages > 1)
+        {
+            <div class="pp-pagination">
+                <button type="button" class="pp-btn pp-btn--ghost pp-btn--sm" disabled="@(_page == 1)" @onclick="PrevPage">
+                    ← Previous
+                </button>
+                <div class="pp-pagination__pages">
+                    @for (var p = 1; p <= _totalPages; p++)
+                    {
+                        var pageNumber = p;
+                        <button type="button" class="pp-pagination__page @(pageNumber == _page ? "is-active" : "")"
+                                @onclick="() => GoToPage(pageNumber)">
+                            @pageNumber.ToString("00")
+                        </button>
+                    }
+                </div>
+                <button type="button" class="pp-btn pp-btn--ghost pp-btn--sm" disabled="@(_page == _totalPages)" @onclick="NextPage">
+                    Next →
+                </button>
+            </div>
+        }
     }
 }
 
 <CreateProgrammeDialog Visible="showCreate" OnClose="() => showCreate = false" OnCreated="ReloadAsync" />
+<EditProgrammeDialog Visible="_showEdit" Programme="_editing" OnClose="CloseEdit" OnSaved="ReloadAsync" />
 
 @code {
-    private IReadOnlyList<ProgrammeVm> _all = Array.Empty<ProgrammeVm>();
-    private readonly HashSet<KpiStatus> _activeFilters = new();
+    private const int PageSize = 10;
+
+    private IReadOnlyList<ProgrammeVm> _parents = Array.Empty<ProgrammeVm>();
+    private readonly HashSet<Guid> _expanded = new();
     private string _search = string.Empty;
+    private int _page = 1;
+    private int _totalPages = 1;
+    private int _totalCount;
     private bool showCreate;
+    private bool _showEdit;
+    private ProgrammeVm? _editing;
     private bool _loading = true;
     private bool _loadFailed;
 
-    // Legend chips double as status filters. Only the three "live" statuses are offered;
-    // completed/not-started programmes simply fall outside an active status filter.
-    private static readonly (KpiStatus Status, string Modifier, string Label)[] FilterOptions =
+    protected override Task OnInitializedAsync() => LoadAsync(1);
+
+    private Task ReloadAsync() => LoadAsync(_page);
+
+    private async Task LoadAsync(int page)
     {
-        (KpiStatus.OnTrack, "track", "On track"),
-        (KpiStatus.AtRisk, "warn", "At risk"),
-        (KpiStatus.OffTrack, "off", "Off track"),
-    };
-
-    protected override Task OnInitializedAsync() => LoadAsync();
-
-    // Re-fetch after a create so the new programme shows without a manual refresh.
-    private Task ReloadAsync() => LoadAsync();
-
-    private async Task LoadAsync()
-    {
-        var result = await ProgrammesApi.GetProgrammesAsync(CancellationToken.None);
+        _loading = true;
+        var result = await ProgrammesApi.GetProgrammesAsync(page, PageSize, CancellationToken.None);
         _loadFailed = result is null;
 
-        // The list endpoint returns objective/KPI counts but not the sub-tree itself, so
-        // the counts populate the card while the KPI status bar stays empty (it needs
-        // per-KPI statuses) until the sub-tree is wired.
-        _all = result?
-            .Select(i => new ProgrammeVm(
-                i.Id, i.Name, i.Description, i.StartDate, i.EndDate,
-                i.CreatedDate, i.LastModifiedDate, Array.Empty<ObjectiveVm>(),
-                ObjectiveCountOverride: i.ObjectiveCount,
-                KpiCountOverride: i.KpiCount))
-            .ToList()
-            ?? (IReadOnlyList<ProgrammeVm>)Array.Empty<ProgrammeVm>();
+        if (result is not null)
+        {
+            _parents = result.Items.Select(ToVm).ToList();
+            _page = result.Page;
+            _totalPages = Math.Max(1, result.TotalPages);
+            _totalCount = result.TotalCount;
+        }
+        else
+        {
+            _parents = Array.Empty<ProgrammeVm>();
+        }
 
         _loading = false;
     }
 
+    // The list endpoint returns objective/KPI counts but not the KPI sub-tree, so rows
+    // show counts and lifecycle status (both derivable) rather than a KPI roll-up.
+    private static ProgrammeVm ToVm(ProgrammeResponse r) => new(
+        r.Id, r.Name, r.Description, r.StartDate, r.EndDate,
+        r.CreatedDate, r.LastModifiedDate, Array.Empty<ObjectiveVm>(),
+        ObjectiveCountOverride: r.ObjectiveCount,
+        KpiCountOverride: r.KpiCount,
+        ParentProgrammeId: r.ParentProgrammeId,
+        SubProgrammes: (r.SubProgrammes ?? Array.Empty<ProgrammeResponse>()).Select(ToVm).ToList());
+
+    private void Toggle(Guid id)
+    {
+        if (!_expanded.Remove(id))
+        {
+            _expanded.Add(id);
+        }
+    }
+
     private void Open(Guid id) => Nav.NavigateTo($"/programmes/{id}");
 
-    private void ToggleFilter(KpiStatus status)
+    private void OpenEdit(ProgrammeVm programme)
     {
-        if (!_activeFilters.Remove(status))
-        {
-            _activeFilters.Add(status);
-        }
+        _editing = programme;
+        _showEdit = true;
     }
 
-    private void ClearFilters()
+    private void CloseEdit()
     {
-        _activeFilters.Clear();
-        _search = string.Empty;
+        _showEdit = false;
+        _editing = null;
     }
 
-    // Status filter and free-text search combine with AND.
+    // Search filters the loaded page's parents by name/description (current page only).
     private IReadOnlyList<ProgrammeVm> Filtered()
     {
-        IEnumerable<ProgrammeVm> query = _all;
-
-        if (_activeFilters.Count > 0)
+        if (string.IsNullOrWhiteSpace(_search))
         {
-            query = query.Where(i => _activeFilters.Contains(i.AggregateStatus));
+            return _parents;
         }
 
-        if (!string.IsNullOrWhiteSpace(_search))
-        {
-            var term = _search.Trim();
-            query = query.Where(i =>
-                i.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
-                || i.Description.Contains(term, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return query.ToList();
+        var term = _search.Trim();
+        return _parents
+            .Where(p => p.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || p.Description.Contains(term, StringComparison.OrdinalIgnoreCase))
+            .ToList();
     }
 
-    // The single worst programme among those currently on screen, or null if none is
-    // at-risk-or-worse (so an all-healthy board gets no dark card). Ranking:
-    // off-track beats at-risk, ties broken by off-track KPI count, then soonest end date.
-    private static Guid? MostCriticalId(IReadOnlyList<ProgrammeVm> visible) =>
-        visible
-            .Where(i => i.AggregateStatus is KpiStatus.OffTrack or KpiStatus.AtRisk)
-            .OrderByDescending(i => i.AggregateStatus == KpiStatus.OffTrack)
-            .ThenByDescending(i => i.AllKpis.Count(k => k.Status == KpiStatus.OffTrack))
-            .ThenBy(i => i.EndDate ?? DateTime.MaxValue)
-            .Select(i => (Guid?)i.Id)
-            .FirstOrDefault();
+    private async Task PrevPage() { if (_page > 1) await LoadAsync(_page - 1); }
+    private async Task NextPage() { if (_page < _totalPages) await LoadAsync(_page + 1); }
+    private async Task GoToPage(int page) { if (page != _page) await LoadAsync(page); }
 }
