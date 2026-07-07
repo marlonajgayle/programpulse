@@ -16,7 +16,7 @@ public sealed record ProgrammeVm(
     int? ObjectiveCountOverride = null,
     int? KpiCountOverride = null)
 {
-    public IEnumerable<KpiVm> AllKpis => Objectives.SelectMany(o => o.Kpis);
+    public IEnumerable<KpiVm> AllKpis => Objectives.Where(o => o.Kpi is not null).Select(o => o.Kpi!);
 
     public int ObjectiveCount => ObjectiveCountOverride ?? Objectives.Count;
 
@@ -53,11 +53,14 @@ public sealed record ObjectiveVm(
     Guid ProgrammeId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
-    IReadOnlyList<KpiVm> Kpis)
+    KpiVm? Kpi)
 {
-    public int KpiCount => Kpis.Count;
+    // An objective has exactly one KPI. Kpi is only null defensively when the
+    // client couldn't load it (network/session failure).
+    public int KpiCount => Kpi is null ? 0 : 1;
 
-    public KpiStatus AggregateStatus => StatusRollup.Of(Kpis);
+    public KpiStatus AggregateStatus =>
+        StatusRollup.Of(Kpi is null ? [] : [Kpi]);
 }
 
 public sealed record KpiVm(

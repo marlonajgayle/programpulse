@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
+using ProgramPulse.Web.Models;
 
 namespace ProgramPulse.Web.Services;
 
@@ -91,8 +92,23 @@ public sealed class ObjectivesApiClient(HttpClient httpClient)
     }
 }
 
-/// <summary>Body posted to <c>POST api/v1/programmes/{programmeId}/objectives</c>.</summary>
-public sealed record CreateObjectiveRequest(string Name, string Description);
+/// <summary>Body posted to <c>POST api/v1/programmes/{programmeId}/objectives</c>. An objective
+/// is created together with its single KPI, so the KPI fields travel in the body.</summary>
+public sealed record CreateObjectiveRequest(
+    string Name,
+    string Description,
+    CreateObjectiveKpiRequest Kpi);
+
+/// <summary>The single KPI an objective is created with, nested inside
+/// <see cref="CreateObjectiveRequest"/>.</summary>
+public sealed record CreateObjectiveKpiRequest(
+    string Name,
+    string Unit,
+    KpiDirection Direction,
+    decimal BaselineValue,
+    decimal TargetValue,
+    decimal CurrentValue,
+    DateTime DueDate);
 
 /// <summary>Body sent to <c>PUT api/v1/objectives/{id}</c>.</summary>
 public sealed record UpdateObjectiveRequest(string Name, string Description);

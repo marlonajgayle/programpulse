@@ -9,13 +9,26 @@ namespace ProgramPulse.Api.Features.Objectives.Create;
 public sealed record CreateObjectiveCommand(
     Guid ProgrammeId,
     string Name,
-    string Description);
+    string Description,
+    CreateObjectiveKpi Kpi);
 
 /// <summary>
-/// Creates a new Objective under an Programme the caller's tenant owns. The Objective
-/// is created through the Programme aggregate root (<c>AddObjective</c>). Returns a
-/// not-found error when the parent Programme does not exist or belongs to another
-/// tenant.
+/// The single KPI an objective is created with. An objective always has exactly one KPI.
+/// </summary>
+public sealed record CreateObjectiveKpi(
+    string Name,
+    string Unit,
+    KpiDirection Direction,
+    decimal BaselineValue,
+    decimal TargetValue,
+    decimal CurrentValue,
+    DateTime DueDate);
+
+/// <summary>
+/// Creates a new Objective (with its single KPI) under a Programme the caller's tenant
+/// owns. The Objective is created through the Programme aggregate root (<c>AddObjective</c>),
+/// which builds the KPI inline. Returns a not-found error when the parent Programme does
+/// not exist or belongs to another tenant.
 /// </summary>
 public sealed class CreateObjectiveCommandHandler(
     ICurrentTenant currentTenant,
@@ -41,7 +54,16 @@ public sealed class CreateObjectiveCommandHandler(
             return Result<ObjectiveResponse>.Failure(
                 ProgrammeErrors.ProgrammeNotFound(command.ProgrammeId));
 
-        var objective = programme.AddObjective(command.Name, command.Description);
+        var objective = programme.AddObjective(
+            command.Name,
+            command.Description,
+            command.Kpi.Name,
+            command.Kpi.Unit,
+            command.Kpi.Direction,
+            command.Kpi.BaselineValue,
+            command.Kpi.TargetValue,
+            command.Kpi.CurrentValue,
+            command.Kpi.DueDate);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var response = new ObjectiveResponse(

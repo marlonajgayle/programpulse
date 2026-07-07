@@ -43,7 +43,7 @@ public sealed class GetProgrammesQueryHandler(
                 i.CreatedDate,
                 i.LastModifiedDate,
                 i.Objectives.Count,
-                i.Objectives.SelectMany(o => o.Kpis).Count()))
+                i.Objectives.Count(o => o.Kpi != null)))
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<ProgrammeResponse>>.Success(programmes);

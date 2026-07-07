@@ -78,13 +78,13 @@ else
                         </div>
                         <p class="pp-init-card__desc">@objective.Description</p>
                         <div class="pp-obj-card__foot">
-                            <span class="pp-init-card__counts">@objective.KpiCount KPIs</span>
-                            <span class="pp-pills">
-                                @foreach (var kpi in objective.Kpis)
-                                {
+                            @if (objective.Kpi is { } kpi)
+                            {
+                                <span class="pp-init-card__counts">@kpi.Name</span>
+                                <span class="pp-pills">
                                     <span class="pp-pill-dot pp-pill-dot--@kpi.StatusModifier" title="@kpi.Name — @kpi.StatusLabel"></span>
-                                }
-                            </span>
+                                </span>
+                            }
                         </div>
                     </article>
                 }
@@ -252,12 +252,11 @@ else
             d.Objectives
                 .Select(o => new ObjectiveVm(
                     o.Id, o.Name, o.Description, o.ProgrammeId, o.CreatedDate, o.LastModifiedDate,
-                    o.Kpis
-                        .Select(k => new KpiVm(
-                            k.Id, k.Name, k.Unit, k.Direction, k.BaselineValue, k.TargetValue,
-                            k.CurrentValue, k.DueDate, k.Status, k.ObjectiveId,
-                            k.CreatedDate, k.LastModifiedDate, Array.Empty<MeasurementVm>()))
-                        .ToList()))
+                    o.Kpi is null ? null : new KpiVm(
+                        o.Kpi.Id, o.Kpi.Name, o.Kpi.Unit, o.Kpi.Direction, o.Kpi.BaselineValue,
+                        o.Kpi.TargetValue, o.Kpi.CurrentValue, o.Kpi.DueDate, o.Kpi.Status,
+                        o.Kpi.ObjectiveId, o.Kpi.CreatedDate, o.Kpi.LastModifiedDate,
+                        Array.Empty<MeasurementVm>())))
                 .ToList());
 
     // --- Programme health buckets (worst-of statuses roll each KPI into one of three) ---

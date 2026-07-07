@@ -42,6 +42,61 @@
                     <ValidationMessage For="() => model.Description" class="pp-field__error" />
                 </div>
 
+                <hr class="pp-modal__rule" />
+                <h3 class="pp-section-head">Key performance indicator</h3>
+                <p class="pp-modal__subtitle">Every objective is measured by exactly one KPI.</p>
+
+                <div class="pp-form-grid">
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-kpi-name">KPI name <span class="pp-req">*</span></label>
+                        <InputText id="pp-kpi-name" @bind-Value="model.KpiName" class="pp-input" placeholder="Type here" />
+                        <ValidationMessage For="() => model.KpiName" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-kpi-unit">Unit <span class="pp-req">*</span></label>
+                        <InputText id="pp-kpi-unit" @bind-Value="model.KpiUnit" class="pp-input" placeholder="e.g. %, pts, days" />
+                        <ValidationMessage For="() => model.KpiUnit" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-kpi-direction">Direction <span class="pp-req">*</span></label>
+                        <div class="pp-select">
+                            <InputSelect id="pp-kpi-direction" @bind-Value="model.Direction" class="pp-input">
+                                <option value="@KpiDirection.Increase">Increase</option>
+                                <option value="@KpiDirection.Decrease">Decrease</option>
+                            </InputSelect>
+                            <svg class="pp-select__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-kpi-due">Due date <span class="pp-req">*</span></label>
+                        <InputDate id="pp-kpi-due" @bind-Value="model.DueDate" class="pp-input" />
+                        <ValidationMessage For="() => model.DueDate" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-kpi-baseline">Baseline value <span class="pp-req">*</span></label>
+                        <InputNumber id="pp-kpi-baseline" @bind-Value="model.Baseline" class="pp-input" placeholder="0" />
+                        <ValidationMessage For="() => model.Baseline" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-kpi-target">Target value <span class="pp-req">*</span></label>
+                        <InputNumber id="pp-kpi-target" @bind-Value="model.Target" class="pp-input" placeholder="0" />
+                        <ValidationMessage For="() => model.Target" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-kpi-current">Current value</label>
+                        <InputNumber id="pp-kpi-current" @bind-Value="model.Current" class="pp-input" placeholder="Defaults to baseline" />
+                        <p class="pp-form__hint">Leave blank to start at the baseline.</p>
+                    </div>
+                </div>
+
                 @if (_error is not null)
                 {
                     <p class="pp-auth__error">@_error</p>
@@ -74,7 +129,17 @@
         _saving = true;
         _error = null;
 
-        var request = new CreateObjectiveRequest(model.Name, model.Description ?? string.Empty);
+        var request = new CreateObjectiveRequest(
+            model.Name,
+            model.Description ?? string.Empty,
+            new CreateObjectiveKpiRequest(
+                model.KpiName,
+                model.KpiUnit,
+                model.Direction,
+                model.Baseline!.Value,
+                model.Target!.Value,
+                model.Current ?? model.Baseline!.Value,
+                model.DueDate!.Value));
         var result = await ObjectivesApi.CreateObjectiveAsync(ProgrammeId, request, CancellationToken.None);
         _saving = false;
 
@@ -103,5 +168,24 @@
 
         [Required(ErrorMessage = "A description is required.")]
         public string? Description { get; set; }
+
+        [Required(ErrorMessage = "KPI name is required.")]
+        public string KpiName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Unit is required.")]
+        public string KpiUnit { get; set; } = string.Empty;
+
+        public KpiDirection Direction { get; set; } = KpiDirection.Increase;
+
+        [Required(ErrorMessage = "Baseline value is required.")]
+        public decimal? Baseline { get; set; }
+
+        [Required(ErrorMessage = "Target value is required.")]
+        public decimal? Target { get; set; }
+
+        public decimal? Current { get; set; }
+
+        [Required(ErrorMessage = "Due date is required.")]
+        public DateTime? DueDate { get; set; }
     }
 }

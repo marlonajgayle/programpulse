@@ -73,9 +73,28 @@ public sealed class Programme : AuditableEntity<Guid>
         EndDate = endDate;
     }
 
-    public Objective AddObjective(string name, string description)
+    public Objective AddObjective(
+        string name,
+        string description,
+        string kpiName,
+        string kpiUnit,
+        KpiDirection kpiDirection,
+        decimal baselineValue,
+        decimal targetValue,
+        decimal currentValue,
+        DateTime dueDate)
     {
-        var objective = Objective.Create(name, description, Id);
+        var objective = Objective.Create(
+            name,
+            description,
+            Id,
+            kpiName,
+            kpiUnit,
+            kpiDirection,
+            baselineValue,
+            targetValue,
+            currentValue,
+            dueDate);
         _objectives.Add(objective);
         return objective;
     }

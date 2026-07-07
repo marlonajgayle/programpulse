@@ -6,23 +6,23 @@ using ProgramPulse.Api.SharedKernel.Versioning;
 namespace ProgramPulse.Api.Features.Kpis.List;
 
 /// <summary>
-/// Returns all KPIs under the given Objective.
+/// Returns the single KPI belonging to the given Objective.
 /// </summary>
-public sealed class GetKpisEndpoint : IEndpoint
+public sealed class GetObjectiveKpiEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("objectives/{objectiveId:guid}/kpis", async (
+        app.MapGet("objectives/{objectiveId:guid}/kpi", async (
             Guid objectiveId,
-            GetKpisQueryHandler handler,
+            GetObjectiveKpiQueryHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var result = await handler.HandleAsync(new GetKpisQuery(objectiveId), cancellationToken);
+            var result = await handler.HandleAsync(new GetObjectiveKpiQuery(objectiveId), cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)
         .RequireAuthorization(AuthorizationPolicies.Authenticated)
-        .WithName("GetKpis")
+        .WithName("GetObjectiveKpi")
         .WithTags("KPIs");
     }
 }

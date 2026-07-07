@@ -42,7 +42,7 @@ public sealed class GetDashboardSummaryQueryHandler(
             .AsNoTracking()
             .Where(i => i.TenantId == tenant.Value)
             .Include(i => i.Objectives)
-                .ThenInclude(o => o.Kpis)
+                .ThenInclude(o => o.Kpi)
                     .ThenInclude(k => k.Measurements)
             .ToListAsync(cancellationToken);
 
@@ -53,7 +53,7 @@ public sealed class GetDashboardSummaryQueryHandler(
             .FirstOrDefaultAsync(cancellationToken) ?? "Your team";
 
         var now = DateTime.UtcNow;
-        var allKpis = programmes.SelectMany(i => i.Objectives).SelectMany(o => o.Kpis).ToList();
+        var allKpis = programmes.SelectMany(i => i.Objectives).Select(o => o.Kpi).ToList();
 
         // --- Status roll-up per programme (worst-of) ---
         var onTrack = 0;
@@ -61,7 +61,7 @@ public sealed class GetDashboardSummaryQueryHandler(
         var offTrack = 0;
         foreach (var programme in programmes)
         {
-            var status = RollUp(programme.Objectives.SelectMany(o => o.Kpis));
+            var status = RollUp(programme.Objectives.Select(o => o.Kpi));
             switch (status)
             {
                 case KpiStatus.OffTrack: offTrack++; break;
@@ -84,7 +84,7 @@ public sealed class GetDashboardSummaryQueryHandler(
             .Select(i => new
             {
                 Programme = i,
-                Status = RollUp(i.Objectives.SelectMany(o => o.Kpis)),
+                Status = RollUp(i.Objectives.Select(o => o.Kpi)),
             })
             .Where(x => x.Status is KpiStatus.AtRisk or KpiStatus.OffTrack)
             .OrderByDescending(x => x.Status == KpiStatus.OffTrack)
@@ -152,7 +152,7 @@ public sealed class GetDashboardSummaryQueryHandler(
 
     private static FlaggedProgramme ToFlagged(Programme programme, KpiStatus status, string teamName)
     {
-        var kpis = programme.Objectives.SelectMany(o => o.Kpis).ToList();
+        var kpis = programme.Objectives.Select(o => o.Kpi).ToList();
         // Worst KPI = one matching the programme's rolled-up status, else the first.
         var worst = kpis.FirstOrDefault(k => k.Status == status) ?? kpis.FirstOrDefault();
 

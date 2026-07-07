@@ -51,22 +51,19 @@ public sealed class GetProgrammeByIdQueryHandler(
                         o.ProgrammeId,
                         o.CreatedDate,
                         o.LastModifiedDate,
-                        o.Kpis
-                            .OrderBy(k => k.CreatedDate)
-                            .Select(k => new KpiDetailResponse(
-                                k.Id,
-                                k.Name,
-                                k.Unit,
-                                k.Direction,
-                                k.BaselineValue,
-                                k.TargetValue,
-                                k.CurrentValue,
-                                k.DueDate,
-                                k.Status,
-                                k.ObjectiveId,
-                                k.CreatedDate,
-                                k.LastModifiedDate))
-                            .ToList()))
+                        new KpiDetailResponse(
+                            o.Kpi.Id,
+                            o.Kpi.Name,
+                            o.Kpi.Unit,
+                            o.Kpi.Direction,
+                            o.Kpi.BaselineValue,
+                            o.Kpi.TargetValue,
+                            o.Kpi.CurrentValue,
+                            o.Kpi.DueDate,
+                            o.Kpi.Status,
+                            o.Kpi.ObjectiveId,
+                            o.Kpi.CreatedDate,
+                            o.Kpi.LastModifiedDate)))
                     .ToList()))
             .FirstOrDefaultAsync(cancellationToken);
 

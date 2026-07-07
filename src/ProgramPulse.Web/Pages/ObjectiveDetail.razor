@@ -54,27 +54,20 @@ else
     </header>
 
     <div class="pp-section-head-row">
-        <h2 class="pp-section-head">Key performance indicators</h2>
-        <button type="button" class="pp-btn pp-btn--primary" @onclick="() => showCreateKpi = true">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            Add KPI
-        </button>
+        <h2 class="pp-section-head">Key performance indicator</h2>
     </div>
 
-    @if (objective.Kpis.Count == 0)
+    @if (objective.Kpi is null)
     {
         <div class="pp-empty">
-            <p class="pp-empty__title">No KPIs yet</p>
-            <p class="pp-empty__note">This objective has no measurable indicators defined.</p>
+            <p class="pp-empty__title">KPI unavailable</p>
+            <p class="pp-empty__note">This objective's KPI couldn't be loaded. The server may be unreachable — try again shortly.</p>
         </div>
     }
     else
     {
+        var kpi = objective.Kpi;
         <div class="pp-kpi-grid">
-            @foreach (var kpi in objective.Kpis)
-            {
                 <article class="pp-card pp-kpi-card">
                     <span class="pp-kpi-card__stripe pp-kpi-card__stripe--@kpi.StatusModifier" aria-hidden="true"></span>
 
@@ -202,12 +195,8 @@ else
                         </button>
                     </footer>
                 </article>
-            }
         </div>
     }
-
-    <CreateKpiDialog ProgrammeId="Id" ObjectiveId="ObjectiveId" Visible="showCreateKpi"
-                     OnClose="() => showCreateKpi = false" OnSaved="Reload" />
 
     <EditObjectiveDialog Objective="objective" Visible="showEditObjective"
                          OnClose="() => showEditObjective = false" OnSaved="Reload" />
@@ -226,7 +215,6 @@ else
 
     private ProgrammeVm? programme;
     private ObjectiveVm? objective;
-    private bool showCreateKpi;
     private bool showEditObjective;
     private KpiVm? editingKpi;
     private KpiVm? measurementKpi;
@@ -238,7 +226,7 @@ else
     private Task Reload() => LoadAsync();
 
     // Objective metadata (name/description/breadcrumb) has no dedicated endpoint, so it comes
-    // from the parent programme's detail tree; the KPI cards come from the KPI list endpoint.
+    // from the parent programme's detail tree; the KPI card comes from the objective's KPI endpoint.
     private async Task LoadAsync()
     {
         _loading = true;
@@ -254,10 +242,9 @@ else
             return;
         }
 
-        var kpis = await KpisApi.GetKpisAsync(ObjectiveId, CancellationToken.None) ?? [];
-
-        // Fetch each KPI's measurements in parallel so the history list, sparkline and recency render.
-        var kpiVms = await Task.WhenAll(kpis.Select(ToKpiVmAsync));
+        // An objective has exactly one KPI; null only on a load failure (handled in the UI).
+        var kpi = await KpisApi.GetObjectiveKpiAsync(ObjectiveId, CancellationToken.None);
+        var kpiVm = kpi is null ? null : await ToKpiVmAsync(kpi);
 
         programme = new ProgrammeVm(
             detail.Id, detail.Name, detail.Description, detail.StartDate, detail.EndDate,
@@ -266,7 +253,7 @@ else
         objective = new ObjectiveVm(
             objectiveDetail.Id, objectiveDetail.Name, objectiveDetail.Description,
             objectiveDetail.ProgrammeId, objectiveDetail.CreatedDate, objectiveDetail.LastModifiedDate,
-            kpiVms.ToList());
+            kpiVm);
 
         _loading = false;
     }

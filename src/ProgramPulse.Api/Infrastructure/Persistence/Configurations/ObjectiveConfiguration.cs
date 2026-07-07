@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
@@ -10,8 +9,9 @@ namespace ProgramPulse.Api.Infrastructure.Persistence.Configurations;
 /// <c>ApplyConfigurationsFromAssembly</c> in <see cref="ApplicationDbContext"/>.
 /// The soft-delete query filter is applied globally for all
 /// <c>ISoftDeletable</c> entities, so it is intentionally not configured here.
-/// Owns the one-to-many relationship to <c>Kpi</c>. The relationship back to
-/// <c>Programme</c> is configured in <see cref="ProgrammeConfiguration"/>.
+/// Owns the one-to-one relationship to <c>Kpi</c> (a UNIQUE index on
+/// <c>Kpi.ObjectiveId</c> enforces the single-KPI invariant). The relationship
+/// back to <c>Programme</c> is configured in <see cref="ProgrammeConfiguration"/>.
 /// </summary>
 public sealed class ObjectiveConfiguration : IEntityTypeConfiguration<Objective>
 {
@@ -54,13 +54,9 @@ public sealed class ObjectiveConfiguration : IEntityTypeConfiguration<Objective>
         builder.Property(o => o.DeletedUtc)
             .IsRequired(false);
 
-        builder.HasMany(o => o.Kpis)
+        builder.HasOne(o => o.Kpi)
             .WithOne(k => k.Objective)
-            .HasForeignKey(k => k.ObjectiveId)
+            .HasForeignKey<Kpi>(k => k.ObjectiveId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.Metadata
-            .FindNavigation(nameof(Objective.Kpis))!
-            .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }
