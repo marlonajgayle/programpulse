@@ -1,0 +1,43 @@
+@* A sub-programme rendered as its own card below an expanded parent: name + description on
+   the left, right-aligned meta (objective count + deadline/created date). The whole card is
+   clickable and opens the detail page. *@
+
+<article class="pp-subcard" role="button" tabindex="0"
+         @onclick="() => OnOpen.InvokeAsync(Programme.Id)" @onkeydown="OnKey">
+    <div class="pp-subcard__body">
+        <h3 class="pp-subcard__name">@Programme.Name</h3>
+        @if (!string.IsNullOrWhiteSpace(Programme.Description))
+        {
+            <p class="pp-subcard__desc">@Programme.Description</p>
+        }
+    </div>
+
+    <div class="pp-subcard__meta">
+        <span class="pp-subcard__metaitem">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 4v16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                <path d="M6 5h11l-2 3.5L17 12H6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+            </svg>
+            @Programme.ObjectiveCount @(Programme.ObjectiveCount == 1 ? "objective" : "objectives")
+        </span>
+        <span class="pp-subcard__metaitem pp-subcard__metaitem--muted">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.7" />
+                <path d="M4 9h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+            @DateText
+        </span>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public ProgrammeVm Programme { get; set; } = default!;
+
+    [Parameter] public EventCallback<Guid> OnOpen { get; set; }
+
+    private string DateText =>
+        (Programme.EndDate ?? Programme.CreatedDate).ToString("d MMM yyyy");
+
+    private Task OnKey(KeyboardEventArgs e) =>
+        e.Key is "Enter" or " " ? OnOpen.InvokeAsync(Programme.Id) : Task.CompletedTask;
+}

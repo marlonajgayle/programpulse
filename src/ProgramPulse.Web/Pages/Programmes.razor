@@ -64,45 +64,24 @@ else
     }
     else
     {
-        <div class="pp-tree" role="tree" aria-label="Programmes">
+        <div class="pp-progtree" aria-label="Programmes">
             @foreach (var parent in visible)
             {
                 var expanded = _expanded.Contains(parent.Id);
                 var hasChildren = parent.Children.Count > 0;
 
-                <div class="pp-tree__group" role="treeitem" aria-expanded="@(hasChildren ? expanded : (bool?)null)">
-                    <div class="pp-tree__row @(expanded ? "is-open" : null)">
-                        @if (hasChildren)
-                        {
-                            <button type="button" class="pp-tree__toggle" aria-expanded="@expanded"
-                                    aria-label="@(expanded ? "Collapse" : "Expand") @parent.Name"
-                                    @onclick="() => Toggle(parent.Id)" @onclick:stopPropagation="true">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </button>
-                        }
-                        else
-                        {
-                            <span class="pp-tree__toggle pp-tree__toggle--leaf" aria-hidden="true"></span>
-                        }
+                <ProgrammeListItem Programme="parent" Expanded="expanded" HasChildren="hasChildren"
+                                   OnOpen="Open" OnToggle="Toggle" OnEdit="OpenEdit" OnArchive="ArchiveAsync" />
 
-                        <ProgrammeTreeRow Programme="parent" IsChild="false" OnOpen="Open" OnEdit="OpenEdit" />
+                @if (expanded && hasChildren)
+                {
+                    <div class="pp-progtree__children">
+                        @foreach (var child in parent.Children)
+                        {
+                            <SubProgrammeCard Programme="child" OnOpen="Open" />
+                        }
                     </div>
-
-                    @if (expanded && hasChildren)
-                    {
-                        <div class="pp-tree__children" role="group">
-                            @foreach (var child in parent.Children)
-                            {
-                                <div class="pp-tree__row pp-tree__row--child" role="treeitem">
-                                    <span class="pp-tree__toggle pp-tree__toggle--leaf" aria-hidden="true"></span>
-                                    <ProgrammeTreeRow Programme="child" IsChild="true" OnOpen="Open" OnEdit="OpenEdit" />
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
+                }
             }
         </div>
 
@@ -192,6 +171,21 @@ else
     }
 
     private void Open(Guid id) => Nav.NavigateTo($"/programmes/{id}");
+
+    // No dedicated archive endpoint exists; lifecycle status is derived from EndDate
+    // (Active when EndDate is null or in the future). Archiving sets EndDate to now (past),
+    // restoring clears it. Other fields are preserved via the existing update endpoint.
+    private async Task ArchiveAsync(ProgrammeVm p)
+    {
+        var endDate = p.LifecycleStatus == ProgrammeStatus.Active ? DateTime.UtcNow : (DateTime?)null;
+        var request = new UpdateProgrammeRequest(p.Name, p.Description, p.StartDate, endDate, p.ParentProgrammeId);
+
+        var result = await ProgrammesApi.UpdateProgrammeAsync(p.Id, request, CancellationToken.None);
+        if (result.Success)
+        {
+            await ReloadAsync();
+        }
+    }
 
     private void OpenEdit(ProgrammeVm programme)
     {

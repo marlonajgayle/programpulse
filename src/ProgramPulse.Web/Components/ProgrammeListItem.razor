@@ -1,0 +1,152 @@
+@* A top-level programme rendered as an expandable card: icon tile, title + status badge,
+   description, meta row (sub-programme count + created date), a "…" overflow menu (Edit /
+   Archive), and a collapse chevron. The card owns its own menu-open state. Expanding is
+   handled by the parent page — this card's own box never resizes; its sub-programmes render
+   as separate cards below it. Clicking the header body opens the detail page; the menu and
+   chevron stop propagation so they don't also navigate. *@
+
+<article class="pp-progcard @(Expanded ? "is-open" : null) @(IsArchived ? "pp-progcard--archived" : null)">
+    <div class="pp-progcard__head" role="button" tabindex="0"
+         @onclick="() => OnOpen.InvokeAsync(Programme.Id)" @onkeydown="OnKey">
+        <div class="pp-progcard__icon" aria-hidden="true">
+            @if (IsArchived)
+            {
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M4 7h16v3H4zM5 10v9h14v-9" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                    <path d="M10 13h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+            }
+            else
+            {
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M4 7.5 12 4l8 3.5-8 3.5-8-3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                    <path d="m4 12 8 3.5L20 12M4 16.5 12 20l8-3.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                </svg>
+            }
+        </div>
+
+        <div class="pp-progcard__body">
+            <div class="pp-progcard__titlerow">
+                <h2 class="pp-progcard__name">@Programme.Name</h2>
+                <span class="pp-badge pp-badge--@LifecycleModifier">@Programme.LifecycleStatusLabel</span>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Programme.Description))
+            {
+                <p class="pp-progcard__desc">@Programme.Description</p>
+            }
+
+            <div class="pp-progcard__meta">
+                @if (HasChildren)
+                {
+                    <span class="pp-progcard__metaitem">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 7.5 12 4l8 3.5-8 3.5-8-3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                            <path d="m4 12 8 3.5L20 12M4 16.5 12 20l8-3.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                        </svg>
+                        @Programme.Children.Count sub-@(Programme.Children.Count == 1 ? "programme" : "programmes")
+                    </span>
+                }
+                <span class="pp-progcard__metaitem pp-progcard__metaitem--muted">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.7" />
+                        <path d="M4 9h16M8 3v4M16 3v4M9 14l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Created @Programme.CreatedDate.ToString("d MMM yyyy")
+                </span>
+            </div>
+        </div>
+
+        <div class="pp-progcard__actions">
+            <div class="pp-menu" @onclick:stopPropagation="true">
+                <button type="button" class="pp-iconbtn pp-menu__btn" aria-haspopup="true"
+                        aria-expanded="@_menuOpen" aria-label="Programme actions"
+                        @onclick="() => _menuOpen = !_menuOpen">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="5" cy="12" r="1.6" fill="currentColor" />
+                        <circle cx="12" cy="12" r="1.6" fill="currentColor" />
+                        <circle cx="19" cy="12" r="1.6" fill="currentColor" />
+                    </svg>
+                </button>
+
+                @if (_menuOpen)
+                {
+                    <div class="pp-menu__backdrop" @onclick="() => _menuOpen = false"></div>
+                    <div class="pp-menu__panel" role="menu">
+                        <button type="button" class="pp-menu__item" role="menuitem" @onclick="EditClicked">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                                <path d="m13.5 6.5 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                            </svg>
+                            Edit
+                        </button>
+                        <button type="button" class="pp-menu__item" role="menuitem" @onclick="ArchiveClicked">
+                            @if (IsArchived)
+                            {
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4 7h16v3H4zM5 10v9h14v-9" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                                    <path d="M12 17v-5m0 0-2 2m2-2 2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <span>Restore</span>
+                            }
+                            else
+                            {
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4 7h16v3H4zM5 10v9h14v-9" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                                    <path d="M10 13h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                                </svg>
+                                <span>Archive</span>
+                            }
+                        </button>
+                    </div>
+                }
+            </div>
+
+            @if (HasChildren)
+            {
+                <button type="button" class="pp-progcard__toggle"
+                        aria-expanded="@Expanded"
+                        aria-label="@(Expanded ? "Collapse" : "Expand") @Programme.Name"
+                        @onclick="() => OnToggle.InvokeAsync(Programme.Id)" @onclick:stopPropagation="true">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+            }
+        </div>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public ProgrammeVm Programme { get; set; } = default!;
+
+    [Parameter] public bool Expanded { get; set; }
+    [Parameter] public bool HasChildren { get; set; }
+
+    [Parameter] public EventCallback<Guid> OnOpen { get; set; }
+    [Parameter] public EventCallback<Guid> OnToggle { get; set; }
+    [Parameter] public EventCallback<ProgrammeVm> OnEdit { get; set; }
+    [Parameter] public EventCallback<ProgrammeVm> OnArchive { get; set; }
+
+    private bool _menuOpen;
+
+    private bool IsArchived => Programme.LifecycleStatus != ProgrammeStatus.Active;
+
+    private string LifecycleModifier =>
+        Programme.LifecycleStatus == ProgrammeStatus.Active ? "track" : "idle";
+
+    private Task OnKey(KeyboardEventArgs e) =>
+        e.Key is "Enter" or " " ? OnOpen.InvokeAsync(Programme.Id) : Task.CompletedTask;
+
+    private async Task EditClicked()
+    {
+        _menuOpen = false;
+        await OnEdit.InvokeAsync(Programme);
+    }
+
+    private async Task ArchiveClicked()
+    {
+        _menuOpen = false;
+        await OnArchive.InvokeAsync(Programme);
+    }
+}
