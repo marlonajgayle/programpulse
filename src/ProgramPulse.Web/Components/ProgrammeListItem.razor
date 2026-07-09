@@ -2,12 +2,14 @@
    description, meta row (sub-programme count + created date), a "…" overflow menu (Edit /
    Archive), and a collapse chevron. The card owns its own menu-open state. Expanding is
    handled by the parent page — this card's own box never resizes; its sub-programmes render
-   as separate cards below it. Clicking the header body opens the detail page; the menu and
-   chevron stop propagation so they don't also navigate. *@
+   as separate cards below it. Clicking the header body expands/collapses when the programme
+   has sub-programmes; otherwise it opens the detail page. The menu and chevron stop
+   propagation so they don't also toggle/navigate. *@
 
 <article class="pp-progcard @(Expanded ? "is-open" : null) @(IsArchived ? "pp-progcard--archived" : null)">
     <div class="pp-progcard__head" role="button" tabindex="0"
-         @onclick="() => OnOpen.InvokeAsync(Programme.Id)" @onkeydown="OnKey">
+         aria-expanded="@(HasChildren ? Expanded : (bool?)null)"
+         @onclick="HeadActivated" @onkeydown="OnKey">
         <div class="pp-progcard__icon" aria-hidden="true">
             @if (IsArchived)
             {
@@ -135,8 +137,12 @@
     private string LifecycleModifier =>
         Programme.LifecycleStatus == ProgrammeStatus.Active ? "track" : "idle";
 
+    // A parent with sub-programmes expands/collapses on header activation; a leaf navigates.
+    private Task HeadActivated() =>
+        HasChildren ? OnToggle.InvokeAsync(Programme.Id) : OnOpen.InvokeAsync(Programme.Id);
+
     private Task OnKey(KeyboardEventArgs e) =>
-        e.Key is "Enter" or " " ? OnOpen.InvokeAsync(Programme.Id) : Task.CompletedTask;
+        e.Key is "Enter" or " " ? HeadActivated() : Task.CompletedTask;
 
     private async Task EditClicked()
     {
