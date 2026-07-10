@@ -54,20 +54,27 @@ else
     </header>
 
     <div class="pp-section-head-row">
-        <h2 class="pp-section-head">Key performance indicator</h2>
+        <h2 class="pp-section-head">Key performance indicators</h2>
+        <button type="button" class="pp-btn pp-btn--ghost pp-btn--sm" @onclick="() => showAddKpi = true">
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Add KPI
+        </button>
     </div>
 
-    @if (objective.Kpi is null)
+    @if (objective.Kpis.Count == 0)
     {
         <div class="pp-empty">
-            <p class="pp-empty__title">KPI unavailable</p>
-            <p class="pp-empty__note">This objective's KPI couldn't be loaded. The server may be unreachable — try again shortly.</p>
+            <p class="pp-empty__title">No KPIs yet</p>
+            <p class="pp-empty__note">This objective has no KPIs. Add one to start tracking progress.</p>
         </div>
     }
     else
     {
-        var kpi = objective.Kpi;
         <div class="pp-kpi-grid">
+            @foreach (var kpi in objective.Kpis)
+            {
                 <article class="pp-card pp-kpi-card">
                     <span class="pp-kpi-card__stripe pp-kpi-card__stripe--@kpi.StatusModifier" aria-hidden="true"></span>
 
@@ -78,6 +85,11 @@ else
                             <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Edit KPI" @onclick="() => editingKpi = kpi">
                                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                            <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Delete KPI" @onclick="() => DeleteKpi(kpi)" disabled="@_deleting">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M6 7h12M9 7V5h6v2m-8 0 1 12h8l1-12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                             </button>
                         </div>
@@ -195,6 +207,7 @@ else
                         </button>
                     </footer>
                 </article>
+            }
         </div>
     }
 
@@ -203,6 +216,9 @@ else
 
     <EditKpiDialog ProgrammeId="Id" Kpi="editingKpi" Visible="editingKpi is not null"
                    OnClose="() => editingKpi = null" OnSaved="Reload" />
+
+    <AddKpiDialog ObjectiveId="ObjectiveId" Visible="showAddKpi"
+                  OnClose="() => showAddKpi = false" OnSaved="Reload" />
 
     <MeasurementDialog ProgrammeId="Id" ObjectiveId="ObjectiveId" Kpi="measurementKpi"
                        Measurement="editingMeasurement" Visible="measurementKpi is not null"
@@ -216,17 +232,19 @@ else
     private ProgrammeVm? programme;
     private ObjectiveVm? objective;
     private bool showEditObjective;
+    private bool showAddKpi;
     private KpiVm? editingKpi;
     private KpiVm? measurementKpi;
     private MeasurementVm? editingMeasurement;
     private bool _loading = true;
+    private bool _deleting;
 
     protected override Task OnParametersSetAsync() => LoadAsync();
 
     private Task Reload() => LoadAsync();
 
     // Objective metadata (name/description/breadcrumb) has no dedicated endpoint, so it comes
-    // from the parent programme's detail tree; the KPI card comes from the objective's KPI endpoint.
+    // from the parent programme's detail tree; the KPI cards come from the objective's KPIs endpoint.
     private async Task LoadAsync()
     {
         _loading = true;
@@ -242,9 +260,13 @@ else
             return;
         }
 
-        // An objective has exactly one KPI; null only on a load failure (handled in the UI).
-        var kpi = await KpisApi.GetObjectiveKpiAsync(ObjectiveId, CancellationToken.None);
-        var kpiVm = kpi is null ? null : await ToKpiVmAsync(kpi);
+        // An objective can have many KPIs; null only on a load failure (empty list is shown as empty state).
+        var kpis = await KpisApi.GetObjectiveKpisAsync(ObjectiveId, CancellationToken.None) ?? [];
+        var kpiVms = new List<KpiVm>();
+        foreach (var kpi in kpis)
+        {
+            kpiVms.Add(await ToKpiVmAsync(kpi));
+        }
 
         programme = new ProgrammeVm(
             detail.Id, detail.Name, detail.Description, detail.StartDate, detail.EndDate,
@@ -253,9 +275,17 @@ else
         objective = new ObjectiveVm(
             objectiveDetail.Id, objectiveDetail.Name, objectiveDetail.Description,
             objectiveDetail.ProgrammeId, objectiveDetail.CreatedDate, objectiveDetail.LastModifiedDate,
-            kpiVm);
+            kpiVms);
 
         _loading = false;
+    }
+
+    private async Task DeleteKpi(KpiVm kpi)
+    {
+        _deleting = true;
+        await KpisApi.DeleteKpiAsync(kpi.Id, CancellationToken.None);
+        _deleting = false;
+        await LoadAsync();
     }
 
     private async Task<KpiVm> ToKpiVmAsync(KpiResponse k)

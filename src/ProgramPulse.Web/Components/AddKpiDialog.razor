@@ -1,0 +1,184 @@
+@using System.ComponentModel.DataAnnotations
+@inject KpisApiClient KpisApi
+
+@if (Visible)
+{
+    <div class="pp-modal" @onclick="Close">
+        <div class="pp-modal__dialog" @onclick:stopPropagation="true" role="dialog" aria-modal="true" aria-labelledby="pp-add-kpi-title">
+            <!-- ===== Header ===== -->
+            <div class="pp-modal__head">
+                <span class="pp-modal__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <div class="pp-modal__heading">
+                    <h2 id="pp-add-kpi-title" class="pp-modal__title">Add KPI</h2>
+                    <p class="pp-modal__subtitle">Add a new indicator to this objective.</p>
+                </div>
+                <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Close dialog" @onclick="Close">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+
+            <hr class="pp-modal__rule" />
+
+            <!-- ===== Body ===== -->
+            <EditForm Model="model" OnValidSubmit="HandleSave">
+                <DataAnnotationsValidator />
+
+                <div class="pp-form-grid">
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-name">KPI name <span class="pp-req">*</span></label>
+                        <InputText id="pp-add-kpi-name" @bind-Value="model.Name" class="pp-input" placeholder="Type here" />
+                        <ValidationMessage For="() => model.Name" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-unit">Unit <span class="pp-req">*</span></label>
+                        <InputText id="pp-add-kpi-unit" @bind-Value="model.Unit" class="pp-input" placeholder="e.g. %, pts, days" />
+                        <ValidationMessage For="() => model.Unit" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-direction">Direction <span class="pp-req">*</span></label>
+                        <div class="pp-select">
+                            <InputSelect id="pp-add-kpi-direction" @bind-Value="model.Direction" class="pp-input">
+                                <option value="@KpiDirection.Increase">Increase</option>
+                                <option value="@KpiDirection.Decrease">Decrease</option>
+                            </InputSelect>
+                            <svg class="pp-select__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-frequency">Measurement frequency <span class="pp-req">*</span></label>
+                        <div class="pp-select">
+                            <InputSelect id="pp-add-kpi-frequency" @bind-Value="model.Frequency" class="pp-input">
+                                <option value="@MeasurementFrequency.Weekly">Weekly</option>
+                                <option value="@MeasurementFrequency.Monthly">Monthly</option>
+                                <option value="@MeasurementFrequency.Quarterly">Quarterly</option>
+                                <option value="@MeasurementFrequency.BiAnnually">Bi-annually</option>
+                                <option value="@MeasurementFrequency.Annually">Annually</option>
+                            </InputSelect>
+                            <svg class="pp-select__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-due">Due date <span class="pp-req">*</span></label>
+                        <InputDate id="pp-add-kpi-due" @bind-Value="model.DueDate" class="pp-input" />
+                        <ValidationMessage For="() => model.DueDate" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-baseline">Baseline value <span class="pp-req">*</span></label>
+                        <InputNumber id="pp-add-kpi-baseline" @bind-Value="model.Baseline" class="pp-input" placeholder="0" />
+                        <ValidationMessage For="() => model.Baseline" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-target">Target value <span class="pp-req">*</span></label>
+                        <InputNumber id="pp-add-kpi-target" @bind-Value="model.Target" class="pp-input" placeholder="0" />
+                        <ValidationMessage For="() => model.Target" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-current">Current value</label>
+                        <InputNumber id="pp-add-kpi-current" @bind-Value="model.Current" class="pp-input" placeholder="Defaults to baseline" />
+                        <p class="pp-form__hint">Leave blank to start at the baseline.</p>
+                    </div>
+                </div>
+
+                @if (_error is not null)
+                {
+                    <p class="pp-auth__error">@_error</p>
+                }
+
+                <!-- ===== Footer ===== -->
+                <div class="pp-modal__foot">
+                    <button type="button" class="pp-btn pp-btn--ghost" @onclick="Close" disabled="@_saving">Cancel</button>
+                    <button type="submit" class="pp-btn pp-btn--primary" disabled="@_saving">
+                        @(_saving ? "Saving…" : "Add KPI")
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid ObjectiveId { get; set; }
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private KpiModel model = new();
+    private bool _saving;
+    private string? _error;
+
+    private async Task HandleSave()
+    {
+        _saving = true;
+        _error = null;
+
+        var request = new CreateKpiRequest(
+            model.Name,
+            model.Unit,
+            model.Direction,
+            model.Baseline!.Value,
+            model.Target!.Value,
+            model.Current ?? model.Baseline!.Value,
+            model.DueDate!.Value,
+            model.Frequency);
+        var result = await KpisApi.CreateKpiAsync(ObjectiveId, request, CancellationToken.None);
+        _saving = false;
+
+        if (!result.Success)
+        {
+            _error = result.GeneralError ?? "Couldn't add the KPI. Please try again.";
+            return;
+        }
+
+        await OnSaved.InvokeAsync();
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        _error = null;
+        _saving = false;
+        model = new();
+        await OnClose.InvokeAsync();
+    }
+
+    private sealed class KpiModel
+    {
+        [Required(ErrorMessage = "KPI name is required.")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Unit is required.")]
+        public string Unit { get; set; } = string.Empty;
+
+        public KpiDirection Direction { get; set; } = KpiDirection.Increase;
+
+        public MeasurementFrequency Frequency { get; set; } = MeasurementFrequency.Monthly;
+
+        [Required(ErrorMessage = "Baseline value is required.")]
+        public decimal? Baseline { get; set; }
+
+        [Required(ErrorMessage = "Target value is required.")]
+        public decimal? Target { get; set; }
+
+        public decimal? Current { get; set; }
+
+        [Required(ErrorMessage = "Due date is required.")]
+        public DateTime? DueDate { get; set; }
+    }
+}

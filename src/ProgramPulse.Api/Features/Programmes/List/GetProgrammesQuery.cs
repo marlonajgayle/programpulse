@@ -84,7 +84,7 @@ public sealed class GetProgrammesQueryHandler(
             i.CreatedDate,
             i.LastModifiedDate,
             i.Objectives.Count,
-            i.Objectives.Count(o => o.Kpi != null),
+            i.Objectives.Sum(o => o.Kpis.Count),
             i.ParentProgrammeId,
             null);
 }

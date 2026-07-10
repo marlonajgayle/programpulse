@@ -3,26 +3,26 @@ using ProgramPulse.Api.SharedKernel;
 using ProgramPulse.Api.SharedKernel.Primitives;
 using ProgramPulse.Api.SharedKernel.Versioning;
 
-namespace ProgramPulse.Api.Features.Kpis.List;
+namespace ProgramPulse.Api.Features.Kpis.Delete;
 
 /// <summary>
-/// Returns the KPIs belonging to the given Objective.
+/// Soft-deletes an existing KPI. The id comes from the route.
 /// </summary>
-public sealed class GetObjectiveKpisEndpoint : IEndpoint
+public sealed class DeleteKpiEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("objectives/{objectiveId:guid}/kpis", async (
-            Guid objectiveId,
-            GetObjectiveKpisQueryHandler handler,
+        app.MapDelete("kpis/{id:guid}", async (
+            Guid id,
+            DeleteKpiCommandHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var result = await handler.HandleAsync(new GetObjectiveKpisQuery(objectiveId), cancellationToken);
+            var result = await handler.HandleAsync(new DeleteKpiCommand(id), cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)
         .RequireAuthorization(AuthorizationPolicies.Authenticated)
-        .WithName("GetObjectiveKpis")
+        .WithName("DeleteKpi")
         .WithTags("KPIs");
     }
 }

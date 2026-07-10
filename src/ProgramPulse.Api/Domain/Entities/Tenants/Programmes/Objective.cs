@@ -4,6 +4,8 @@ namespace ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
 public sealed class Objective : AuditableEntity<Guid>
 {
+    private readonly List<Kpi> _kpis = [];
+
     // EF Core materialization
     private Objective() { }
 
@@ -12,14 +14,28 @@ public sealed class Objective : AuditableEntity<Guid>
     public Guid ProgrammeId { get; private set; }
     public Programme Programme { get; private set; } = null!;
 
-    // An objective has exactly one KPI, created together with the objective.
-    public Kpi Kpi { get; private set; } = null!;
+    // An objective can have many KPIs, added through AddKpi.
+    public IReadOnlyCollection<Kpi> Kpis => _kpis.AsReadOnly();
 
     // Internal so objectives are only created through the Programme aggregate root.
     internal static Objective Create(
         string name,
         string description,
-        Guid programmeId,
+        Guid programmeId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(description);
+
+        return new Objective
+        {
+            Id = Guid.CreateVersion7(),
+            Name = name,
+            Description = description,
+            ProgrammeId = programmeId
+        };
+    }
+
+    public Kpi AddKpi(
         string kpiName,
         string kpiUnit,
         KpiDirection kpiDirection,
@@ -29,28 +45,18 @@ public sealed class Objective : AuditableEntity<Guid>
         DateTime dueDate,
         MeasurementFrequency? kpiFrequency)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(description);
-
-        var id = Guid.CreateVersion7();
-
-        return new Objective
-        {
-            Id = id,
-            Name = name,
-            Description = description,
-            ProgrammeId = programmeId,
-            Kpi = Kpi.Create(
-                kpiName,
-                kpiUnit,
-                kpiDirection,
-                baselineValue,
-                targetValue,
-                currentValue,
-                dueDate,
-                kpiFrequency,
-                id)
-        };
+        var kpi = Kpi.Create(
+            kpiName,
+            kpiUnit,
+            kpiDirection,
+            baselineValue,
+            targetValue,
+            currentValue,
+            dueDate,
+            kpiFrequency,
+            Id);
+        _kpis.Add(kpi);
+        return kpi;
     }
 
     public void Update(string name, string description)

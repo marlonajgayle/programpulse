@@ -9,27 +9,13 @@ namespace ProgramPulse.Api.Features.Objectives.Create;
 public sealed record CreateObjectiveCommand(
     Guid ProgrammeId,
     string Name,
-    string Description,
-    CreateObjectiveKpi Kpi);
+    string Description);
 
 /// <summary>
-/// The single KPI an objective is created with. An objective always has exactly one KPI.
-/// </summary>
-public sealed record CreateObjectiveKpi(
-    string Name,
-    string Unit,
-    KpiDirection Direction,
-    decimal BaselineValue,
-    decimal TargetValue,
-    decimal CurrentValue,
-    DateTime DueDate,
-    MeasurementFrequency? Frequency);
-
-/// <summary>
-/// Creates a new Objective (with its single KPI) under a Programme the caller's tenant
-/// owns. The Objective is created through the Programme aggregate root (<c>AddObjective</c>),
-/// which builds the KPI inline. Returns a not-found error when the parent Programme does
-/// not exist or belongs to another tenant.
+/// Creates a new Objective under a Programme the caller's tenant owns. The Objective is created
+/// through the Programme aggregate root (<c>AddObjective</c>) with no KPIs; KPIs are added later
+/// through the add-KPI endpoint. Returns a not-found error when the parent Programme does not
+/// exist or belongs to another tenant.
 /// </summary>
 public sealed class CreateObjectiveCommandHandler(
     ICurrentTenant currentTenant,
@@ -55,17 +41,8 @@ public sealed class CreateObjectiveCommandHandler(
             return Result<ObjectiveResponse>.Failure(
                 ProgrammeErrors.ProgrammeNotFound(command.ProgrammeId));
 
-        var objective = programme.AddObjective(
-            command.Name,
-            command.Description,
-            command.Kpi.Name,
-            command.Kpi.Unit,
-            command.Kpi.Direction,
-            command.Kpi.BaselineValue,
-            command.Kpi.TargetValue,
-            command.Kpi.CurrentValue,
-            command.Kpi.DueDate,
-            command.Kpi.Frequency);
+        var objective = programme.AddObjective(command.Name, command.Description);
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var response = new ObjectiveResponse(

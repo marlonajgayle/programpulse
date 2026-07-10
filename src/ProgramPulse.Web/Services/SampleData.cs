@@ -169,14 +169,11 @@ public sealed class SampleData
     public ObjectiveVm? GetObjective(Guid programmeId, Guid objectiveId) =>
         GetProgramme(programmeId)?.Objectives.FirstOrDefault(o => o.Id == objectiveId);
 
-    public KpiVm? GetKpi(Guid programmeId, Guid objectiveId, Guid kpiId)
-    {
-        var kpi = GetObjective(programmeId, objectiveId)?.Kpi;
-        return kpi?.Id == kpiId ? kpi : null;
-    }
+    public KpiVm? GetKpi(Guid programmeId, Guid objectiveId, Guid kpiId) =>
+        GetObjective(programmeId, objectiveId)?.Kpis.FirstOrDefault(k => k.Id == kpiId);
 
     // ----- Mutations (in-memory only) -----
-    // An objective is created together with its single KPI.
+    // An objective is created together with zero or more KPIs.
     // TODO: POST to /api/v1/programmes/{id}/objectives once the WASM client is wired to the API.
     public ObjectiveVm AddObjective(
         Guid programmeId, string name, string description,
@@ -193,7 +190,7 @@ public sealed class SampleData
 
         var objective = new ObjectiveVm(
             objectiveId, name, description, programmeId,
-            DateTime.Today, null, kpi);
+            DateTime.Today, null, new List<KpiVm> { kpi });
 
         ((List<ObjectiveVm>)programme.Objectives).Add(objective);
         return objective;
@@ -335,9 +332,15 @@ public sealed class SampleData
                     i1,
                     today.AddMonths(-3),
                     today.AddDays(-5),
-                    Kpi(Id("kpi-churn-rate"), "Monthly logo churn", "%", KpiDirection.Decrease,
-                        baseline: 4.8m, target: 2.5m, current: 3.4m, due: today.AddMonths(6), KpiStatus.OnTrack, i1o1,
-                        ("Q4 baseline", 4.8m), ("Jan", 4.3m), ("Feb", 3.9m), ("Mar", 3.4m))),
+                    new List<KpiVm>
+                    {
+                        Kpi(Id("kpi-churn-rate"), "Monthly logo churn", "%", KpiDirection.Decrease,
+                            baseline: 4.8m, target: 2.5m, current: 3.4m, due: today.AddMonths(6), KpiStatus.OnTrack, i1o1,
+                            ("Q4 baseline", 4.8m), ("Jan", 4.3m), ("Feb", 3.9m), ("Mar", 3.4m)),
+                        Kpi(Id("kpi-churn-save-rate"), "Save-desk save rate", "%", KpiDirection.Increase,
+                            baseline: 20m, target: 45m, current: 33m, due: today.AddMonths(6), KpiStatus.AtRisk, i1o1,
+                            ("Baseline", 20m), ("Jan", 27m), ("Feb", 31m), ("Mar", 33m)),
+                    }),
                 new(
                     i1o1b,
                     "Raise net promoter score",
@@ -345,9 +348,9 @@ public sealed class SampleData
                     i1,
                     today.AddMonths(-3),
                     today.AddDays(-5),
-                    Kpi(Id("kpi-nps"), "Net promoter score", "pts", KpiDirection.Increase,
+                    [Kpi(Id("kpi-nps"), "Net promoter score", "pts", KpiDirection.Increase,
                         baseline: 32m, target: 55m, current: 41m, due: today.AddMonths(7), KpiStatus.AtRisk, i1o1b,
-                        ("Baseline", 32m), ("Q1 survey", 37m), ("Q2 survey", 41m))),
+                        ("Baseline", 32m), ("Q1 survey", 37m), ("Q2 survey", 41m))]),
                 new(
                     i1o2,
                     "Improve onboarding completion",
@@ -355,9 +358,9 @@ public sealed class SampleData
                     i1,
                     today.AddMonths(-2),
                     today.AddDays(-12),
-                    Kpi(Id("kpi-activation"), "14-day activation rate", "%", KpiDirection.Increase,
+                    [Kpi(Id("kpi-activation"), "14-day activation rate", "%", KpiDirection.Increase,
                         baseline: 48m, target: 75m, current: 67m, due: today.AddMonths(4), KpiStatus.OnTrack, i1o2,
-                        ("Baseline", 48m), ("Cohort A", 55m), ("Cohort B", 61m), ("Cohort C", 67m))),
+                        ("Baseline", 48m), ("Cohort A", 55m), ("Cohort B", 61m), ("Cohort C", 67m))]),
                 new(
                     i1o2b,
                     "Shorten time to first value",
@@ -365,9 +368,9 @@ public sealed class SampleData
                     i1,
                     today.AddMonths(-2),
                     today.AddDays(-12),
-                    Kpi(Id("kpi-time-to-value"), "Median time to first value", "days", KpiDirection.Decrease,
+                    [Kpi(Id("kpi-time-to-value"), "Median time to first value", "days", KpiDirection.Decrease,
                         baseline: 9.0m, target: 4.0m, current: 6.5m, due: today.AddMonths(5), KpiStatus.OnTrack, i1o2b,
-                        ("Baseline", 9.0m), ("Mar", 7.8m), ("Apr", 6.5m))),
+                        ("Baseline", 9.0m), ("Mar", 7.8m), ("Apr", 6.5m))]),
             });
 
         // --- Programme 2: Platform Reliability ---
@@ -393,9 +396,9 @@ public sealed class SampleData
                     i2,
                     today.AddMonths(-5),
                     today.AddDays(-2),
-                    Kpi(Id("kpi-uptime"), "Monthly availability", "%", KpiDirection.Increase,
+                    [Kpi(Id("kpi-uptime"), "Monthly availability", "%", KpiDirection.Increase,
                         baseline: 99.5m, target: 99.95m, current: 99.6m, due: today.AddMonths(2), KpiStatus.OffTrack, i2o1,
-                        ("Baseline", 99.5m), ("Region outage", 99.2m), ("Recovered", 99.6m))),
+                        ("Baseline", 99.5m), ("Region outage", 99.2m), ("Recovered", 99.6m))]),
                 new(
                     i2o2,
                     "Faster incident response",
@@ -403,9 +406,9 @@ public sealed class SampleData
                     i2,
                     today.AddMonths(-4),
                     today.AddDays(-9),
-                    Kpi(Id("kpi-mttr"), "Mean time to recovery", "min", KpiDirection.Decrease,
+                    [Kpi(Id("kpi-mttr"), "Mean time to recovery", "min", KpiDirection.Decrease,
                         baseline: 95m, target: 30m, current: 52m, due: today.AddMonths(1), KpiStatus.AtRisk, i2o2,
-                        ("Baseline", 95m), ("After runbooks", 71m), ("After on-call rework", 52m))),
+                        ("Baseline", 95m), ("After runbooks", 71m), ("After on-call rework", 52m))]),
                 new(
                     i2o2b,
                     "Cut customer-impacting incidents",
@@ -413,9 +416,9 @@ public sealed class SampleData
                     i2,
                     today.AddMonths(-4),
                     today.AddDays(-9),
-                    Kpi(Id("kpi-incidents"), "Customer-impacting incidents", "count", KpiDirection.Decrease,
+                    [Kpi(Id("kpi-incidents"), "Customer-impacting incidents", "count", KpiDirection.Decrease,
                         baseline: 12m, target: 3m, current: 3m, due: today.AddMonths(-1), KpiStatus.Completed, i2o2b,
-                        ("Q3", 12m), ("Q4", 7m), ("Q1", 3m))),
+                        ("Q3", 12m), ("Q4", 7m), ("Q1", 3m))]),
             });
 
         // --- Programme 3: Expansion Revenue (kick-off, nothing started) ---
@@ -439,9 +442,9 @@ public sealed class SampleData
                     i3,
                     today.AddDays(-7),
                     null,
-                    Kpi(Id("kpi-nrr"), "Net revenue retention", "%", KpiDirection.Increase,
+                    [Kpi(Id("kpi-nrr"), "Net revenue retention", "%", KpiDirection.Increase,
                         baseline: 104m, target: 118m, current: 104m, due: today.AddMonths(11), KpiStatus.NotStarted, i3o1,
-                        ("Baseline", 104m))),
+                        ("Baseline", 104m))]),
             });
 
         return new List<ProgrammeVm> { programme1, programme2, programme3 };

@@ -34,6 +34,17 @@ public enum KpiDueUrgency
     Overdue,
 }
 
+/// <summary>How often a KPI is expected to be measured. Ordinals must match
+/// ProgramPulse.Api's MeasurementFrequency.</summary>
+public enum MeasurementFrequency
+{
+    Weekly,
+    Monthly,
+    Quarterly,
+    BiAnnually,
+    Annually,
+}
+
 /// <summary>
 /// Central tuning constants for KPI card presentation. Kept in one place so the
 /// overdue window, "due soon" window, and sparkline density are each a one-line

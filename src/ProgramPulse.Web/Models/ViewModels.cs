@@ -21,7 +21,7 @@ public sealed record ProgrammeVm(
     /// <summary>Nested sub-programmes (one level). Empty for a sub-programme itself.</summary>
     public IReadOnlyList<ProgrammeVm> Children => SubProgrammes ?? Array.Empty<ProgrammeVm>();
 
-    public IEnumerable<KpiVm> AllKpis => Objectives.Where(o => o.Kpi is not null).Select(o => o.Kpi!);
+    public IEnumerable<KpiVm> AllKpis => Objectives.SelectMany(o => o.Kpis);
 
     public int ObjectiveCount => ObjectiveCountOverride ?? Objectives.Count;
 
@@ -58,14 +58,12 @@ public sealed record ObjectiveVm(
     Guid ProgrammeId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
-    KpiVm? Kpi)
+    IReadOnlyList<KpiVm> Kpis)
 {
-    // An objective has exactly one KPI. Kpi is only null defensively when the
-    // client couldn't load it (network/session failure).
-    public int KpiCount => Kpi is null ? 0 : 1;
+    // An objective can have many KPIs.
+    public int KpiCount => Kpis.Count;
 
-    public KpiStatus AggregateStatus =>
-        StatusRollup.Of(Kpi is null ? [] : [Kpi]);
+    public KpiStatus AggregateStatus => StatusRollup.Of(Kpis);
 }
 
 public sealed record KpiVm(

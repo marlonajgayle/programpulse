@@ -78,12 +78,19 @@ else
                         </div>
                         <p class="pp-init-card__desc">@objective.Description</p>
                         <div class="pp-obj-card__foot">
-                            @if (objective.Kpi is { } kpi)
+                            @if (objective.Kpis.Count > 0)
                             {
-                                <span class="pp-init-card__counts">@kpi.Name</span>
+                                <span class="pp-init-card__counts">@Plural(objective.KpiCount, "KPI")</span>
                                 <span class="pp-pills">
-                                    <span class="pp-pill-dot pp-pill-dot--@kpi.StatusModifier" title="@kpi.Name — @kpi.StatusLabel"></span>
+                                    @foreach (var kpi in objective.Kpis)
+                                    {
+                                        <span class="pp-pill-dot pp-pill-dot--@kpi.StatusModifier" title="@kpi.Name — @kpi.StatusLabel"></span>
+                                    }
                                 </span>
+                            }
+                            else
+                            {
+                                <span class="pp-init-card__counts">No KPIs</span>
                             }
                         </div>
                     </article>
@@ -252,11 +259,13 @@ else
             d.Objectives
                 .Select(o => new ObjectiveVm(
                     o.Id, o.Name, o.Description, o.ProgrammeId, o.CreatedDate, o.LastModifiedDate,
-                    o.Kpi is null ? null : new KpiVm(
-                        o.Kpi.Id, o.Kpi.Name, o.Kpi.Unit, o.Kpi.Direction, o.Kpi.BaselineValue,
-                        o.Kpi.TargetValue, o.Kpi.CurrentValue, o.Kpi.DueDate, o.Kpi.Status,
-                        o.Kpi.ObjectiveId, o.Kpi.CreatedDate, o.Kpi.LastModifiedDate,
-                        Array.Empty<MeasurementVm>())))
+                    o.Kpis
+                        .Select(k => new KpiVm(
+                            k.Id, k.Name, k.Unit, k.Direction, k.BaselineValue,
+                            k.TargetValue, k.CurrentValue, k.DueDate, k.Status,
+                            k.ObjectiveId, k.CreatedDate, k.LastModifiedDate,
+                            Array.Empty<MeasurementVm>()))
+                        .ToList()))
                 .ToList());
 
     // --- Programme health buckets (worst-of statuses roll each KPI into one of three) ---

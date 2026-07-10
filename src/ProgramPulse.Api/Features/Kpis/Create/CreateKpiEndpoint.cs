@@ -1,28 +1,32 @@
 using ProgramPulse.Api.Domain.Authorization;
 using ProgramPulse.Api.SharedKernel;
 using ProgramPulse.Api.SharedKernel.Primitives;
+using ProgramPulse.Api.SharedKernel.Validation;
 using ProgramPulse.Api.SharedKernel.Versioning;
 
-namespace ProgramPulse.Api.Features.Kpis.List;
+namespace ProgramPulse.Api.Features.Kpis.Create;
 
 /// <summary>
-/// Returns the KPIs belonging to the given Objective.
+/// Adds a new KPI to the given Objective.
 /// </summary>
-public sealed class GetObjectiveKpisEndpoint : IEndpoint
+public sealed class CreateKpiEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("objectives/{objectiveId:guid}/kpis", async (
+        app.MapPost("objectives/{objectiveId:guid}/kpis", async (
             Guid objectiveId,
-            GetObjectiveKpisQueryHandler handler,
+            CreateKpiCommand command,
+            CreateKpiCommandHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var result = await handler.HandleAsync(new GetObjectiveKpisQuery(objectiveId), cancellationToken);
+            var result = await handler.HandleAsync(
+                command with { ObjectiveId = objectiveId }, cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)
+        .WithValidation<CreateKpiCommand>()
         .RequireAuthorization(AuthorizationPolicies.Authenticated)
-        .WithName("GetObjectiveKpis")
+        .WithName("CreateKpi")
         .WithTags("KPIs");
     }
 }

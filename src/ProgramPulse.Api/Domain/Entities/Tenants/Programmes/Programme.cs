@@ -88,30 +88,9 @@ public sealed class Programme : AuditableEntity<Guid>
         ParentProgrammeId = parentProgrammeId;
     }
 
-    public Objective AddObjective(
-        string name,
-        string description,
-        string kpiName,
-        string kpiUnit,
-        KpiDirection kpiDirection,
-        decimal baselineValue,
-        decimal targetValue,
-        decimal currentValue,
-        DateTime dueDate,
-        MeasurementFrequency? kpiFrequency)
+    public Objective AddObjective(string name, string description)
     {
-        var objective = Objective.Create(
-            name,
-            description,
-            Id,
-            kpiName,
-            kpiUnit,
-            kpiDirection,
-            baselineValue,
-            targetValue,
-            currentValue,
-            dueDate,
-            kpiFrequency);
+        var objective = Objective.Create(name, description, Id);
         _objectives.Add(objective);
         return objective;
     }

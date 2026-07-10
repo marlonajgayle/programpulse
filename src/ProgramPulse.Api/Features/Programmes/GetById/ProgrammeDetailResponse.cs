@@ -17,7 +17,7 @@ public sealed record ProgrammeDetailResponse(
     DateTime? LastModifiedDate,
     IReadOnlyList<ObjectiveDetailResponse> Objectives);
 
-/// <summary>An Objective nested within an <see cref="ProgrammeDetailResponse"/>, with its single KPI.</summary>
+/// <summary>An Objective nested within an <see cref="ProgrammeDetailResponse"/>, with its KPIs.</summary>
 public sealed record ObjectiveDetailResponse(
     Guid Id,
     string Name,
@@ -25,7 +25,7 @@ public sealed record ObjectiveDetailResponse(
     Guid ProgrammeId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
-    KpiDetailResponse Kpi);
+    IReadOnlyList<KpiDetailResponse> Kpis);
 
 /// <summary>A KPI nested within an <see cref="ObjectiveDetailResponse"/>. Mirrors <c>KpiResponse</c>.</summary>
 public sealed record KpiDetailResponse(

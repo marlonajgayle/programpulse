@@ -9,24 +9,24 @@ namespace ProgramPulse.Web.Services;
 /// Typed client for the API's authenticated KPI endpoints. Wraps <see cref="HttpClient"/>,
 /// returns <c>null</c> from reads when the session is missing/expired or the server is unreachable,
 /// and (for writes) translates RFC-7807 <c>ProblemDetails</c> failures into an
-/// <see cref="AuthResult"/> the dialog can render directly. A KPI is owned by exactly one
-/// objective, so the read endpoint is nested under <c>objectives/{objectiveId}</c>, while
-/// update targets a KPI directly via the flat <c>kpis/{id}</c> route. KPIs are created together
-/// with their objective (see <see cref="ObjectivesApiClient.CreateObjectiveAsync"/>).
+/// <see cref="AuthResult"/> the dialog can render directly. An objective can own many KPIs, so
+/// the read endpoint is nested under <c>objectives/{objectiveId}/kpis</c> and returns a list;
+/// create posts to that same collection, while update/delete target a KPI directly via the flat
+/// <c>kpis/{id}</c> route.
 /// </summary>
 public sealed class KpisApiClient(HttpClient httpClient)
 {
     private readonly HttpClient _httpClient = httpClient;
 
     /// <summary>
-    /// Gets an objective's single KPI, or <c>null</c> when the session is missing/expired (401),
+    /// Gets an objective's KPIs, or <c>null</c> when the session is missing/expired (401),
     /// the objective isn't found (404), or the server is unreachable.
     /// </summary>
-    public async Task<KpiResponse?> GetObjectiveKpiAsync(
+    public async Task<IReadOnlyList<KpiResponse>?> GetObjectiveKpisAsync(
         Guid objectiveId, CancellationToken cancellationToken)
     {
         using var message = new HttpRequestMessage(
-            HttpMethod.Get, $"api/v1/objectives/{objectiveId}/kpi");
+            HttpMethod.Get, $"api/v1/objectives/{objectiveId}/kpis");
 
         // Include credentials so the browser sends the auth cookie the endpoint authenticates with.
         message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
@@ -38,7 +38,7 @@ public sealed class KpisApiClient(HttpClient httpClient)
             if (!response.IsSuccessStatusCode)
                 return null;
 
-            return await response.Content.ReadFromJsonAsync<KpiResponse>(cancellationToken);
+            return await response.Content.ReadFromJsonAsync<IReadOnlyList<KpiResponse>>(cancellationToken);
         }
         catch (HttpRequestException)
         {
@@ -48,6 +48,59 @@ public sealed class KpisApiClient(HttpClient httpClient)
         {
             return null;
         }
+    }
+
+    public async Task<AuthResult> CreateKpiAsync(
+        Guid objectiveId, CreateKpiRequest request, CancellationToken cancellationToken)
+    {
+        using var message = new HttpRequestMessage(
+            HttpMethod.Post, $"api/v1/objectives/{objectiveId}/kpis")
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        // The endpoint requires an authenticated user; include the auth cookie.
+        message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.SendAsync(message, cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return AuthResult.Failure("Unable to reach the server. Please try again.");
+        }
+
+        if (response.IsSuccessStatusCode)
+            return AuthResult.Ok();
+
+        return await ParseProblemAsync(response, cancellationToken);
+    }
+
+    public async Task<AuthResult> DeleteKpiAsync(
+        Guid kpiId, CancellationToken cancellationToken)
+    {
+        using var message = new HttpRequestMessage(
+            HttpMethod.Delete, $"api/v1/kpis/{kpiId}");
+
+        // The endpoint requires an authenticated user; include the auth cookie.
+        message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.SendAsync(message, cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return AuthResult.Failure("Unable to reach the server. Please try again.");
+        }
+
+        if (response.IsSuccessStatusCode)
+            return AuthResult.Ok();
+
+        return await ParseProblemAsync(response, cancellationToken);
     }
 
     public async Task<AuthResult> UpdateKpiAsync(
@@ -108,7 +161,19 @@ public sealed record UpdateKpiRequest(
     decimal TargetValue,
     DateTime DueDate);
 
-/// <summary>A KPI as returned by <c>GET api/v1/objectives/{objectiveId}/kpi</c>. Enum fields
+/// <summary>Body sent to <c>POST api/v1/objectives/{objectiveId}/kpis</c> to add a KPI to an
+/// existing objective. The objective id travels in the route, so it is not part of the body.</summary>
+public sealed record CreateKpiRequest(
+    string Name,
+    string Unit,
+    KpiDirection Direction,
+    decimal BaselineValue,
+    decimal TargetValue,
+    decimal CurrentValue,
+    DateTime DueDate,
+    MeasurementFrequency Frequency);
+
+/// <summary>A KPI as returned by <c>GET api/v1/objectives/{objectiveId}/kpis</c>. Enum fields
 /// arrive as numbers over the wire; ordinals match the Web
 /// <see cref="KpiDirection"/>/<see cref="KpiStatus"/>.</summary>
 public sealed record KpiResponse(

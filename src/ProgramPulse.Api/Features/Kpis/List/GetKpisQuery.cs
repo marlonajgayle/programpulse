@@ -6,33 +6,43 @@ using ProgramPulse.Api.SharedKernel.Primitives;
 
 namespace ProgramPulse.Api.Features.Kpis.List;
 
-public sealed record GetObjectiveKpiQuery(Guid ObjectiveId);
+public sealed record GetObjectiveKpisQuery(Guid ObjectiveId);
 
 /// <summary>
-/// Returns the single KPI belonging to an Objective the caller's tenant owns. An
-/// objective always has exactly one KPI; a not-found error is returned when the objective
-/// does not exist or belongs to another tenant. Soft-deleted rows are excluded by the
-/// global query filter.
+/// Returns the KPIs belonging to an Objective the caller's tenant owns, ordered by creation
+/// date. A not-found error is returned when the objective does not exist or belongs to another
+/// tenant; an existing objective with no KPIs returns an empty list. Soft-deleted rows are
+/// excluded by the global query filter.
 /// </summary>
-public sealed class GetObjectiveKpiQueryHandler(
+public sealed class GetObjectiveKpisQueryHandler(
     ICurrentTenant currentTenant,
     IApplicationDbContext dbContext)
 {
     private readonly ICurrentTenant _currentTenant = currentTenant;
     private readonly IApplicationDbContext _dbContext = dbContext;
 
-    public async Task<Result<KpiResponse>> HandleAsync(
-        GetObjectiveKpiQuery query,
+    public async Task<Result<IReadOnlyList<KpiResponse>>> HandleAsync(
+        GetObjectiveKpisQuery query,
         CancellationToken cancellationToken)
     {
         var tenant = await _currentTenant.GetTenantIdAsync(cancellationToken);
         if (tenant.IsFailure)
-            return Result<KpiResponse>.Failure(tenant.Error);
+            return Result<IReadOnlyList<KpiResponse>>.Failure(tenant.Error);
 
-        var kpi = await _dbContext.Kpis
+        var objectiveExists = await _dbContext.Objectives
             .AsNoTracking()
-            .Where(k => k.ObjectiveId == query.ObjectiveId
-                && k.Objective.Programme.TenantId == tenant.Value)
+            .AnyAsync(
+                o => o.Id == query.ObjectiveId && o.Programme.TenantId == tenant.Value,
+                cancellationToken);
+
+        if (!objectiveExists)
+            return Result<IReadOnlyList<KpiResponse>>.Failure(
+                ObjectiveErrors.ObjectiveNotFound(query.ObjectiveId));
+
+        var kpis = await _dbContext.Kpis
+            .AsNoTracking()
+            .Where(k => k.ObjectiveId == query.ObjectiveId)
+            .OrderBy(k => k.CreatedDate)
             .Select(k => new KpiResponse(
                 k.Id,
                 k.Name,
@@ -47,12 +57,8 @@ public sealed class GetObjectiveKpiQueryHandler(
                 k.ObjectiveId,
                 k.CreatedDate,
                 k.LastModifiedDate))
-            .FirstOrDefaultAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
 
-        if (kpi is null)
-            return Result<KpiResponse>.Failure(
-                ObjectiveErrors.ObjectiveNotFound(query.ObjectiveId));
-
-        return Result<KpiResponse>.Success(kpi);
+        return Result<IReadOnlyList<KpiResponse>>.Success(kpis);
     }
 }

@@ -207,7 +207,7 @@ public sealed record ProgrammeDetailResponse(
     DateTime? LastModifiedDate,
     IReadOnlyList<ObjectiveDetailResponse> Objectives);
 
-/// <summary>An objective nested within an <see cref="ProgrammeDetailResponse"/>, with its single KPI.</summary>
+/// <summary>An objective nested within an <see cref="ProgrammeDetailResponse"/>, with its KPIs.</summary>
 public sealed record ObjectiveDetailResponse(
     Guid Id,
     string Name,
@@ -215,7 +215,7 @@ public sealed record ObjectiveDetailResponse(
     Guid ProgrammeId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
-    KpiDetailResponse Kpi);
+    IReadOnlyList<KpiDetailResponse> Kpis);
 
 /// <summary>A KPI nested within an <see cref="ObjectiveDetailResponse"/>. Enum fields arrive
 /// as numbers over the wire; ordinals match the Web <see cref="KpiDirection"/>/<see cref="KpiStatus"/>.</summary>
