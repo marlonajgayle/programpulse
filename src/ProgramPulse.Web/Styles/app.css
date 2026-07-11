@@ -1262,9 +1262,11 @@ body {
 .pp-kpi-detail__col-title { font-family: var(--font-display); font-size: 1.05rem; margin: 0; }
 
 /* Results-framework planning notes (Strategies, Activities, Key outputs, Performance measure) */
-.pp-kpi-detail__planning { display: flex; flex-direction: column; gap: 1rem; }
+.pp-kpi-detail__planning { display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--pp-line); }
+.pp-kpi-detail__plan-title { font-family: var(--font-display); font-size: 1.05rem; margin: 0; }
 .pp-kpi-detail__plan-item { display: flex; flex-direction: column; gap: .3rem; }
 .pp-kpi-detail__plan-text { margin: 0; font-size: .9rem; color: var(--pp-muted); line-height: 1.5; white-space: pre-line; }
+.pp-kpi-detail__plan-text--empty { font-style: italic; opacity: .7; }
 
 /* Vertical measurement timeline (left column of the detail modal) */
 .pp-vtimeline { list-style: none; margin: 0; padding: 0; max-height: 24rem; overflow-y: auto; }

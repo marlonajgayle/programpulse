@@ -131,18 +131,13 @@
                         <div><dt>Target</dt><dd>@Fmt(kpi.TargetValue) @kpi.Unit</dd></div>
                     </dl>
 
-                    @if (!string.IsNullOrWhiteSpace(kpi.Strategies)
-                         || !string.IsNullOrWhiteSpace(kpi.Activities)
-                         || !string.IsNullOrWhiteSpace(kpi.KeyOutputs)
-                         || !string.IsNullOrWhiteSpace(kpi.PerformanceMeasure))
-                    {
-                        <div class="pp-kpi-detail__planning">
-                            @PlanningBlock("Strategies", kpi.Strategies)
-                            @PlanningBlock("Activities", kpi.Activities)
-                            @PlanningBlock("Key outputs", kpi.KeyOutputs)
-                            @PlanningBlock("Performance measure", kpi.PerformanceMeasure)
-                        </div>
-                    }
+                    <div class="pp-kpi-detail__planning">
+                        <h4 class="pp-kpi-detail__plan-title">Planning</h4>
+                        @PlanningBlock("Strategies", kpi.Strategies)
+                        @PlanningBlock("Activities", kpi.Activities)
+                        @PlanningBlock("Key outputs", kpi.KeyOutputs)
+                        @PlanningBlock("Performance measure", kpi.PerformanceMeasure)
+                    </div>
                 </section>
             </div>
         </div>
@@ -159,27 +154,29 @@
 
     private Task Close() => OnClose.InvokeAsync();
 
-    /// <summary>Renders a labelled planning field, or nothing when the value is empty.</summary>
-    private static RenderFragment? PlanningBlock(string label, string? value) =>
-        string.IsNullOrWhiteSpace(value)
-            ? null
-            : builder =>
-            {
-                builder.OpenElement(0, "div");
-                builder.AddAttribute(1, "class", "pp-kpi-detail__plan-item");
+    /// <summary>Renders a labelled planning field. When the value is unset a muted
+    /// placeholder is shown so the field remains visible in the details view.</summary>
+    private static RenderFragment PlanningBlock(string label, string? value) =>
+        builder =>
+        {
+            var hasValue = !string.IsNullOrWhiteSpace(value);
 
-                builder.OpenElement(2, "span");
-                builder.AddAttribute(3, "class", "pp-form__label");
-                builder.AddContent(4, label);
-                builder.CloseElement();
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "class", "pp-kpi-detail__plan-item");
 
-                builder.OpenElement(5, "p");
-                builder.AddAttribute(6, "class", "pp-kpi-detail__plan-text");
-                builder.AddContent(7, value);
-                builder.CloseElement();
+            builder.OpenElement(2, "span");
+            builder.AddAttribute(3, "class", "pp-form__label");
+            builder.AddContent(4, label);
+            builder.CloseElement();
 
-                builder.CloseElement();
-            };
+            builder.OpenElement(5, "p");
+            builder.AddAttribute(6, "class",
+                hasValue ? "pp-kpi-detail__plan-text" : "pp-kpi-detail__plan-text pp-kpi-detail__plan-text--empty");
+            builder.AddContent(7, hasValue ? value : "Not set");
+            builder.CloseElement();
+
+            builder.CloseElement();
+        };
 
     private static string Fmt(decimal value) =>
         value == Math.Truncate(value) ? value.ToString("0") : value.ToString("0.##");
