@@ -54,6 +54,10 @@ public sealed class GetObjectiveKpisQueryHandler(
                 k.DueDate,
                 k.Status,
                 k.MeasurementFrequency,
+                k.Strategies,
+                k.Activities,
+                k.KeyOutputs,
+                k.PerformanceMeasure,
                 k.ObjectiveId,
                 k.CreatedDate,
                 k.LastModifiedDate))

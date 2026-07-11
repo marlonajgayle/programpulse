@@ -43,7 +43,11 @@ public sealed class Objective : AuditableEntity<Guid>
         decimal targetValue,
         decimal currentValue,
         DateTime dueDate,
-        MeasurementFrequency? kpiFrequency)
+        MeasurementFrequency? kpiFrequency,
+        string? strategies,
+        string? activities,
+        string? keyOutputs,
+        string? performanceMeasure)
     {
         var kpi = Kpi.Create(
             kpiName,
@@ -54,6 +58,10 @@ public sealed class Objective : AuditableEntity<Guid>
             currentValue,
             dueDate,
             kpiFrequency,
+            strategies,
+            activities,
+            keyOutputs,
+            performanceMeasure,
             Id);
         _kpis.Add(kpi);
         return kpi;

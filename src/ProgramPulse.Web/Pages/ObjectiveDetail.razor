@@ -72,144 +72,63 @@ else
     }
     else
     {
-        <div class="pp-kpi-grid">
+        <ul class="pp-kpi-list">
             @foreach (var kpi in objective.Kpis)
             {
-                <article class="pp-card pp-kpi-card">
-                    <span class="pp-kpi-card__stripe pp-kpi-card__stripe--@kpi.StatusModifier" aria-hidden="true"></span>
+                <li class="pp-kpi-row" role="button" tabindex="0"
+                    @onclick="() => selectedKpi = kpi"
+                    @onkeydown="e => OnRowKeyDown(e, kpi)"
+                    aria-label="View details for @kpi.Name">
+                    <span class="pp-kpi-row__stripe pp-kpi-card__stripe--@kpi.StatusModifier" aria-hidden="true"></span>
 
-                    <div class="pp-kpi-card__head">
-                        <h3 class="pp-kpi-card__name">@kpi.Name</h3>
-                        <div class="pp-kpi-card__head-actions">
-                            <span class="pp-badge pp-badge--@kpi.StatusModifier">@kpi.StatusLabel</span>
-                            <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Edit KPI" @onclick="() => editingKpi = kpi">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </button>
-                            <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Delete KPI" @onclick="() => DeleteKpi(kpi)" disabled="@_deleting">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M6 7h12M9 7V5h6v2m-8 0 1 12h8l1-12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </button>
-                        </div>
+                    <div class="pp-kpi-row__main">
+                        <h3 class="pp-kpi-row__name">@kpi.Name</h3>
+                        <span class="pp-badge pp-badge--@kpi.StatusModifier">@kpi.StatusLabel</span>
                     </div>
 
-                    <div class="pp-kpi-card__meta">
-                        <span class="pp-kpi-card__unit">Measured in @kpi.Unit</span>
-                        <span class="pp-dot-sep" aria-hidden="true">·</span>
-                        <span class="pp-kpi-card__recency @(kpi.IsMeasurementOverdue ? "pp-kpi-card__recency--warn" : "")">
-                            @if (kpi.IsMeasurementOverdue)
-                            {
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M12 3 2 20h20L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
-                                    <path d="M12 10v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                                    <circle cx="12" cy="17" r="1" fill="currentColor" />
-                                </svg>
-                            }
-                            @RecencyLabel(kpi)
-                        </span>
+                    <div class="pp-kpi-row__figure">
+                        <span class="pp-kpi-row__value">@Fmt(kpi.CurrentValue) / @Fmt(kpi.TargetValue)</span>
+                        <span class="pp-kpi-row__unit">@kpi.Unit</span>
                     </div>
 
-                    <div class="pp-kpi-card__chips">
-                        <span class="pp-chip">
-                            @if (kpi.Direction == KpiDirection.Increase)
-                            {
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M19 5h-7M19 5v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                            }
-                            else
-                            {
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5 19 19M19 19h-7M19 19v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                            }
-                            @kpi.DirectionLabel
-                        </span>
-                        <span class="pp-chip @(string.IsNullOrEmpty(kpi.DueChipModifier) ? "" : $"pp-chip--{kpi.DueChipModifier}")">
-                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.7" />
-                                <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            Due @kpi.DueDate.ToString("d MMM yyyy")@(kpi.IsOverdue ? " · overdue" : "")
-                        </span>
-                    </div>
-
-                    <!-- Measurement trend (glance-level, no axes/labels) -->
-                    @if (kpi.RecentMeasurementValues.Count >= 2)
-                    {
-                        var spark = BuildSparkline(kpi.RecentMeasurementValues);
-                        <svg class="pp-spark" viewBox="0 0 250 44" preserveAspectRatio="none" role="img"
-                             aria-label="Recent measurement trend for @kpi.Name">
-                            <polyline class="pp-spark__line pp-spark__line--@kpi.StatusModifier" points="@spark.Points" />
-                            <circle class="pp-spark__dot pp-spark__dot--@kpi.StatusModifier"
-                                    cx="@spark.LastX.ToString("0.#", Culture)" cy="@spark.LastY.ToString("0.#", Culture)" r="3" />
-                        </svg>
-                    }
-                    else
-                    {
-                        <p class="pp-spark__empty">Not enough data yet for a trend</p>
-                    }
-
-                    <!-- Progress: baseline -> current -> target -->
-                    <div class="pp-progress">
+                    <div class="pp-kpi-row__progress">
                         <div class="pp-progress__track">
                             <div class="pp-progress__fill pp-progress__fill--@kpi.StatusModifier" style="width:@(kpi.ProgressPercent)%"></div>
                         </div>
-                        <span class="pp-progress__pct">@kpi.ProgressPercent% of the way to target</span>
+                        <span class="pp-progress__pct">@kpi.ProgressPercent%</span>
                     </div>
 
-                    <dl class="pp-kpi-card__figures">
-                        <div><dt>Baseline</dt><dd>@Fmt(kpi.BaselineValue) @kpi.Unit</dd></div>
-                        <div><dt>Current</dt><dd class="pp-kpi-card__current">@Fmt(kpi.CurrentValue) @kpi.Unit</dd></div>
-                        <div><dt>Target</dt><dd>@Fmt(kpi.TargetValue) @kpi.Unit</dd></div>
-                    </dl>
+                    <div class="pp-kpi-row__due">
+                        <span class="pp-kpi-row__due-date @(kpi.IsOverdue ? "pp-kpi-row__due-date--over" : "")">
+                            Due @kpi.DueDate.ToString("d MMM yyyy")@(kpi.IsOverdue ? " · overdue" : "")
+                        </span>
+                        <span class="pp-kpi-row__recency @(kpi.IsMeasurementOverdue ? "pp-kpi-row__recency--warn" : "")">@RecencyLabel(kpi)</span>
+                    </div>
 
-                    <footer class="pp-kpi-card__foot">
-                        @if (kpi.Measurements.Count > 0)
-                        {
-                            <details class="pp-history">
-                                <summary class="pp-history__summary">
-                                    <span>@kpi.MeasurementCount measurements</span>
-                                    <svg class="pp-history__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                        <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </summary>
-                                <ul class="pp-history__list">
-                                    @foreach (var m in kpi.Measurements.OrderByDescending(x => x.CreatedDate))
-                                    {
-                                        <li class="pp-history__row">
-                                            <span class="pp-history__value">@Fmt(m.Value) @kpi.Unit</span>
-                                            <span class="pp-history__meta">
-                                                <span class="pp-history__date">@m.CreatedDate.ToString("d MMM yyyy")</span>
-                                                @if (!string.IsNullOrWhiteSpace(m.Notes))
-                                                {
-                                                    <span class="pp-history__note">@m.Notes</span>
-                                                }
-                                            </span>
-                                            <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Edit measurement"
-                                                    @onclick="() => OpenMeasurement(kpi, m)">
-                                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                                    <path d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                                                </svg>
-                                            </button>
-                                        </li>
-                                    }
-                                </ul>
-                            </details>
-                        }
-                        else
-                        {
-                            <span class="pp-history__summary pp-history__summary--static">0 measurements</span>
-                        }
-                        <button type="button" class="pp-btn pp-btn--ghost pp-btn--sm" @onclick="() => OpenMeasurement(kpi, null)">
-                            <svg viewBox="0 0 24 24" fill="none" width="16" height="16" aria-hidden="true">
-                                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    <div class="pp-kpi-row__actions">
+                        <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Edit KPI"
+                                @onclick="() => editingKpi = kpi" @onclick:stopPropagation="true">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
-                            Add measurement
                         </button>
-                    </footer>
-                </article>
+                        <button type="button" class="pp-iconbtn pp-iconbtn--sm" aria-label="Delete KPI"
+                                @onclick="() => DeleteKpi(kpi)" @onclick:stopPropagation="true" disabled="@_deleting">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M6 7h12M9 7V5h6v2m-8 0 1 12h8l1-12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                    </div>
+                </li>
             }
-        </div>
+        </ul>
     }
+
+    <KpiDetailDialog Kpi="selectedKpi" Visible="selectedKpi is not null"
+                     OnClose="() => selectedKpi = null"
+                     OnEditKpi="() => editingKpi = selectedKpi"
+                     OnAddMeasurement="() => OpenMeasurement(selectedKpi!, null)"
+                     OnEditMeasurement="m => OpenMeasurement(selectedKpi!, m)" />
 
     <EditObjectiveDialog Objective="objective" Visible="showEditObjective"
                          OnClose="() => showEditObjective = false" OnSaved="Reload" />
@@ -234,6 +153,7 @@ else
     private bool showEditObjective;
     private bool showAddKpi;
     private KpiVm? editingKpi;
+    private KpiVm? selectedKpi;
     private KpiVm? measurementKpi;
     private MeasurementVm? editingMeasurement;
     private bool _loading = true;
@@ -277,7 +197,19 @@ else
             objectiveDetail.ProgrammeId, objectiveDetail.CreatedDate, objectiveDetail.LastModifiedDate,
             kpiVms);
 
+        // Re-resolve the open detail modal against the freshly-rebuilt KPI list so it shows the
+        // reloaded data (e.g. a just-added measurement) rather than a stale instance.
+        selectedKpi = selectedKpi is null ? null : kpiVms.FirstOrDefault(k => k.Id == selectedKpi.Id);
+
         _loading = false;
+    }
+
+    private void OnRowKeyDown(KeyboardEventArgs e, KpiVm kpi)
+    {
+        if (e.Key is "Enter" or " ")
+        {
+            selectedKpi = kpi;
+        }
     }
 
     private async Task DeleteKpi(KpiVm kpi)
@@ -292,12 +224,13 @@ else
     {
         var measurements = await MeasurementsApi.GetMeasurementsAsync(k.Id, CancellationToken.None) ?? [];
         var measurementVms = measurements
-            .Select(m => new MeasurementVm(m.Id, m.Value, m.Notes, m.KpiId, m.CreatedDate))
+            .Select(m => new MeasurementVm(m.Id, m.Value, m.Notes, m.KpiId, m.MeasurementDate, m.CreatedDate))
             .ToList();
 
         return new KpiVm(
             k.Id, k.Name, k.Unit, k.Direction, k.BaselineValue, k.TargetValue, k.CurrentValue,
-            k.DueDate, k.Status, k.ObjectiveId, k.CreatedDate, k.LastModifiedDate, measurementVms);
+            k.DueDate, k.Status, k.ObjectiveId, k.CreatedDate, k.LastModifiedDate,
+            k.Strategies, k.Activities, k.KeyOutputs, k.PerformanceMeasure, measurementVms);
     }
 
     private void OpenMeasurement(KpiVm kpi, MeasurementVm? measurement)
@@ -315,43 +248,7 @@ else
     private static string Fmt(decimal value) =>
         value == Math.Truncate(value) ? value.ToString("0") : value.ToString("0.##");
 
-    private static readonly System.Globalization.CultureInfo Culture =
-        System.Globalization.CultureInfo.InvariantCulture;
-
-    // Sparkline geometry (matches the SVG viewBox in markup).
-    private const double SparkWidth = 250;
-    private const double SparkHeight = 44;
-    private const double SparkPadding = 5;
-
-    private readonly record struct Sparkline(string Points, double LastX, double LastY);
-
-    /// <summary>Maps measurement values (oldest → newest) to polyline points across a
-    /// fixed 250×44 viewBox, returning the point string plus the final point for the marker.</summary>
-    private static Sparkline BuildSparkline(IReadOnlyList<decimal> values)
-    {
-        var count = values.Count;
-        var min = values.Min();
-        var max = values.Max();
-        var range = max - min;
-        var innerW = SparkWidth - (SparkPadding * 2);
-        var innerH = SparkHeight - (SparkPadding * 2);
-
-        var points = new string[count];
-        double lastX = 0, lastY = 0;
-        for (var i = 0; i < count; i++)
-        {
-            var x = SparkPadding + (count == 1 ? innerW / 2 : innerW * i / (count - 1));
-            var norm = range == 0 ? 0.5 : (double)((values[i] - min) / range);
-            var y = SparkPadding + (innerH * (1 - norm));
-            points[i] = FormattableString.Invariant($"{x:0.#},{y:0.#}");
-            lastX = x;
-            lastY = y;
-        }
-
-        return new Sparkline(string.Join(" ", points), lastX, lastY);
-    }
-
-    /// <summary>Human-readable recency string for the meta row.</summary>
+    /// <summary>Human-readable recency string for the row.</summary>
     private static string RecencyLabel(KpiVm kpi) => kpi.DaysSinceLastMeasured switch
     {
         null => "No measurements logged yet",

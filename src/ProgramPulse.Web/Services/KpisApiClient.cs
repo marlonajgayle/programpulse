@@ -159,7 +159,11 @@ public sealed record UpdateKpiRequest(
     string Unit,
     KpiDirection Direction,
     decimal TargetValue,
-    DateTime DueDate);
+    DateTime DueDate,
+    string? Strategies,
+    string? Activities,
+    string? KeyOutputs,
+    string? PerformanceMeasure);
 
 /// <summary>Body sent to <c>POST api/v1/objectives/{objectiveId}/kpis</c> to add a KPI to an
 /// existing objective. The objective id travels in the route, so it is not part of the body.</summary>
@@ -171,7 +175,11 @@ public sealed record CreateKpiRequest(
     decimal TargetValue,
     decimal CurrentValue,
     DateTime DueDate,
-    MeasurementFrequency Frequency);
+    MeasurementFrequency Frequency,
+    string? Strategies,
+    string? Activities,
+    string? KeyOutputs,
+    string? PerformanceMeasure);
 
 /// <summary>A KPI as returned by <c>GET api/v1/objectives/{objectiveId}/kpis</c>. Enum fields
 /// arrive as numbers over the wire; ordinals match the Web
@@ -186,6 +194,10 @@ public sealed record KpiResponse(
     decimal CurrentValue,
     DateTime DueDate,
     KpiStatus Status,
+    string? Strategies,
+    string? Activities,
+    string? KeyOutputs,
+    string? PerformanceMeasure,
     Guid ObjectiveId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate);

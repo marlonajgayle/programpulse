@@ -66,6 +66,34 @@
                         <InputNumber id="pp-edit-kpi-target" @bind-Value="model.Target" class="pp-input" placeholder="0" />
                         <ValidationMessage For="() => model.Target" class="pp-field__error" />
                     </div>
+
+                    <div class="pp-form__field pp-form__field--full">
+                        <label class="pp-form__label" for="pp-edit-kpi-strategies">Strategies</label>
+                        <InputTextArea id="pp-edit-kpi-strategies" @bind-Value="model.Strategies" class="pp-input pp-input--area"
+                                       placeholder="How this KPI will be pursued" />
+                        <ValidationMessage For="() => model.Strategies" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field pp-form__field--full">
+                        <label class="pp-form__label" for="pp-edit-kpi-activities">Activities</label>
+                        <InputTextArea id="pp-edit-kpi-activities" @bind-Value="model.Activities" class="pp-input pp-input--area"
+                                       placeholder="Key activities that drive this KPI" />
+                        <ValidationMessage For="() => model.Activities" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field pp-form__field--full">
+                        <label class="pp-form__label" for="pp-edit-kpi-outputs">Key outputs</label>
+                        <InputTextArea id="pp-edit-kpi-outputs" @bind-Value="model.KeyOutputs" class="pp-input pp-input--area"
+                                       placeholder="Expected outputs" />
+                        <ValidationMessage For="() => model.KeyOutputs" class="pp-field__error" />
+                    </div>
+
+                    <div class="pp-form__field pp-form__field--full">
+                        <label class="pp-form__label" for="pp-edit-kpi-measure">Performance measure</label>
+                        <InputTextArea id="pp-edit-kpi-measure" @bind-Value="model.PerformanceMeasure" class="pp-input pp-input--area"
+                                       placeholder="How performance is judged" />
+                        <ValidationMessage For="() => model.PerformanceMeasure" class="pp-field__error" />
+                    </div>
                 </div>
 
                 @if (_error is not null)
@@ -107,6 +135,10 @@
                 Direction = kpi.Direction,
                 Target = kpi.TargetValue,
                 DueDate = kpi.DueDate,
+                Strategies = kpi.Strategies,
+                Activities = kpi.Activities,
+                KeyOutputs = kpi.KeyOutputs,
+                PerformanceMeasure = kpi.PerformanceMeasure,
             };
         }
     }
@@ -123,7 +155,11 @@
 
         var request = new UpdateKpiRequest(
             model.Name, model.Unit, model.Direction,
-            model.Target!.Value, model.DueDate!.Value);
+            model.Target!.Value, model.DueDate!.Value,
+            NullIfBlank(model.Strategies),
+            NullIfBlank(model.Activities),
+            NullIfBlank(model.KeyOutputs),
+            NullIfBlank(model.PerformanceMeasure));
         var result = await KpisApi.UpdateKpiAsync(Kpi.Id, request, CancellationToken.None);
         _saving = false;
 
@@ -160,5 +196,20 @@
 
         [Required(ErrorMessage = "Due date is required.")]
         public DateTime? DueDate { get; set; }
+
+        [StringLength(2000, ErrorMessage = "Strategies must not exceed 2000 characters.")]
+        public string? Strategies { get; set; }
+
+        [StringLength(2000, ErrorMessage = "Activities must not exceed 2000 characters.")]
+        public string? Activities { get; set; }
+
+        [StringLength(2000, ErrorMessage = "Key outputs must not exceed 2000 characters.")]
+        public string? KeyOutputs { get; set; }
+
+        [StringLength(2000, ErrorMessage = "Performance measure must not exceed 2000 characters.")]
+        public string? PerformanceMeasure { get; set; }
     }
+
+    private static string? NullIfBlank(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
 }

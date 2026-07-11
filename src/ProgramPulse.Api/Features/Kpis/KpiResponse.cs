@@ -16,6 +16,10 @@ public sealed record KpiResponse(
     DateTime DueDate,
     KpiStatus Status,
     MeasurementFrequency? MeasurementFrequency,
+    string? Strategies,
+    string? Activities,
+    string? KeyOutputs,
+    string? PerformanceMeasure,
     Guid ObjectiveId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate);

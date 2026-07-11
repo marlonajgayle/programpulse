@@ -24,5 +24,21 @@ public sealed class UpdateKpiCommandValidator : AbstractValidator<UpdateKpiComma
         RuleFor(x => x.Frequency)
             .IsInEnum().WithMessage("The measurement frequency is invalid.")
             .When(x => x.Frequency.HasValue);
+
+        RuleFor(x => x.Strategies)
+            .MaximumLength(2000).WithMessage("Strategies must not exceed 2000 characters.")
+            .When(x => x.Strategies is not null);
+
+        RuleFor(x => x.Activities)
+            .MaximumLength(2000).WithMessage("Activities must not exceed 2000 characters.")
+            .When(x => x.Activities is not null);
+
+        RuleFor(x => x.KeyOutputs)
+            .MaximumLength(2000).WithMessage("Key outputs must not exceed 2000 characters.")
+            .When(x => x.KeyOutputs is not null);
+
+        RuleFor(x => x.PerformanceMeasure)
+            .MaximumLength(2000).WithMessage("Performance measure must not exceed 2000 characters.")
+            .When(x => x.PerformanceMeasure is not null);
     }
 }

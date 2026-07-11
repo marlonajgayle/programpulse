@@ -22,6 +22,12 @@ public sealed class Kpi : AuditableEntity<Guid>
     // measurements may be recorded without restriction.
     public MeasurementFrequency? MeasurementFrequency { get; private set; }
 
+    // Optional results-framework planning notes. Free-text, may be null.
+    public string? Strategies { get; private set; }
+    public string? Activities { get; private set; }
+    public string? KeyOutputs { get; private set; }
+    public string? PerformanceMeasure { get; private set; }
+
     public Guid ObjectiveId { get; private set; }
     public Objective Objective { get; private set; } = null!;
 
@@ -37,6 +43,10 @@ public sealed class Kpi : AuditableEntity<Guid>
         decimal currentValue,
         DateTime dueDate,
         MeasurementFrequency? measurementFrequency,
+        string? strategies,
+        string? activities,
+        string? keyOutputs,
+        string? performanceMeasure,
         Guid objectiveId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -54,6 +64,10 @@ public sealed class Kpi : AuditableEntity<Guid>
             DueDate = dueDate,
             Status = KpiStatus.NotStarted,
             MeasurementFrequency = measurementFrequency,
+            Strategies = strategies,
+            Activities = activities,
+            KeyOutputs = keyOutputs,
+            PerformanceMeasure = performanceMeasure,
             ObjectiveId = objectiveId
         };
     }
@@ -64,7 +78,11 @@ public sealed class Kpi : AuditableEntity<Guid>
         KpiDirection direction,
         decimal targetValue,
         DateTime dueDate,
-        MeasurementFrequency? measurementFrequency)
+        MeasurementFrequency? measurementFrequency,
+        string? strategies,
+        string? activities,
+        string? keyOutputs,
+        string? performanceMeasure)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(unit);
@@ -75,6 +93,10 @@ public sealed class Kpi : AuditableEntity<Guid>
         TargetValue = targetValue;
         DueDate = dueDate;
         MeasurementFrequency = measurementFrequency;
+        Strategies = strategies;
+        Activities = activities;
+        KeyOutputs = keyOutputs;
+        PerformanceMeasure = performanceMeasure;
     }
 
     public void RecordProgress(decimal currentValue, KpiStatus status)

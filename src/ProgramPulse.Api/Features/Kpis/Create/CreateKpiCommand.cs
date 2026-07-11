@@ -15,7 +15,11 @@ public sealed record CreateKpiCommand(
     decimal TargetValue,
     decimal CurrentValue,
     DateTime DueDate,
-    MeasurementFrequency? Frequency);
+    MeasurementFrequency? Frequency,
+    string? Strategies,
+    string? Activities,
+    string? KeyOutputs,
+    string? PerformanceMeasure);
 
 /// <summary>
 /// Adds a new KPI to an Objective the caller's tenant owns (verified via the parent
@@ -55,7 +59,11 @@ public sealed class CreateKpiCommandHandler(
             command.TargetValue,
             command.CurrentValue,
             command.DueDate,
-            command.Frequency);
+            command.Frequency,
+            command.Strategies,
+            command.Activities,
+            command.KeyOutputs,
+            command.PerformanceMeasure);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var response = new KpiResponse(
@@ -69,6 +77,10 @@ public sealed class CreateKpiCommandHandler(
             kpi.DueDate,
             kpi.Status,
             kpi.MeasurementFrequency,
+            kpi.Strategies,
+            kpi.Activities,
+            kpi.KeyOutputs,
+            kpi.PerformanceMeasure,
             kpi.ObjectiveId,
             kpi.CreatedDate,
             kpi.LastModifiedDate);

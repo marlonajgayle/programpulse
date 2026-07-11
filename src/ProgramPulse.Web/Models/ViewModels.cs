@@ -79,6 +79,10 @@ public sealed record KpiVm(
     Guid ObjectiveId,
     DateTime CreatedDate,
     DateTime? LastModifiedDate,
+    string? Strategies,
+    string? Activities,
+    string? KeyOutputs,
+    string? PerformanceMeasure,
     IReadOnlyList<MeasurementVm> Measurements)
 {
     /// <summary>
@@ -102,10 +106,11 @@ public sealed record KpiVm(
 
     public bool IsOverdue => DueDate.Date < DateTime.Today && Status != KpiStatus.Completed;
 
-    /// <summary>Timestamp of the most recent measurement, or null when none have been
-    /// logged. Derived from <see cref="Measurements"/> so it needs no separate API field.</summary>
+    /// <summary>Date of the most recent measurement reading, or null when none have been
+    /// logged. Keyed off <see cref="MeasurementVm.MeasurementDate"/> (the date the reading is
+    /// for) so recency reflects the reading, not when it was entered.</summary>
     public DateTime? LastMeasuredAt =>
-        Measurements.Count == 0 ? null : Measurements.Max(m => m.CreatedDate);
+        Measurements.Count == 0 ? null : Measurements.Max(m => m.MeasurementDate);
 
     public int MeasurementCount => Measurements.Count;
 
@@ -121,7 +126,7 @@ public sealed record KpiVm(
     /// <summary>The most recent measurement values, oldest → newest, capped for the sparkline.</summary>
     public IReadOnlyList<decimal> RecentMeasurementValues =>
         Measurements
-            .OrderBy(m => m.CreatedDate)
+            .OrderBy(m => m.MeasurementDate)
             .Select(m => m.Value)
             .TakeLast(KpiThresholds.SparklinePoints)
             .ToList();
@@ -178,6 +183,7 @@ public sealed record MeasurementVm(
     decimal Value,
     string? Notes,
     Guid KpiId,
+    DateTime MeasurementDate,
     DateTime CreatedDate);
 
 public static class StatusRollup
