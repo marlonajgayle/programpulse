@@ -33,6 +33,8 @@ public interface IApplicationDbContext
 
     DbSet<Measurement> Measurements { get; }
 
+    DbSet<MeasurementComment> MeasurementComments { get; }
+
     void Attach<TEntity>(TEntity entity) where TEntity : class;
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

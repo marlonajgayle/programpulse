@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 
@@ -54,5 +55,14 @@ public sealed class MeasurementConfiguration : IEntityTypeConfiguration<Measurem
 
         builder.Property(m => m.DeletedUtc)
             .IsRequired(false);
+
+        builder.HasMany(m => m.Comments)
+            .WithOne(c => c.Measurement)
+            .HasForeignKey(c => c.MeasurementId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Metadata
+            .FindNavigation(nameof(Measurement.Comments))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

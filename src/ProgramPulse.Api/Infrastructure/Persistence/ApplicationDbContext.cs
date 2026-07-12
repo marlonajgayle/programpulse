@@ -51,6 +51,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<Measurement> Measurements => Set<Measurement>();
 
+    public DbSet<MeasurementComment> MeasurementComments => Set<MeasurementComment>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
