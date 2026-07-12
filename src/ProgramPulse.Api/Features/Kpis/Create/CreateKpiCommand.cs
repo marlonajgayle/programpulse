@@ -10,6 +10,7 @@ public sealed record CreateKpiCommand(
     Guid ObjectiveId,
     string Name,
     string Unit,
+    KpiCategory Category,
     KpiDirection Direction,
     decimal BaselineValue,
     decimal TargetValue,
@@ -54,6 +55,7 @@ public sealed class CreateKpiCommandHandler(
         var kpi = objective.AddKpi(
             command.Name,
             command.Unit,
+            command.Category,
             command.Direction,
             command.BaselineValue,
             command.TargetValue,
@@ -70,6 +72,7 @@ public sealed class CreateKpiCommandHandler(
             kpi.Id,
             kpi.Name,
             kpi.Unit,
+            kpi.Category,
             kpi.Direction,
             kpi.BaselineValue,
             kpi.TargetValue,

@@ -33,6 +33,11 @@ public sealed class KpiConfiguration : IEntityTypeConfiguration<Kpi>
             .IsRequired()
             .HasMaxLength(50);
 
+        builder.Property(k => k.Category)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         builder.Property(k => k.Direction)
             .IsRequired()
             .HasConversion<string>()

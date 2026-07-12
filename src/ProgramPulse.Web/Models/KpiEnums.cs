@@ -9,6 +9,15 @@ public enum KpiDirection
     Decrease,
 }
 
+/// <summary>Business category used to group and filter KPIs.
+/// Ordinals must match ProgramPulse.Api's KpiCategory.</summary>
+public enum KpiCategory
+{
+    Operational,
+    Strategic,
+    Priority,
+}
+
 public enum KpiStatus
 {
     NotStarted,

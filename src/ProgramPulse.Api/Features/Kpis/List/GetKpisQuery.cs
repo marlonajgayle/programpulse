@@ -6,7 +6,7 @@ using ProgramPulse.Api.SharedKernel.Primitives;
 
 namespace ProgramPulse.Api.Features.Kpis.List;
 
-public sealed record GetObjectiveKpisQuery(Guid ObjectiveId);
+public sealed record GetObjectiveKpisQuery(Guid ObjectiveId, KpiCategory? Category = null);
 
 /// <summary>
 /// Returns the KPIs belonging to an Objective the caller's tenant owns, ordered by creation
@@ -42,11 +42,13 @@ public sealed class GetObjectiveKpisQueryHandler(
         var kpis = await _dbContext.Kpis
             .AsNoTracking()
             .Where(k => k.ObjectiveId == query.ObjectiveId)
+            .Where(k => query.Category == null || k.Category == query.Category)
             .OrderBy(k => k.CreatedDate)
             .Select(k => new KpiResponse(
                 k.Id,
                 k.Name,
                 k.Unit,
+                k.Category,
                 k.Direction,
                 k.BaselineValue,
                 k.TargetValue,

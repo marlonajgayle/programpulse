@@ -43,6 +43,20 @@
                     </div>
 
                     <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-edit-kpi-category">Category <span class="pp-req">*</span></label>
+                        <div class="pp-select">
+                            <InputSelect id="pp-edit-kpi-category" @bind-Value="model.Category" class="pp-input">
+                                <option value="@KpiCategory.Operational">Operational</option>
+                                <option value="@KpiCategory.Strategic">Strategic</option>
+                                <option value="@KpiCategory.Priority">Priority</option>
+                            </InputSelect>
+                            <svg class="pp-select__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="pp-form__field">
                         <label class="pp-form__label" for="pp-edit-kpi-direction">Direction <span class="pp-req">*</span></label>
                         <div class="pp-select">
                             <InputSelect id="pp-edit-kpi-direction" @bind-Value="model.Direction" class="pp-input">
@@ -132,6 +146,7 @@
             {
                 Name = kpi.Name,
                 Unit = kpi.Unit,
+                Category = kpi.Category,
                 Direction = kpi.Direction,
                 Target = kpi.TargetValue,
                 DueDate = kpi.DueDate,
@@ -154,7 +169,7 @@
         _error = null;
 
         var request = new UpdateKpiRequest(
-            model.Name, model.Unit, model.Direction,
+            model.Name, model.Unit, model.Category, model.Direction,
             model.Target!.Value, model.DueDate!.Value,
             NullIfBlank(model.Strategies),
             NullIfBlank(model.Activities),
@@ -188,6 +203,8 @@
 
         [Required(ErrorMessage = "Unit is required.")]
         public string Unit { get; set; } = string.Empty;
+
+        public KpiCategory Category { get; set; } = KpiCategory.Operational;
 
         public KpiDirection Direction { get; set; } = KpiDirection.Increase;
 

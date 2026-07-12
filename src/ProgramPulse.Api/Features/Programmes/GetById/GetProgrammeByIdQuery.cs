@@ -57,6 +57,7 @@ public sealed class GetProgrammeByIdQueryHandler(
                                 k.Id,
                                 k.Name,
                                 k.Unit,
+                                k.Category,
                                 k.Direction,
                                 k.BaselineValue,
                                 k.TargetValue,

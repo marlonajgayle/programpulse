@@ -83,6 +83,10 @@
 
                     <div class="pp-kpi-card__chips">
                         <span class="pp-chip">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg>
+                            @kpi.CategoryLabel
+                        </span>
+                        <span class="pp-chip">
                             @if (kpi.Direction == KpiDirection.Increase)
                             {
                                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M19 5h-7M19 5v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>

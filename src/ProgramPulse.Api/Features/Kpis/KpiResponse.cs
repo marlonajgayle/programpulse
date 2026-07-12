@@ -9,6 +9,7 @@ public sealed record KpiResponse(
     Guid Id,
     string Name,
     string Unit,
+    KpiCategory Category,
     KpiDirection Direction,
     decimal BaselineValue,
     decimal TargetValue,

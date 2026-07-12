@@ -38,6 +38,7 @@ public sealed class Objective : AuditableEntity<Guid>
     public Kpi AddKpi(
         string kpiName,
         string kpiUnit,
+        KpiCategory kpiCategory,
         KpiDirection kpiDirection,
         decimal baselineValue,
         decimal targetValue,
@@ -52,6 +53,7 @@ public sealed class Objective : AuditableEntity<Guid>
         var kpi = Kpi.Create(
             kpiName,
             kpiUnit,
+            kpiCategory,
             kpiDirection,
             baselineValue,
             targetValue,

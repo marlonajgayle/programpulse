@@ -70,6 +70,7 @@ public sealed record KpiVm(
     Guid Id,
     string Name,
     string Unit,
+    KpiCategory Category,
     KpiDirection Direction,
     decimal BaselineValue,
     decimal TargetValue,
@@ -156,6 +157,14 @@ public sealed record KpiVm(
     };
 
     public string DirectionLabel => Direction == KpiDirection.Increase ? "Increase" : "Decrease";
+
+    public string CategoryLabel => Category switch
+    {
+        KpiCategory.Operational => "Operational",
+        KpiCategory.Strategic => "Strategic",
+        KpiCategory.Priority => "Priority",
+        _ => Category.ToString(),
+    };
 
     public string StatusLabel => Status switch
     {

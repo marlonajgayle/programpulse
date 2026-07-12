@@ -10,6 +10,7 @@ public sealed record UpdateKpiCommand(
     Guid Id,
     string Name,
     string Unit,
+    KpiCategory Category,
     KpiDirection Direction,
     decimal TargetValue,
     DateTime DueDate,
@@ -48,7 +49,7 @@ public sealed class UpdateKpiCommandHandler(
         if (kpi is null)
             return Result.Failure(KpiErrors.KpiNotFound(command.Id));
 
-        kpi.Update(command.Name, command.Unit, command.Direction, command.TargetValue, command.DueDate, command.Frequency,
+        kpi.Update(command.Name, command.Unit, command.Category, command.Direction, command.TargetValue, command.DueDate, command.Frequency,
             command.Strategies, command.Activities, command.KeyOutputs, command.PerformanceMeasure);
         await _dbContext.SaveChangesAsync(cancellationToken);
 

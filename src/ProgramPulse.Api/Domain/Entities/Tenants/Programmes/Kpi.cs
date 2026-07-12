@@ -11,6 +11,7 @@ public sealed class Kpi : AuditableEntity<Guid>
 
     public string Name { get; private set; } = string.Empty;
     public string Unit { get; private set; } = string.Empty;
+    public KpiCategory Category { get; private set; }
     public KpiDirection Direction { get; private set; }
     public decimal BaselineValue { get; private set; }
     public decimal TargetValue { get; private set; }
@@ -37,6 +38,7 @@ public sealed class Kpi : AuditableEntity<Guid>
     internal static Kpi Create(
         string name,
         string unit,
+        KpiCategory category,
         KpiDirection direction,
         decimal baselineValue,
         decimal targetValue,
@@ -57,6 +59,7 @@ public sealed class Kpi : AuditableEntity<Guid>
             Id = Guid.CreateVersion7(),
             Name = name,
             Unit = unit,
+            Category = category,
             Direction = direction,
             BaselineValue = baselineValue,
             TargetValue = targetValue,
@@ -75,6 +78,7 @@ public sealed class Kpi : AuditableEntity<Guid>
     public void Update(
         string name,
         string unit,
+        KpiCategory category,
         KpiDirection direction,
         decimal targetValue,
         DateTime dueDate,
@@ -89,6 +93,7 @@ public sealed class Kpi : AuditableEntity<Guid>
 
         Name = name;
         Unit = unit;
+        Category = category;
         Direction = direction;
         TargetValue = targetValue;
         DueDate = dueDate;

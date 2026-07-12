@@ -23,10 +23,13 @@ public sealed class KpisApiClient(HttpClient httpClient)
     /// the objective isn't found (404), or the server is unreachable.
     /// </summary>
     public async Task<IReadOnlyList<KpiResponse>?> GetObjectiveKpisAsync(
-        Guid objectiveId, CancellationToken cancellationToken)
+        Guid objectiveId, CancellationToken cancellationToken, KpiCategory? category = null)
     {
-        using var message = new HttpRequestMessage(
-            HttpMethod.Get, $"api/v1/objectives/{objectiveId}/kpis");
+        var requestUri = $"api/v1/objectives/{objectiveId}/kpis";
+        if (category is not null)
+            requestUri += $"?category={category}";
+
+        using var message = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
         // Include credentials so the browser sends the auth cookie the endpoint authenticates with.
         message.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
@@ -157,6 +160,7 @@ public sealed class KpisApiClient(HttpClient httpClient)
 public sealed record UpdateKpiRequest(
     string Name,
     string Unit,
+    KpiCategory Category,
     KpiDirection Direction,
     decimal TargetValue,
     DateTime DueDate,
@@ -170,6 +174,7 @@ public sealed record UpdateKpiRequest(
 public sealed record CreateKpiRequest(
     string Name,
     string Unit,
+    KpiCategory Category,
     KpiDirection Direction,
     decimal BaselineValue,
     decimal TargetValue,
@@ -188,6 +193,7 @@ public sealed record KpiResponse(
     Guid Id,
     string Name,
     string Unit,
+    KpiCategory Category,
     KpiDirection Direction,
     decimal BaselineValue,
     decimal TargetValue,

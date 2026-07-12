@@ -43,6 +43,20 @@
                     </div>
 
                     <div class="pp-form__field">
+                        <label class="pp-form__label" for="pp-add-kpi-category">Category <span class="pp-req">*</span></label>
+                        <div class="pp-select">
+                            <InputSelect id="pp-add-kpi-category" @bind-Value="model.Category" class="pp-input">
+                                <option value="@KpiCategory.Operational">Operational</option>
+                                <option value="@KpiCategory.Strategic">Strategic</option>
+                                <option value="@KpiCategory.Priority">Priority</option>
+                            </InputSelect>
+                            <svg class="pp-select__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="pp-form__field">
                         <label class="pp-form__label" for="pp-add-kpi-direction">Direction <span class="pp-req">*</span></label>
                         <div class="pp-select">
                             <InputSelect id="pp-add-kpi-direction" @bind-Value="model.Direction" class="pp-input">
@@ -159,6 +173,7 @@
         var request = new CreateKpiRequest(
             model.Name,
             model.Unit,
+            model.Category,
             model.Direction,
             model.Baseline!.Value,
             model.Target!.Value,
@@ -197,6 +212,8 @@
 
         [Required(ErrorMessage = "Unit is required.")]
         public string Unit { get; set; } = string.Empty;
+
+        public KpiCategory Category { get; set; } = KpiCategory.Operational;
 
         public KpiDirection Direction { get; set; } = KpiDirection.Increase;
 

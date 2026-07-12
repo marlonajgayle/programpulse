@@ -1,4 +1,5 @@
 using ProgramPulse.Api.Domain.Authorization;
+using ProgramPulse.Api.Domain.Entities.Tenants.Programmes;
 using ProgramPulse.Api.SharedKernel;
 using ProgramPulse.Api.SharedKernel.Primitives;
 using ProgramPulse.Api.SharedKernel.Versioning;
@@ -14,10 +15,11 @@ public sealed class GetObjectiveKpisEndpoint : IEndpoint
     {
         app.MapGet("objectives/{objectiveId:guid}/kpis", async (
             Guid objectiveId,
+            KpiCategory? category,
             GetObjectiveKpisQueryHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var result = await handler.HandleAsync(new GetObjectiveKpisQuery(objectiveId), cancellationToken);
+            var result = await handler.HandleAsync(new GetObjectiveKpisQuery(objectiveId, category), cancellationToken);
             return result.ToHttpResult();
         })
         .HasApiVersion(ApiVersions.V1)

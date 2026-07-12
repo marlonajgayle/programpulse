@@ -223,6 +223,7 @@ public sealed record KpiDetailResponse(
     Guid Id,
     string Name,
     string Unit,
+    KpiCategory Category,
     KpiDirection Direction,
     decimal BaselineValue,
     decimal TargetValue,

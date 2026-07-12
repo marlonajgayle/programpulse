@@ -185,7 +185,7 @@ public sealed class SampleData
 
         var objectiveId = Guid.CreateVersion7();
         var kpi = new KpiVm(
-            Guid.CreateVersion7(), kpiName, kpiUnit, direction, baseline, target, current, due,
+            Guid.CreateVersion7(), kpiName, kpiUnit, KpiCategory.Operational, direction, baseline, target, current, due,
             KpiStatus.NotStarted, objectiveId, DateTime.Today, null,
             null, null, null, null, new List<MeasurementVm>());
 
@@ -479,7 +479,7 @@ public sealed class SampleData
         }
 
         return new KpiVm(
-            id, name, unit, direction, baseline, target, current, due, status, objectiveId,
+            id, name, unit, KpiCategory.Operational, direction, baseline, target, current, due, status, objectiveId,
             created, list.Count > 1 ? created.AddDays((list.Count - 1) * 14) : null,
             null, null, null, null, list);
     }

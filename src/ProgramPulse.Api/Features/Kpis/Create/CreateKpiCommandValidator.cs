@@ -15,6 +15,9 @@ public sealed class CreateKpiCommandValidator : AbstractValidator<CreateKpiComma
             .NotEmpty().WithMessage("A KPI unit is required.")
             .MaximumLength(50).WithMessage("The KPI unit must not exceed 50 characters.");
 
+        RuleFor(x => x.Category)
+            .IsInEnum().WithMessage("The KPI category is invalid.");
+
         RuleFor(x => x.Direction)
             .IsInEnum().WithMessage("The KPI direction is invalid.");
 

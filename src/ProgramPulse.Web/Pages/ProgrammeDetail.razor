@@ -261,7 +261,7 @@ else
                     o.Id, o.Name, o.Description, o.ProgrammeId, o.CreatedDate, o.LastModifiedDate,
                     o.Kpis
                         .Select(k => new KpiVm(
-                            k.Id, k.Name, k.Unit, k.Direction, k.BaselineValue,
+                            k.Id, k.Name, k.Unit, k.Category, k.Direction, k.BaselineValue,
                             k.TargetValue, k.CurrentValue, k.DueDate, k.Status,
                             k.ObjectiveId, k.CreatedDate, k.LastModifiedDate,
                             null, null, null, null,
