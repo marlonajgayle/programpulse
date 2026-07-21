@@ -16,6 +16,7 @@ builder.Services.AddScoped<ProgrammesApiClient>();
 builder.Services.AddScoped<ObjectivesApiClient>();
 builder.Services.AddScoped<KpisApiClient>();
 builder.Services.AddScoped<MeasurementsApiClient>();
+builder.Services.AddScoped<MeasurementCommentsApiClient>();
 
 // Mock data source for the Programmes UI (swap for an API-backed source later).
 builder.Services.AddSingleton<SampleData>();

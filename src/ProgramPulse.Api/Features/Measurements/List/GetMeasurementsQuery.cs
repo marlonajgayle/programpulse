@@ -38,7 +38,8 @@ public sealed class GetMeasurementsQueryHandler(
                 m.MeasurementDate,
                 m.KpiId,
                 m.CreatedDate,
-                m.LastModifiedDate))
+                m.LastModifiedDate,
+                m.Comments.Count))
             .ToListAsync(cancellationToken);
 
         return Result<IReadOnlyList<MeasurementResponse>>.Success(measurements);

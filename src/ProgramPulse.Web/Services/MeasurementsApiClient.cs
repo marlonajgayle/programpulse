@@ -142,4 +142,5 @@ public sealed record MeasurementResponse(
     DateTime MeasurementDate,
     Guid KpiId,
     DateTime CreatedDate,
-    DateTime? LastModifiedDate);
+    DateTime? LastModifiedDate,
+    int CommentCount);

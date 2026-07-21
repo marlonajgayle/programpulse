@@ -148,7 +148,8 @@ else
                      OnClose="() => selectedKpi = null"
                      OnEditKpi="() => editingKpi = selectedKpi"
                      OnAddMeasurement="() => OpenMeasurement(selectedKpi!, null)"
-                     OnEditMeasurement="m => OpenMeasurement(selectedKpi!, m)" />
+                     OnEditMeasurement="m => OpenMeasurement(selectedKpi!, m)"
+                     OnViewComments="m => commentMeasurement = m" />
 
     <EditObjectiveDialog Objective="objective" Visible="showEditObjective"
                          OnClose="() => showEditObjective = false" OnSaved="Reload" />
@@ -162,6 +163,9 @@ else
     <MeasurementDialog ProgrammeId="Id" ObjectiveId="ObjectiveId" Kpi="measurementKpi"
                        Measurement="editingMeasurement" Visible="measurementKpi is not null"
                        OnClose="CloseMeasurement" OnSaved="Reload" />
+
+    <MeasurementCommentsDialog Measurement="commentMeasurement" Visible="commentMeasurement is not null"
+                               OnClose="() => commentMeasurement = null" OnSaved="Reload" />
 }
 
 @code {
@@ -176,6 +180,7 @@ else
     private KpiVm? selectedKpi;
     private KpiVm? measurementKpi;
     private MeasurementVm? editingMeasurement;
+    private MeasurementVm? commentMeasurement;
     private bool _loading = true;
     private bool _deleting;
 
@@ -233,6 +238,12 @@ else
         // reloaded data (e.g. a just-added measurement) rather than a stale instance.
         selectedKpi = selectedKpi is null ? null : kpiVms.FirstOrDefault(k => k.Id == selectedKpi.Id);
 
+        // Likewise re-resolve the open comments dialog's measurement so its comment count reflects
+        // the reload (e.g. a just-added comment) rather than a stale instance.
+        commentMeasurement = commentMeasurement is null
+            ? null
+            : selectedKpi?.Measurements.FirstOrDefault(m => m.Id == commentMeasurement.Id);
+
         _loading = false;
     }
 
@@ -256,7 +267,7 @@ else
     {
         var measurements = await MeasurementsApi.GetMeasurementsAsync(k.Id, CancellationToken.None) ?? [];
         var measurementVms = measurements
-            .Select(m => new MeasurementVm(m.Id, m.Value, m.Notes, m.KpiId, m.MeasurementDate, m.CreatedDate))
+            .Select(m => new MeasurementVm(m.Id, m.Value, m.Notes, m.KpiId, m.MeasurementDate, m.CreatedDate, m.CommentCount))
             .ToList();
 
         return new KpiVm(

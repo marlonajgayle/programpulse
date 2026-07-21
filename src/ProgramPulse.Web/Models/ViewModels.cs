@@ -193,7 +193,8 @@ public sealed record MeasurementVm(
     string? Notes,
     Guid KpiId,
     DateTime MeasurementDate,
-    DateTime CreatedDate);
+    DateTime CreatedDate,
+    int CommentCount);
 
 public static class StatusRollup
 {

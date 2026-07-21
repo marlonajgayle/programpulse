@@ -253,7 +253,7 @@ public sealed class SampleData
             ?? throw new InvalidOperationException("KPI not found.");
 
         var measurement = new MeasurementVm(
-            Guid.CreateVersion7(), value, notes, kpiId, DateTime.Today, DateTime.Today);
+            Guid.CreateVersion7(), value, notes, kpiId, DateTime.Today, DateTime.Today, CommentCount: 0);
 
         ((List<MeasurementVm>)kpi.Measurements).Add(measurement);
         return measurement;
@@ -475,7 +475,8 @@ public sealed class SampleData
                 label,
                 id,
                 created.AddDays(index * 14),
-                created.AddDays(index * 14)));
+                created.AddDays(index * 14),
+                CommentCount: 0));
         }
 
         return new KpiVm(

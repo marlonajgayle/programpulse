@@ -1292,6 +1292,21 @@ body {
 .pp-vtimeline__date { font-family: var(--font-mono); font-size: .74rem; color: var(--pp-muted); }
 .pp-vtimeline__notes { margin: .25rem 0 0; font-size: .85rem; color: var(--pp-muted); line-height: 1.45; }
 .pp-vtimeline__empty { font-size: .9rem; color: var(--pp-faint); font-style: italic; margin: .5rem 0; }
+.pp-vtimeline__actions { display: inline-flex; align-items: center; gap: .35rem; flex: none; }
+
+/* Comment icon button carrying an optional count badge. */
+.pp-iconbtn--count { width: auto; min-width: 2rem; padding: 0 .5rem; gap: .3rem; }
+.pp-iconbtn--count svg { width: 1rem; height: 1rem; }
+.pp-iconbtn__count { font-family: var(--font-mono); font-size: .72rem; line-height: 1; color: var(--pp-muted); }
+
+/* Comment list inside the comments dialog. */
+.pp-commentlist { list-style: none; margin: 0 0 1rem; padding: 0; max-height: 18rem; overflow-y: auto; display: flex; flex-direction: column; gap: .75rem; }
+.pp-commentlist__item {
+  background: var(--pp-surface-2); border: 1px solid var(--pp-line);
+  border-radius: 12px; padding: .65rem .8rem; display: flex; flex-direction: column; gap: .3rem;
+}
+.pp-commentlist__text { margin: 0; font-size: .9rem; line-height: 1.45; color: var(--pp-text); white-space: pre-wrap; }
+.pp-commentlist__meta { font-family: var(--font-mono); font-size: .72rem; color: var(--pp-muted); }
 
 /* KPI list + detail: narrow-screen stacking */
 @media (max-width: 860px) {

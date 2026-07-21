@@ -70,7 +70,8 @@ public sealed class CreateMeasurementCommandHandler(
             measurement.MeasurementDate,
             measurement.KpiId,
             measurement.CreatedDate,
-            measurement.LastModifiedDate);
+            measurement.LastModifiedDate,
+            CommentCount: 0);
 
         return Result<MeasurementResponse>.Created(response, $"/api/v1/measurements/{measurement.Id}");
     }
