@@ -8,13 +8,11 @@
         <span class="pp-datepill pp-datepill--ghost">Last 8 weeks</span>
     </div>
 
+    @* §2.5: no gridlines, no axis rules. The horizontal rules that used to sit behind
+       these lines were removed — the reference has none and they add noise at this
+       scale. The figures are stated in the axis and legend below. *@
     <svg class="pp-trend__chart" viewBox="0 0 @W @H" preserveAspectRatio="none" role="img"
          aria-label="On-track, at-risk and off-track programme counts over the last 8 weeks">
-        @for (var g = 1; g <= _max; g++)
-        {
-            var y = Y(g);
-            <line x1="@PadL" y1="@y" x2="@(W - PadR)" y2="@y" class="pp-trend__grid" />
-        }
         <polyline points="@Line(p => p.OnTrack)" class="pp-trend__line pp-trend__line--track" />
         <polyline points="@Line(p => p.AtRisk)" class="pp-trend__line pp-trend__line--warn" />
         <polyline points="@Line(p => p.OffTrack)" class="pp-trend__line pp-trend__line--off" />

@@ -30,7 +30,7 @@
 </header>
 
 <!-- ===== HERO ===== -->
-<section class="pp-hero">
+<section class="pp-hero rise">
     <div class="pp-container pp-hero__inner">
         <div class="pp-hero__copy">
             <span class="pp-eyebrow">Program performance, in real time</span>
@@ -58,10 +58,10 @@
             <svg class="pp-ekg" viewBox="0 0 600 220" preserveAspectRatio="none">
                 <defs>
                     <linearGradient id="ekgFade" x1="0" x2="1" y1="0" y2="0">
-                        <stop offset="0%" stop-color="var(--pp-track)" stop-opacity="0" />
-                        <stop offset="12%" stop-color="var(--pp-track)" stop-opacity="1" />
-                        <stop offset="55%" stop-color="var(--pp-warn)" stop-opacity="1" />
-                        <stop offset="100%" stop-color="var(--pp-off)" stop-opacity="1" />
+                        <stop offset="0%" stop-color="var(--mint)" stop-opacity="0" />
+                        <stop offset="12%" stop-color="var(--mint)" stop-opacity="1" />
+                        <stop offset="55%" stop-color="var(--amber)" stop-opacity="1" />
+                        <stop offset="100%" stop-color="var(--danger)" stop-opacity="1" />
                     </linearGradient>
                 </defs>
                 <line x1="0" y1="110" x2="600" y2="110" class="pp-ekg__baseline" />
@@ -88,7 +88,7 @@
         <h2 class="pp-section-title">From measurement to meaning</h2>
 
         <div class="pp-bento">
-            <article class="pp-card pp-bento__tile--lg">
+            <article class="pp-card pp-bento__tile--lg rise">
                 <span class="pp-card__index">01</span>
                 <h3>Structured hierarchy</h3>
                 <p>Roll measurements up through KPIs and objectives to the programmes
@@ -101,7 +101,8 @@
                 </div>
             </article>
 
-            <article class="pp-card pp-bento__tile--sm">
+            @* The single dark tile in this grid (§1.2.3 — one dark card per viewport). *@
+            <article class="pp-card pp-card-dark pp-bento__tile--sm rise">
                 <span class="pp-card__index">02</span>
                 <h3>Computed status</h3>
                 <p>No manual red-yellow-green guesswork. Status is derived from the
@@ -113,14 +114,14 @@
                 </div>
             </article>
 
-            <article class="pp-card pp-bento__tile--sm">
+            <article class="pp-card pp-bento__tile--sm rise">
                 <span class="pp-card__index">03</span>
                 <h3>Multi-tenant by design</h3>
                 <p>Org-scoped isolation and role-based access from day one, so teams
                    only ever see their own programs.</p>
             </article>
 
-            <article class="pp-card pp-bento__tile--tall">
+            <article class="pp-card pp-bento__tile--full rise">
                 <span class="pp-card__index">04</span>
                 <h3>Built for accountability</h3>
                 <p>A clear trail from a single logged number to the programme it
@@ -142,12 +143,14 @@
         <h2 class="pp-section-title">Pricing that scales with your programs</h2>
 
         <div class="pp-billing-toggle" role="group" aria-label="Billing period">
-            <button type="button" class="@(annual ? "" : "is-active")" @onclick="() => annual = false">Monthly</button>
-            <button type="button" class="@(annual ? "is-active" : "")" @onclick="() => annual = true">Annually</button>
+            <button type="button" aria-pressed="@((!annual).ToString().ToLowerInvariant())"
+                    @onclick="() => annual = false">Monthly</button>
+            <button type="button" aria-pressed="@annual.ToString().ToLowerInvariant()"
+                    @onclick="() => annual = true">Annually</button>
         </div>
 
         <div class="pp-price-grid">
-            <article class="pp-price">
+            <article class="pp-price rise">
                 <h3 class="pp-price__name">Free</h3>
                 <p class="pp-price__amount">$0<span>@Period</span></p>
                 <p class="pp-price__note">Try the full hierarchy on one program.</p>
@@ -159,7 +162,7 @@
                 <a href="/signup" class="pp-btn pp-btn--ghost pp-btn--block">Get started</a>
             </article>
 
-            <article class="pp-price">
+            <article class="pp-price rise">
                 <h3 class="pp-price__name">Starter</h3>
                 <p class="pp-price__amount">@Price(9, 7)<span>@Period</span></p>
                 <p class="pp-price__note">For small teams getting their first programs off the ground.</p>
@@ -172,7 +175,7 @@
                 <a href="/signup" class="pp-btn pp-btn--ghost pp-btn--block">Start free trial</a>
             </article>
 
-            <article class="pp-price pp-price--featured">
+            <article class="pp-price pp-price--featured rise">
                 <span class="pp-price__badge">Most popular</span>
                 <h3 class="pp-price__name">Pro</h3>
                 <p class="pp-price__amount">@Price(19, 15)<span>@Period</span></p>
@@ -186,7 +189,7 @@
                 <a href="/signup" class="pp-btn pp-btn--primary pp-btn--block">Start free trial</a>
             </article>
 
-            <article class="pp-price">
+            <article class="pp-price rise">
                 <h3 class="pp-price__name">Enterprise</h3>
                 <p class="pp-price__amount">@Price(49, 39)<span>@Period</span></p>
                 <p class="pp-price__note">Dedicated support and controls for org-wide rollout.</p>
@@ -209,22 +212,15 @@
         <h2 class="pp-section-title">Frequently asked questions</h2>
 
         <div class="pp-faq__list">
-            @for (var i = 0; i < faqs.Count; i++)
+            @foreach (var item in faqs)
             {
-                var index = i;
-                var item = faqs[index];
-                var open = openFaq == index;
-                <div class="pp-faq__item @(open ? "is-open" : "")">
-                    <button type="button" class="pp-faq__q" @onclick="() => ToggleFaq(index)"
-                            aria-expanded="@open.ToString().ToLowerInvariant()">
+                <details class="pp-faq__item" name="faq">
+                    <summary class="pp-faq__q">
                         <span>@item.Question</span>
                         <span class="pp-faq__icon" aria-hidden="true"></span>
-                    </button>
-                    @if (open)
-                    {
-                        <p class="pp-faq__a">@item.Answer</p>
-                    }
-                </div>
+                    </summary>
+                    <p class="pp-faq__a">@item.Answer</p>
+                </details>
             }
         </div>
     </div>
@@ -232,7 +228,7 @@
 
 <!-- ===== NEWSLETTER ===== -->
 <section id="newsletter" class="pp-newsletter">
-    <div class="pp-container pp-newsletter__inner">
+    <div class="pp-container pp-newsletter__inner rise">
         <div>
             <h2 class="pp-section-title">Get product updates</h2>
             <p class="pp-newsletter__lede">New features, build notes, and the occasional
@@ -292,9 +288,8 @@
     private string Period => annual ? "/mo, billed yearly" : "/mo";
     private string Price(int monthly, int annualPerMo) => annual ? $"${annualPerMo}" : $"${monthly}";
 
-    // FAQ accordion: one open at a time
-    private int? openFaq;
-    private void ToggleFaq(int i) => openFaq = openFaq == i ? null : i;
+    // FAQ accordion is native <details name="faq">, so "one open at a time" is
+    // handled by the browser and needs no component state.
 
     private readonly List<(string Question, string Answer)> faqs = new()
     {

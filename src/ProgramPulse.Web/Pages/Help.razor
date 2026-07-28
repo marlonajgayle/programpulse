@@ -99,22 +99,15 @@
         else
         {
             <div class="pp-help-faq__list">
-                @foreach (var (item, index) in FilteredFaqs.Select((f, i) => (f, i)))
+                @foreach (var item in FilteredFaqs)
                 {
-                    var open = openFaq == index;
-                    <div class="pp-help-faq__item @(open ? "is-open" : "")">
-                        <button type="button" class="pp-help-faq__q" @onclick="() => ToggleFaq(index)"
-                                aria-expanded="@open.ToString().ToLowerInvariant()">
+                    <details class="pp-help-faq__item" name="help-faq">
+                        <summary class="pp-help-faq__q">
                             <span>@item.Question</span>
-                            <svg class="pp-help-faq__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        </button>
-                        @if (open)
-                        {
-                            <p class="pp-help-faq__a">@item.Answer</p>
-                        }
-                    </div>
+                            <span class="pp-help-faq__chevron" aria-hidden="true"></span>
+                        </summary>
+                        <p class="pp-help-faq__a">@item.Answer</p>
+                    </details>
                 }
             </div>
         }
@@ -181,7 +174,6 @@
 
 @code {
     private string faqSearch = string.Empty;
-    private int openFaq = -1;
     private bool submitted;
 
     private bool _loading = true;
@@ -203,8 +195,6 @@
         string.IsNullOrWhiteSpace(faqSearch)
             ? faqs
             : faqs.Where(f => f.Question.Contains(faqSearch, StringComparison.OrdinalIgnoreCase)).ToList();
-
-    private void ToggleFaq(int index) => openFaq = openFaq == index ? -1 : index;
 
     private void HandleSubmit()
     {
